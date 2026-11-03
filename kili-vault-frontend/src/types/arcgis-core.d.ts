@@ -138,6 +138,25 @@ declare module "@arcgis/core/widgets/LayerList" {
   export default LayerList;
 }
 
+declare module "@arcgis/core/widgets/Measurement" {
+  class Measurement {
+    [key: string]: any;
+    constructor(options?: any);
+    clear(): void;
+    destroy(): void;
+  }
+  export default Measurement;
+}
+
+declare module "@arcgis/core/widgets/Sketch" {
+  class Sketch {
+    [key: string]: any;
+    constructor(options?: any);
+    destroy(): void;
+  }
+  export default Sketch;
+}
+
 declare module "@arcgis/core/geometry/Point" {
   class Point {
     [key: string]: any;

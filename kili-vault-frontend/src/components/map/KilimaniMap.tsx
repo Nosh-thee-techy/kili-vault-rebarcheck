@@ -8,13 +8,19 @@ import Point from "@arcgis/core/geometry/Point";
 import SimpleFillSymbol from "@arcgis/core/symbols/SimpleFillSymbol";
 import SimpleLineSymbol from "@arcgis/core/symbols/SimpleLineSymbol";
 import * as geometryEngine from "@arcgis/core/geometry/geometryEngine";
+import Measurement from "@arcgis/core/widgets/Measurement";
+import Sketch from "@arcgis/core/widgets/Sketch";
 import type FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 import UniqueValueRenderer from "@arcgis/core/renderers/UniqueValueRenderer";
 import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
 import Expand from "@arcgis/core/widgets/Expand";
 import Home from "@arcgis/core/widgets/Home";
 import LayerList from "@arcgis/core/widgets/LayerList";
-import { KILIMANI_WARD_EXTENT, MAP_LAYERS } from "@/config/mapLayers";
+import {
+  KILIMANI_WARD_EXTENT,
+  MAP_LAYERS,
+  type MapLayerConfig,
+} from "@/config/mapLayers";
 import { createMapFeatureLayer } from "@/lib/mapFeatureLayer";
 import { analyzeSiteProximity, type SiteProximity } from "@/lib/siteProximity";
 import { CASE_STATUS_COLORS, CHANGE_TYPE_COLORS } from "@/config/theme";
@@ -81,7 +87,23 @@ interface KilimaniMapProps {
   caseLinkPrefix?: string;
   onFeatureSelect?: (selection: PlannerMapSelection | null) => void;
   clearSelectionToken?: number;
+  mapLayers?: MapLayerConfig[];
+  enablePlannerTools?: boolean;
   className?: string;
+}
+
+type PlannerTool = "measurement" | "sketch" | "buffer" | "checks";
+type ConstraintCheckState = "intersects" | "clear" | "unavailable" | "error";
+
+interface ConstraintCheck {
+  title: string;
+  state: ConstraintCheckState;
+  count?: number;
+}
+
+interface ParcelBufferResult {
+  distanceMeters: number;
+  features: __esri.Graphic[];
 }
 
 const EMPTY_FC: GeoJSON.FeatureCollection = {
@@ -212,7 +234,7 @@ async function buildFeatureContext(
     }
   };
   const [buildings, roads, rivers, buffers] = await Promise.all([
-    query(layers.buildings, geometry),
+    query(layers["buildings-parcels"] ?? layers.buildings, geometry),
     query(layers.roads, searchGeometry as __esri.Geometry),
     query(layers.rivers, searchGeometry as __esri.Geometry),
     query(layers["river-buffer"], geometry),
@@ -254,12 +276,21 @@ export function KilimaniMap({
   caseLinkPrefix = "/planner/cases",
   onFeatureSelect,
   clearSelectionToken = 0,
+  mapLayers = MAP_LAYERS,
+  enablePlannerTools = false,
   className,
 }: KilimaniMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const measurementContainerRef = useRef<HTMLDivElement>(null);
+  const sketchContainerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<MapView | null>(null);
   const featureLayersRef = useRef<Record<string, FeatureLayer>>({});
   const proximityLayerRef = useRef<GraphicsLayer | null>(null);
+  const analysisLayerRef = useRef<GraphicsLayer | null>(null);
+  const sketchLayerRef = useRef<GraphicsLayer | null>(null);
+  const measurementRef = useRef<Measurement | null>(null);
+  const sketchWidgetRef = useRef<Sketch | null>(null);
+  const analysisRunRef = useRef(0);
   const casesLayerRef = useRef<GeoJSONLayer | null>(null);
   const detectionsLayerRef = useRef<GeoJSONLayer | null>(null);
   const highlightHandleRef = useRef<__esri.Handle | null>(null);
@@ -274,7 +305,23 @@ export function KilimaniMap({
   );
   const [mapError, setMapError] = useState<string | null>(null);
   const [selection, setSelection] = useState<MapSelection | null>(null);
+  const [plannerFeature, setPlannerFeature] =
+    useState<PlannerFeatureSelection | null>(null);
   const [proximity, setProximity] = useState<SiteProximity | null>(null);
+  const [plannerToolsOpen, setPlannerToolsOpen] = useState(false);
+  const [activePlannerTool, setActivePlannerTool] =
+    useState<PlannerTool | null>(null);
+  const [measurementMode, setMeasurementMode] = useState<"distance" | "area">(
+    "distance",
+  );
+  const [bufferDistance, setBufferDistance] = useState("200");
+  const [bufferLoading, setBufferLoading] = useState(false);
+  const [bufferResult, setBufferResult] =
+    useState<ParcelBufferResult | null>(null);
+  const [analysisMessage, setAnalysisMessage] = useState<string | null>(null);
+  const [constraintChecks, setConstraintChecks] =
+    useState<ConstraintCheck[] | null>(null);
+  const [checksLoading, setChecksLoading] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [searchMessage, setSearchMessage] = useState<string | null>(null);
@@ -290,7 +337,7 @@ export function KilimaniMap({
 
     const map = new Map({ basemap: "arcgis-topographic" });
 
-    MAP_LAYERS.forEach((config) => {
+    mapLayers.forEach((config) => {
       const layer = createMapFeatureLayer(
         config,
         layerVisibility[config.id] ?? config.defaultVisible,
@@ -302,6 +349,16 @@ export function KilimaniMap({
     const proximityLayer = new GraphicsLayer({ title: "Road proximity guide" });
     map.add(proximityLayer);
     proximityLayerRef.current = proximityLayer;
+
+    const analysisLayer = new GraphicsLayer({
+      title: "Temporary spatial analysis",
+    });
+    const sketchLayer = new GraphicsLayer({
+      title: "Temporary site sketches",
+    });
+    map.addMany([analysisLayer, sketchLayer]);
+    analysisLayerRef.current = analysisLayer;
+    sketchLayerRef.current = sketchLayer;
 
     const detectionsLayer = new GeoJSONLayer({
       url: URL.createObjectURL(
@@ -394,6 +451,12 @@ export function KilimaniMap({
     const clickHandle = view.on(
       "click",
       async (event: __esri.ViewClickEvent) => {
+        if (
+          measurementRef.current?.activeTool ||
+          sketchWidgetRef.current?.activeTool
+        ) {
+          return;
+        }
         const response = await view.hitTest(event);
         const caseHit = response.results.find(
           (result: __esri.ViewHit) =>
@@ -406,6 +469,7 @@ export function KilimaniMap({
           const caseItem = casesRef.current.find((item) => item.id === caseId);
           if (caseItem) {
             onFeatureSelectRef.current?.(null);
+            setPlannerFeature(null);
             await highlightGraphic(casesLayer, caseHit.graphic);
             setSelection({ kind: "case", caseItem });
             onCaseSelectRef.current?.(caseId);
@@ -424,6 +488,7 @@ export function KilimaniMap({
 
         if (detectionHit?.graphic?.geometry) {
           const attrs = detectionHit.graphic.attributes;
+          setPlannerFeature(null);
           await highlightGraphic(detectionsLayer, detectionHit.graphic);
           setSelection({
             kind: "detection",
@@ -457,13 +522,17 @@ export function KilimaniMap({
         const featureHit =
           featureHits.find(
             (result) =>
+              (result.graphic.layer as FeatureLayer).id === "buildings-parcels",
+          ) ??
+          featureHits.find(
+            (result) =>
               (result.graphic.layer as FeatureLayer).id === "parcels-landuse",
           ) ?? featureHits[0];
 
         if (featureHit?.graphic?.geometry) {
           const layer = featureHit.graphic.layer as FeatureLayer;
           const layerId = String(layer.id);
-          const config = MAP_LAYERS.find((item) => item.id === layerId);
+          const config = mapLayers.find((item) => item.id === layerId);
           const attributes = (featureHit.graphic.attributes ?? {}) as Record<
             string,
             unknown
@@ -471,7 +540,7 @@ export function KilimaniMap({
           const kind: PlannerFeatureKind =
             layerId === "parcels-landuse"
               ? "parcel"
-              : layerId === "buildings"
+              : ["buildings", "buildings-parcels"].includes(layerId)
                 ? "building"
                 : layerId === "landuse"
                   ? "landuse"
@@ -499,6 +568,7 @@ export function KilimaniMap({
             context,
           };
           setSelection(null);
+          setPlannerFeature(selected);
           onFeatureSelectRef.current?.(selected);
           view
             .goTo({
@@ -511,36 +581,48 @@ export function KilimaniMap({
 
         clearHighlight();
         setSelection(null);
+        setPlannerFeature(null);
         onFeatureSelectRef.current?.(null);
       },
     );
 
     return () => {
       destroyed = true;
+      analysisRunRef.current += 1;
       clickHandle.remove();
       homeWidget.destroy();
       basemapExpand.destroy();
       basemapGallery.destroy();
       layerExpand.destroy();
       layerList.destroy();
+      measurementRef.current?.destroy();
+      measurementRef.current = null;
+      sketchWidgetRef.current?.destroy();
+      sketchWidgetRef.current = null;
       highlightHandleRef.current?.remove();
       highlightHandleRef.current = null;
       view.destroy();
       viewRef.current = null;
       featureLayersRef.current = {};
       proximityLayerRef.current = null;
+      analysisLayerRef.current = null;
+      sketchLayerRef.current = null;
       casesLayerRef.current = null;
       detectionsLayerRef.current = null;
     };
-  }, []);
+  }, [mapLayers]);
 
   useEffect(() => {
     if (clearSelectionToken === 0) return;
     highlightHandleRef.current?.remove();
     highlightHandleRef.current = null;
     proximityLayerRef.current?.removeAll();
+    analysisLayerRef.current?.removeAll();
     setProximity(null);
     setSelection(null);
+    setPlannerFeature(null);
+    setBufferResult(null);
+    setConstraintChecks(null);
     onFeatureSelectRef.current?.(null);
   }, [clearSelectionToken]);
 
@@ -548,10 +630,11 @@ export function KilimaniMap({
     const view = viewRef.current;
     if (!view || !searchTerm.trim()) return;
     const value = searchTerm.trim().replace(/'/g, "''");
-    const searchConfigs = MAP_LAYERS.filter(
+    const searchConfigs = mapLayers.filter(
       (config) =>
         (config.searchFields?.length && config.id === "parcels-landuse") ||
-        config.id === "buildings",
+        config.id === "buildings" ||
+        config.id === "buildings-parcels",
     );
     let cancelled = false;
     (async () => {
@@ -583,14 +666,16 @@ export function KilimaniMap({
             graphic.geometry,
             featureLayersRef.current,
           );
-          onFeatureSelectRef.current?.({
+          const selected: PlannerFeatureSelection = {
             kind,
             layerId: config.id,
             layerTitle: config.title,
             geometry: graphic.geometry,
             attributes,
             context,
-          });
+          };
+          setPlannerFeature(selected);
+          onFeatureSelectRef.current?.(selected);
           setSearchMessage(null);
           view
             .goTo({ target: graphic, zoom: kind === "parcel" ? 18 : 19 })
@@ -606,7 +691,7 @@ export function KilimaniMap({
     return () => {
       cancelled = true;
     };
-  }, [searchTerm]);
+  }, [mapLayers, searchTerm]);
 
   useEffect(() => {
     const layer = proximityLayerRef.current;
@@ -659,13 +744,81 @@ export function KilimaniMap({
   }, [selection]);
 
   useEffect(() => {
-    MAP_LAYERS.forEach((config) => {
+    mapLayers.forEach((config) => {
       const layer = featureLayersRef.current[config.id];
       if (layer) {
         layer.visible = layerVisibility[config.id] ?? config.defaultVisible;
       }
     });
-  }, [layerVisibility]);
+  }, [layerVisibility, mapLayers]);
+
+  useEffect(() => {
+    if (
+      !enablePlannerTools ||
+      mapStatus !== "ready" ||
+      activePlannerTool !== "measurement" ||
+      !measurementContainerRef.current ||
+      !viewRef.current
+    ) {
+      return;
+    }
+
+    const measurement = new Measurement({
+      view: viewRef.current,
+      activeTool: measurementMode,
+      areaUnit: "acres",
+      linearUnit: "meters",
+      container: measurementContainerRef.current,
+    });
+    measurementRef.current = measurement;
+
+    return () => {
+      measurement.destroy();
+      measurementRef.current = null;
+    };
+  }, [activePlannerTool, enablePlannerTools, mapStatus]);
+
+  useEffect(() => {
+    if (measurementRef.current) {
+      measurementRef.current.activeTool = measurementMode;
+    }
+  }, [measurementMode]);
+
+  useEffect(() => {
+    if (
+      !enablePlannerTools ||
+      mapStatus !== "ready" ||
+      activePlannerTool !== "sketch" ||
+      !sketchContainerRef.current ||
+      !viewRef.current ||
+      !sketchLayerRef.current
+    ) {
+      return;
+    }
+
+    const sketch = new Sketch({
+      view: viewRef.current,
+      layer: sketchLayerRef.current,
+      availableCreateTools: ["polygon", "polyline"],
+      container: sketchContainerRef.current,
+    });
+    sketchWidgetRef.current = sketch;
+
+    return () => {
+      sketch.destroy();
+      sketchWidgetRef.current = null;
+    };
+  }, [activePlannerTool, enablePlannerTools, mapStatus]);
+
+  useEffect(() => {
+    analysisRunRef.current += 1;
+    analysisLayerRef.current?.removeAll();
+    setBufferLoading(false);
+    setChecksLoading(false);
+    setBufferResult(null);
+    setConstraintChecks(null);
+    setAnalysisMessage(null);
+  }, [plannerFeature]);
 
   useEffect(() => {
     if (casesLayerRef.current) {
@@ -742,21 +895,31 @@ export function KilimaniMap({
   useEffect(() => {
     const view = viewRef.current;
     const layer = detectionsLayerRef.current;
-    if (!view || !layer || !selectedDetectionId) return;
+    if (
+      mapStatus !== "ready" ||
+      !view ||
+      !layer ||
+      !selectedDetectionId
+    ) {
+      return;
+    }
 
     let cancelled = false;
     const escapedId = selectedDetectionId.replace(/'/g, "''");
-    layer
-      .queryFeatures({
-        where: `id = '${escapedId}'`,
-        returnGeometry: true,
-        outFields: ["*"],
-      })
-      .then(async (result: __esri.FeatureSet) => {
+    (async () => {
+      try {
+        await Promise.all([view.when(), layer.load()]);
+        if (cancelled) return;
+        const result = await layer.queryFeatures({
+          where: `id = '${escapedId}'`,
+          returnGeometry: true,
+          outFields: ["*"],
+        }) as __esri.FeatureSet;
         if (cancelled || result.features.length === 0) return;
         const feature = result.features[0];
         if (!feature.geometry) return;
         const attrs = (feature.attributes ?? {}) as Record<string, unknown>;
+        setPlannerFeature(null);
         const layerView = await view.whenLayerView(layer);
         if (cancelled) return;
         highlightHandleRef.current?.remove();
@@ -777,14 +940,209 @@ export function KilimaniMap({
           changeType: String(attrs.change_type ?? "UNKNOWN"),
           confidence: Number(attrs.confidence ?? 0),
         });
-        view.goTo({ target: feature, zoom: 18 }).catch(() => undefined);
-      })
-      .catch(() => undefined);
+        await view.goTo({ target: feature.geometry, zoom: 19 });
+      } catch {
+        // A missing or unavailable detection geometry leaves the map unchanged.
+      }
+    })();
 
     return () => {
       cancelled = true;
     };
-  }, [selectedDetectionId]);
+  }, [detectionsFC, mapStatus, selectedDetectionId]);
+
+  const runParcelBuffer = async () => {
+    if (plannerFeature?.kind !== "parcel") {
+      setAnalysisMessage("Select a parcel on the map before running proximity analysis.");
+      return;
+    }
+
+    const distanceMeters = Number(bufferDistance);
+    if (!Number.isFinite(distanceMeters) || distanceMeters < 1 || distanceMeters > 5000) {
+      setAnalysisMessage("Enter a distance from 1 to 5,000 metres.");
+      return;
+    }
+
+    const parcelLayer = featureLayersRef.current["parcels-landuse"];
+    const analysisLayer = analysisLayerRef.current;
+    if (!parcelLayer || !analysisLayer) {
+      setAnalysisMessage("Parcel data is unavailable in the current map.");
+      return;
+    }
+
+    const requestId = ++analysisRunRef.current;
+    setActivePlannerTool("buffer");
+    setBufferLoading(true);
+    setChecksLoading(false);
+    setConstraintChecks(null);
+    setAnalysisMessage(null);
+    setBufferResult(null);
+    analysisLayer.removeAll();
+
+    try {
+      const bufferGeometry = geometryEngine.geodesicBuffer(
+        plannerFeature.geometry as __esri.Polygon,
+        distanceMeters,
+        "meters",
+      );
+      const objectIds: Array<string | number> = await parcelLayer.queryObjectIds({
+        where: "1=1",
+        geometry: bufferGeometry,
+        spatialRelationship: "intersects",
+      });
+      if (requestId !== analysisRunRef.current || !viewRef.current) return;
+
+      const objectIdField = parcelLayer.objectIdField;
+      const selectedObjectId = objectIdField
+        ? plannerFeature.attributes[objectIdField]
+        : undefined;
+      const nearbyIds = (objectIds ?? []).filter(
+        (id: string | number) =>
+          selectedObjectId == null || String(id) !== String(selectedObjectId),
+      );
+      const nearbyFeatures: __esri.Graphic[] = [];
+      const outFields = [
+        "parcel_num",
+        "lr_number",
+        ...(objectIdField ? [objectIdField] : []),
+      ];
+      for (let index = 0; index < nearbyIds.length; index += 500) {
+        const result = await parcelLayer.queryFeatures({
+          objectIds: nearbyIds.slice(index, index + 500),
+          outFields,
+          returnGeometry: true,
+        });
+        nearbyFeatures.push(...(result.features as __esri.Graphic[]));
+      }
+      if (requestId !== analysisRunRef.current || !viewRef.current) return;
+
+      const parcelCandidates = nearbyFeatures.filter((feature) => {
+        const featureObjectId = objectIdField
+          ? feature.attributes?.[objectIdField]
+          : undefined;
+        if (selectedObjectId != null && featureObjectId != null) {
+          return String(featureObjectId) !== String(selectedObjectId);
+        }
+        return !(
+          feature.geometry &&
+          geometryEngine.equals(feature.geometry, plannerFeature.geometry)
+        );
+      });
+
+      const bufferGraphic = new Graphic({
+        geometry: bufferGeometry,
+        symbol: new SimpleFillSymbol({
+          color: "rgba(47, 93, 70, 0.08)",
+          outline: new SimpleLineSymbol({
+            color: "#2F5D46",
+            width: 1.5,
+            style: "dash",
+          }),
+        }),
+      });
+      const neighborGraphics = parcelCandidates
+        .filter((feature) => feature.geometry)
+        .map(
+          (feature) =>
+            new Graphic({
+              geometry: feature.geometry,
+              attributes: feature.attributes,
+              symbol: new SimpleFillSymbol({
+                color: "rgba(190, 115, 48, 0.13)",
+                outline: new SimpleLineSymbol({ color: "#A85B22", width: 1.6 }),
+              }),
+            }),
+        );
+      analysisLayer.removeAll();
+      analysisLayer.addMany([bufferGraphic, ...neighborGraphics]);
+      setBufferResult({ distanceMeters, features: parcelCandidates });
+    } catch {
+      if (requestId === analysisRunRef.current) {
+        setAnalysisMessage("The parcel buffer could not be completed from the current layer service.");
+      }
+    } finally {
+      if (requestId === analysisRunRef.current) setBufferLoading(false);
+    }
+  };
+
+  const runConstraintChecks = async () => {
+    if (plannerFeature?.kind !== "parcel") {
+      setAnalysisMessage("Select a parcel on the map before running constraint checks.");
+      return;
+    }
+
+    const checks = [
+      { id: "river-buffer", title: "15 m river buffer" },
+      { id: "flood-zones", title: "Flood zones" },
+      { id: "wetlands", title: "Protected wetlands" },
+      { id: "historic-districts", title: "Historic preservation districts" },
+    ];
+    const requestId = ++analysisRunRef.current;
+    setActivePlannerTool("checks");
+    setChecksLoading(true);
+    setBufferLoading(false);
+    setBufferResult(null);
+    setAnalysisMessage(null);
+    setConstraintChecks(null);
+    analysisLayerRef.current?.removeAll();
+
+    try {
+      const results = await Promise.all(
+        checks.map(async ({ id, title }) => {
+          const layer = featureLayersRef.current[id];
+          if (!layer) {
+            return { check: { title, state: "unavailable" as const }, features: [] as __esri.Graphic[] };
+          }
+
+          try {
+            const result = await layer.queryFeatures({
+              where: "1=1",
+              geometry: plannerFeature.geometry,
+              spatialRelationship: "intersects",
+              outFields: ["*"],
+              returnGeometry: true,
+            });
+            const features = (result.features as __esri.Graphic[]).filter(
+              (feature) =>
+                feature.geometry &&
+                geometryEngine.intersects(
+                  plannerFeature.geometry,
+                  feature.geometry,
+                ),
+            );
+            return {
+              check: {
+                title,
+                state: features.length ? ("intersects" as const) : ("clear" as const),
+                count: features.length,
+              },
+              features,
+            };
+          } catch {
+            return { check: { title, state: "error" as const }, features: [] as __esri.Graphic[] };
+          }
+        }),
+      );
+
+      if (requestId !== analysisRunRef.current || !viewRef.current) return;
+      setConstraintChecks(results.map((result) => result.check));
+      const hitGraphics = results.flatMap((result) => result.features).map(
+        (feature) =>
+          new Graphic({
+            geometry: feature.geometry,
+            attributes: feature.attributes,
+            symbol: new SimpleFillSymbol({
+              color: "rgba(170, 53, 42, 0.18)",
+              outline: new SimpleLineSymbol({ color: "#AA352A", width: 2 }),
+            }),
+          }),
+      );
+      analysisLayerRef.current?.removeAll();
+      analysisLayerRef.current?.addMany(hitGraphics);
+    } finally {
+      if (requestId === analysisRunRef.current) setChecksLoading(false);
+    }
+  };
 
   const clearSelection = () => {
     highlightHandleRef.current?.remove();
@@ -792,6 +1150,8 @@ export function KilimaniMap({
     proximityLayerRef.current?.removeAll();
     setProximity(null);
     setSelection(null);
+    setPlannerFeature(null);
+    onFeatureSelectRef.current?.(null);
   };
 
   if (mapStatus === "error") {
@@ -851,6 +1211,258 @@ export function KilimaniMap({
             >
               {searchMessage}
             </calcite-notice>
+          )}
+          {enablePlannerTools && (
+            <div className="pointer-events-none absolute right-4 top-24 z-30 flex flex-col items-end gap-2">
+              <calcite-button
+                className="pointer-events-auto"
+                appearance={plannerToolsOpen ? "solid" : "outline"}
+                scale="m"
+                icon-start="analysis"
+                label="Planning tools"
+                aria-label="Planning tools"
+                aria-expanded={plannerToolsOpen}
+                aria-controls="planner-tools-panel"
+                title="Planning tools"
+                onClick={() => {
+                  if (plannerToolsOpen) setActivePlannerTool(null);
+                  setPlannerToolsOpen(!plannerToolsOpen);
+                }}
+              />
+              {plannerToolsOpen && (
+                <calcite-panel
+                  id="planner-tools-panel"
+                  heading="Planning tools"
+                  description="Temporary, client-side map analysis"
+                  className="pointer-events-auto max-h-[min(72vh,44rem)] w-[min(24rem,calc(100vw-2rem))] overflow-y-auto"
+                >
+                  <calcite-button
+                    slot="header-actions-end"
+                    appearance="transparent"
+                    icon-start="x"
+                    label="Close planning tools"
+                    onClick={() => {
+                      setPlannerToolsOpen(false);
+                      setActivePlannerTool(null);
+                    }}
+                  />
+
+                  <calcite-block heading="Measure" open>
+                    <p className="mb-2 text-sm">
+                      Measure map distance in metres or area in acres.
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <calcite-button
+                        appearance={
+                          activePlannerTool === "measurement" &&
+                          measurementMode === "distance"
+                            ? "solid"
+                            : "outline"
+                        }
+                        scale="s"
+                        icon-start="measure"
+                        onClick={() => {
+                          setMeasurementMode("distance");
+                          setActivePlannerTool("measurement");
+                        }}
+                      >
+                        Distance
+                      </calcite-button>
+                      <calcite-button
+                        appearance={
+                          activePlannerTool === "measurement" &&
+                          measurementMode === "area"
+                            ? "solid"
+                            : "outline"
+                        }
+                        scale="s"
+                        icon-start="measure-area"
+                        onClick={() => {
+                          setMeasurementMode("area");
+                          setActivePlannerTool("measurement");
+                        }}
+                      >
+                        Area
+                      </calcite-button>
+                    </div>
+                    {activePlannerTool === "measurement" && (
+                      <div className="mt-2">
+                        <div
+                          ref={measurementContainerRef}
+                          className="min-h-24"
+                        />
+                        <calcite-button
+                          appearance="transparent"
+                          scale="s"
+                          onClick={() => measurementRef.current?.clear()}
+                        >
+                          Clear measurement
+                        </calcite-button>
+                      </div>
+                    )}
+                  </calcite-block>
+
+                  <calcite-block heading="Site sketch" open>
+                    <p className="mb-2 text-sm">
+                      Draw temporary footprint polygons or access routes on the map.
+                    </p>
+                    <calcite-button
+                      appearance={activePlannerTool === "sketch" ? "solid" : "outline"}
+                      scale="s"
+                      icon-start="pencil"
+                      onClick={() => setActivePlannerTool("sketch")}
+                    >
+                      Open sketch tools
+                    </calcite-button>
+                    {activePlannerTool === "sketch" && (
+                      <div ref={sketchContainerRef} className="mt-2" />
+                    )}
+                    <calcite-button
+                      appearance="transparent"
+                      scale="s"
+                      className="mt-1"
+                      onClick={() => sketchLayerRef.current?.removeAll()}
+                    >
+                      Clear all sketches
+                    </calcite-button>
+                  </calcite-block>
+
+                  <calcite-block heading="Proximity buffer" open>
+                    <p className="mb-2 text-sm">
+                      Highlight mapped parcels within a distance of the selected parcel.
+                    </p>
+                    <div className="flex items-end gap-2">
+                      <calcite-input
+                        type="number"
+                        min="1"
+                        max="5000"
+                        step="50"
+                        value={bufferDistance}
+                        label="Buffer distance in metres"
+                        onInput={(event) =>
+                          setBufferDistance(
+                            (event.target as HTMLInputElement).value,
+                          )
+                        }
+                        className="min-w-0 flex-1"
+                      />
+                      <calcite-button
+                        appearance="solid"
+                        scale="s"
+                        icon-start="rings"
+                        disabled={
+                          bufferLoading || plannerFeature?.kind !== "parcel"
+                        }
+                        onClick={runParcelBuffer}
+                      >
+                        {bufferLoading ? "Checking" : "Run buffer"}
+                      </calcite-button>
+                    </div>
+                    {plannerFeature?.kind !== "parcel" && (
+                      <p className="mt-2 text-sm">
+                        Select a parcel on the map to run this analysis.
+                      </p>
+                    )}
+                    {bufferLoading && (
+                      <calcite-loader label="Finding surrounding parcels" />
+                    )}
+                    {bufferResult && (
+                      <div className="mt-2">
+                        <p className="mb-2 text-sm">
+                          {bufferResult.features.length} mapped parcel
+                          {bufferResult.features.length === 1 ? "" : "s"} within{" "}
+                          {bufferResult.distanceMeters} m. All returned parcels are
+                          highlighted on the map for notification review.
+                        </p>
+                        <calcite-notice open kind="warning" scale="s">
+                          This is a proximity screen. Confirm the applicable
+                          notification rules before using it as a legal notice list.
+                        </calcite-notice>
+                        <calcite-list label="Nearby parcel candidates" className="mt-2">
+                          {bufferResult.features.slice(0, 25).map((feature, index) => {
+                            const parcelReference =
+                              feature.attributes?.parcel_num ??
+                              feature.attributes?.lr_number;
+                            return (
+                              <calcite-list-item
+                                key={String(
+                                  feature.attributes?.OBJECTID ?? index,
+                                )}
+                                label={
+                                  parcelReference == null || parcelReference === ""
+                                    ? "Parcel reference unavailable"
+                                    : String(parcelReference)
+                                }
+                              />
+                            );
+                          })}
+                        </calcite-list>
+                        {bufferResult.features.length > 25 && (
+                          <p className="mt-1 text-xs">
+                            Showing 25 of {bufferResult.features.length} returned
+                            parcels; all are highlighted on the map.
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </calcite-block>
+
+                  <calcite-block heading="Environmental checks" open>
+                    <p className="mb-2 text-sm">
+                      Check the selected parcel against available mapped constraints.
+                    </p>
+                    <calcite-button
+                      appearance="outline"
+                      scale="s"
+                      icon-start="check-square"
+                      disabled={
+                        checksLoading || plannerFeature?.kind !== "parcel"
+                      }
+                      onClick={runConstraintChecks}
+                    >
+                      {checksLoading ? "Checking layers" : "Check constraints"}
+                    </calcite-button>
+                    {checksLoading && (
+                      <calcite-loader label="Checking constraint layers" />
+                    )}
+                    {constraintChecks && (
+                      <calcite-list label="Environmental and planning constraints" className="mt-2">
+                        {constraintChecks.map((check) => {
+                          const description =
+                            check.state === "intersects"
+                              ? `Potential overlap in ${check.count} mapped feature${check.count === 1 ? "" : "s"}`
+                              : check.state === "clear"
+                                ? "No overlap returned from the available layer"
+                                : check.state === "unavailable"
+                                  ? "Layer unavailable in this map"
+                                  : "Layer query failed; result is unknown";
+                          return (
+                            <calcite-list-item
+                              key={check.title}
+                              label={check.title}
+                              description={description}
+                            />
+                          );
+                        })}
+                      </calcite-list>
+                    )}
+                    {constraintChecks && (
+                      <calcite-notice open kind="warning" scale="s" className="mt-2">
+                        A detected overlap requires source and planning review.
+                        Flood, wetland, and historic layers are not configured in
+                        this map, so their status remains unknown.
+                      </calcite-notice>
+                    )}
+                  </calcite-block>
+
+                  {analysisMessage && (
+                    <calcite-notice open kind="danger" scale="s">
+                      {analysisMessage}
+                    </calcite-notice>
+                  )}
+                </calcite-panel>
+              )}
+            </div>
           )}
         </>
       )}

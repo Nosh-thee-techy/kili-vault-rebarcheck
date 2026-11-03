@@ -207,6 +207,48 @@ export const MAP_LAYERS: MapLayerConfig[] = [
   },
 ];
 
+/** Planner workspace uses the building-to-parcel join for parcel context. */
+const PLANNER_BUILDING_PARCEL_LAYER: MapLayerConfig = {
+  id: "buildings-parcels",
+  title: "Buildings + Parcels",
+  url: `${ARCGIS_HOST}/KILIMANI_BUILDINGS_PARCEL_LANDUSE_JOIN/FeatureServer`,
+  layerId: 0,
+  defaultVisible: true,
+  group: "planning",
+  geometryType: "polygon",
+  description: "Building footprints with joined parcel and land-use context.",
+  displayFields: [
+    "osm_id",
+    "fclass",
+    "name",
+    "type",
+    "parcel_num",
+    "lr_number",
+    "LANDUSE",
+    "BUILDINGS",
+    "BUILD_PER",
+    "GENERAL_DE",
+    "NAME_1",
+  ],
+  searchFields: ["osm_id", "name", "type", "parcel_num", "lr_number"],
+  planningFields: [
+    "parcel_num",
+    "lr_number",
+    "LANDUSE",
+    "BUILDINGS",
+    "BUILD_PER",
+    "GENERAL_DE",
+    "NAME_1",
+  ],
+};
+
+export const PLANNER_MAP_LAYERS: MapLayerConfig[] = MAP_LAYERS.filter(
+  (layer) => layer.id !== "buildings",
+).flatMap((layer) =>
+  layer.id === "parcels-landuse"
+    ? [layer, PLANNER_BUILDING_PARCEL_LAYER]
+    : [layer],
+);
 export const KILIMANI_WARD_EXTENT = {
   type: "extent" as const,
   xmin: 4091306.58,

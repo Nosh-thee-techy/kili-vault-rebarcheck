@@ -42,7 +42,7 @@ export function DetectionTriageList({
             <calcite-list-item
               key={detection.id}
               label={`${formatChangeType(detection.change_type)} · ${formatConfidence(detection.confidence)}`}
-              description={`${detection.id} · Area ${formatArea(detection.area_m2 ?? 0)} · NDBI ${number(detection.ndbi_change)} · Persistence ${detection.temporal_persistence == null ? "Not available" : formatConfidence(detection.temporal_persistence)} · ${detection.created_at ? formatRelativeDate(detection.created_at) : "Not available"}`}
+              description={`Area ${detection.area_m2 == null ? "Not available" : formatArea(detection.area_m2)} · NDBI ${number(detection.ndbi_change)} · Persistence ${detection.temporal_persistence == null ? "Not available" : formatConfidence(detection.temporal_persistence)} · ${detection.created_at ? formatRelativeDate(detection.created_at) : "Not available"}`}
               onClick={() => onSelectDetection?.(detection.id)}
             />
           ))}

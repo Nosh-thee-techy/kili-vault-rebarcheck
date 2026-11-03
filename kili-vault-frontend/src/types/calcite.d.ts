@@ -15,6 +15,8 @@ type CalciteElement = DetailedHTMLProps<
   kind?: string;
   layout?: string;
   label?: string;
+  max?: string;
+  min?: string;
   message?: string;
   name?: string;
   open?: boolean;
@@ -23,6 +25,7 @@ type CalciteElement = DetailedHTMLProps<
   selected?: boolean;
   slot?: string;
   status?: string;
+  step?: string;
   text?: string;
   textEnabled?: boolean;
   type?: string;
@@ -37,6 +40,7 @@ declare global {
         "calcite-action": CalciteElement;
         "calcite-action-bar": CalciteElement;
         "calcite-button": CalciteElement;
+        "calcite-block": CalciteElement;
         "calcite-checkbox": CalciteElement;
         "calcite-icon": CalciteElement;
         "calcite-input": CalciteElement;

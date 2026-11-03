@@ -4,7 +4,7 @@ import { DetectionTriageList } from "@/components/dashboard/DetectionTriageList"
 import { PlannerFeaturePanel } from "@/components/map/PlannerFeaturePanel";
 import type { PlannerMapSelection } from "@/components/map/KilimaniMap";
 import { MapSkeleton } from "@/components/ui/Skeleton";
-import { MAP_LAYERS } from "@/config/mapLayers";
+import { PLANNER_MAP_LAYERS } from "@/config/mapLayers";
 import { useCasesQuery } from "@/hooks/useCaseQueries";
 import { useDetectionsGeoJSONQuery } from "@/hooks/useDetectionQueries";
 
@@ -23,7 +23,9 @@ export function PlannerMapPage() {
   const cases = data?.data ?? [];
 
   const [layerVisibility] = useState(() =>
-    Object.fromEntries(MAP_LAYERS.map((l) => [l.id, l.defaultVisible])),
+    Object.fromEntries(
+      PLANNER_MAP_LAYERS.map((layer) => [layer.id, layer.defaultVisible]),
+    ),
   );
   const showCases = true;
   const showDetections = true;
@@ -42,6 +44,8 @@ export function PlannerMapPage() {
               selectedCaseId={selectedCaseId}
               selectedDetectionId={selectedDetectionId}
               layerVisibility={layerVisibility}
+              mapLayers={PLANNER_MAP_LAYERS}
+              enablePlannerTools
               showCases={showCases}
               showDetections={showDetections}
               colorByStatus
@@ -66,12 +70,9 @@ export function PlannerMapPage() {
       <calcite-panel heading="AI triage" className="min-h-0 overflow-hidden">
         <div className="h-full overflow-y-auto">
           <DetectionTriageList
-            onSelectDetection={(detectionId) =>
-              setSearchParams({ detection: detectionId })
-            }
+            onSelectDetection={(detectionId) => {
+              setFeatureSelection(null);
+              setSearchParams({ detection: detectionId });
+            }}
           />
-        </div>
-      </calcite-panel>
-    </div>
-  );
-}
+        </d

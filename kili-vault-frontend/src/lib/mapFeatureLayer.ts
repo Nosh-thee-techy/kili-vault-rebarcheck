@@ -61,7 +61,7 @@ export function createMapFeatureLayer(
         outline: new SimpleLineSymbol({ color: "#303030", width: 1.1 }),
       }),
     };
-  } else if (config.id === "buildings") {
+  } else if (["buildings", "buildings-parcels"].includes(config.id)) {
     layer.renderer = {
       type: "simple",
       symbol: new SimpleFillSymbol({

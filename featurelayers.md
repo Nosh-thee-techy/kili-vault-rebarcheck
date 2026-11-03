@@ -28,3 +28,9 @@ The Planner map uses ArcGIS metadata rather than invented fields. The services r
 | `DAGORETTI_UTM_BOUNDARY`                 | Polygon  | `ward`, `county`, `subcounty`                                                                                              | `ward`                                                            | Broader constituency context                                              |
 
 The Planner selection panel shows prioritized planning fields first and exposes the complete returned attribute set under **View all attributes**. Missing values are displayed as `Not available in current dataset`.
+
+## Kiliplan workspace layer choice
+
+The Kiliplan workspace displays `KILIMANI_BUILDINGS_PARCEL_LANDUSE_JOIN` as **Buildings + Parcels** so building footprints and their joined parcel/land-use attributes are available together. The standalone `KILIMANI_UTM_BUILDINGS` layer remains in the shared layer registry for the simulator and other map workflows; it is not shown in the Kiliplan workspace layer list.
+
+The current map registry includes the 15 m river buffer for spatial screening. Flood-zone, protected-wetland, and historic-preservation layers are not configured in this workspace. The planner tools report those checks as unavailable rather than treating missing datasets as clear.
