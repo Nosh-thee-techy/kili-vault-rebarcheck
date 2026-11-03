@@ -1,0 +1,39 @@
+{
+  "label": "VEGETATION_CHANGE",
+  "spectral": {
+    "ndvi_before": 0.2814,
+    "ndvi_after": 0.49,
+    "delta_ndvi": 0.2087,
+    "ndbi_before": 0.0382,
+    "ndbi_after": -0.2242,
+    "delta_ndbi": -0.2624,
+    "ndwi_before": -0.1548,
+    "ndwi_after": -0.268
+  },
+  "spatial": {
+    "aspect_ratio": 1.43,
+    "area_m2": 753.9,
+    "centroid": {
+      "lat": -1.307059,
+      "lon": 36.787113
+    }
+  },
+  "temporal_persistence": 0.7138,
+  "bands_t1": {
+    "B2": 0.0574,
+    "B3": 0.0347,
+    "B4": 0.0777,
+    "B8A": 0.1386,
+    "B11": 0.1496,
+    "B12": 0.1127
+  },
+  "bands_t2": {
+    "B2": 0.058,
+    "B3": 0.0317,
+    "B4": 0.0824,
+    "B8A": 0.2408,
+    "B11": 0.1526,
+    "B12": 0.1333
+  },
+  "chip_id": "validation_vegetation_change_001"
+}

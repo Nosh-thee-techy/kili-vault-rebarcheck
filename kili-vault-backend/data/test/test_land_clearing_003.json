@@ -1,0 +1,39 @@
+{
+  "label": "LAND_CLEARING",
+  "spectral": {
+    "ndvi_before": 0.5552,
+    "ndvi_after": 0.1533,
+    "delta_ndvi": -0.4019,
+    "ndbi_before": -0.2551,
+    "ndbi_after": -0.0514,
+    "delta_ndbi": 0.2037,
+    "ndwi_before": -0.1376,
+    "ndwi_after": -0.1782
+  },
+  "spatial": {
+    "aspect_ratio": 1.72,
+    "area_m2": 532.3,
+    "centroid": {
+      "lat": -1.308496,
+      "lon": 36.799683
+    }
+  },
+  "temporal_persistence": 0.5771,
+  "bands_t1": {
+    "B2": 0.0568,
+    "B3": 0.0639,
+    "B4": 0.0525,
+    "B8A": 0.1836,
+    "B11": 0.1089,
+    "B12": 0.0837
+  },
+  "bands_t2": {
+    "B2": 0.0475,
+    "B3": 0.0784,
+    "B4": 0.114,
+    "B8A": 0.1553,
+    "B11": 0.1401,
+    "B12": 0.1259
+  },
+  "chip_id": "test_land_clearing_003"
+}

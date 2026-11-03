@@ -1,0 +1,6 @@
+{
+  "name": "Kili-Vault Backend",
+  "description": "Automated Sentinel-2 Earth Observation Detection Engine & Model Training Pipeline for physical change detection in Kilimani Ward, Nairobi.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

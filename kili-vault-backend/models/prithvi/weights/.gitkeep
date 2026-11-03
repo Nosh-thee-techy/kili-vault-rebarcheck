@@ -1,0 +1,2 @@
+# Official Prithvi-EO 2.0 300M-TL weights are downloaded to the parent directory
+# by scripts/download_prithvi_weights.py; this directory stores task-head metadata.

@@ -1,0 +1,39 @@
+{
+  "label": "BUILDING_DEVELOPMENT",
+  "spectral": {
+    "ndvi_before": 0.3771,
+    "ndvi_after": 0.2131,
+    "delta_ndvi": -0.164,
+    "ndbi_before": -0.22,
+    "ndbi_after": 0.2901,
+    "delta_ndbi": 0.5101,
+    "ndwi_before": -0.1738,
+    "ndwi_after": -0.1735
+  },
+  "spatial": {
+    "aspect_ratio": 2.01,
+    "area_m2": 929.4,
+    "centroid": {
+      "lat": -1.297133,
+      "lon": 36.786026
+    }
+  },
+  "temporal_persistence": 0.9345,
+  "bands_t1": {
+    "B2": 0.0586,
+    "B3": 0.0631,
+    "B4": 0.0611,
+    "B8A": 0.1351,
+    "B11": 0.0864,
+    "B12": 0.0721
+  },
+  "bands_t2": {
+    "B2": 0.0394,
+    "B3": 0.0543,
+    "B4": 0.1005,
+    "B8A": 0.155,
+    "B11": 0.2816,
+    "B12": 0.2478
+  },
+  "chip_id": "train_building_development_012"
+}

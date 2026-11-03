@@ -1,0 +1,23 @@
+# ============================================================================
+# Kili-Vault Earth Engine Processing Dependencies
+# Python 3.9+
+# ============================================================================
+
+# Official Google Earth Engine API client
+earthengine-api>=0.1.390
+
+# Google Authentication
+google-auth>=2.20.0
+google-auth-oauthlib>=1.0.0
+python-dotenv>=1.0.0
+torch>=2.2.0
+transformers>=4.40.0
+timm>=1.0.0
+einops>=0.8.0
+
+# Geospatial calculations and GeoJSON validation
+shapely>=2.0.0
+
+# Unit and pipeline testing
+pytest>=7.4.0
+pytest-cov>=4.1.0

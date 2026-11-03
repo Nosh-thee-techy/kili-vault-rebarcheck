@@ -1,0 +1,39 @@
+{
+  "label": "LAND_CLEARING",
+  "spectral": {
+    "ndvi_before": 0.4437,
+    "ndvi_after": 0.1682,
+    "delta_ndvi": -0.2755,
+    "ndbi_before": -0.1844,
+    "ndbi_after": -0.0365,
+    "delta_ndbi": 0.1479,
+    "ndwi_before": -0.2643,
+    "ndwi_after": -0.2623
+  },
+  "spatial": {
+    "aspect_ratio": 2.12,
+    "area_m2": 2880.1,
+    "centroid": {
+      "lat": -1.286959,
+      "lon": 36.776116
+    }
+  },
+  "temporal_persistence": 0.6517,
+  "bands_t1": {
+    "B2": 0.0382,
+    "B3": 0.0324,
+    "B4": 0.072,
+    "B8A": 0.1868,
+    "B11": 0.1286,
+    "B12": 0.12
+  },
+  "bands_t2": {
+    "B2": 0.0674,
+    "B3": 0.0501,
+    "B4": 0.0556,
+    "B8A": 0.0781,
+    "B11": 0.0726,
+    "B12": 0.0564
+  },
+  "chip_id": "train_land_clearing_017"
+}
