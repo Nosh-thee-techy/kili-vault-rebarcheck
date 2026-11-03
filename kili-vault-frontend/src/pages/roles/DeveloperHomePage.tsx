@@ -1,173 +1,140 @@
-import { Link } from "react-router-dom";
-import {
-  ArrowRight,
-  CheckCircle2,
-  CircleDashed,
-  SlidersHorizontal,
-  Sparkles,
-} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { CaseListItem } from "@/components/cases/CaseListItem";
-import { DeveloperActionCard } from "@/components/dashboard/DeveloperActionCard";
-import { PageHero } from "@/components/dashboard/PageHero";
-import { CaseListSkeleton } from "@/components/ui/Skeleton";
-import { EmptyState } from "@/components/ui/EmptyState";
 import { useCasesQuery } from "@/hooks/useCaseQueries";
 
 export function DeveloperHomePage() {
+  const navigate = useNavigate();
   const { data, isLoading } = useCasesQuery({ limit: 50 });
   const cases = data?.data ?? [];
   const actionRequired = cases.filter(
-    (c) => c.status === "MITIGATION_REQUIRED",
+    (caseItem) => caseItem.status === "MITIGATION_REQUIRED",
   );
   const inProgress = cases.filter(
-    (c) => c.status === "EVIDENCE_SUBMITTED" || c.status === "AGENCY_PENDING",
+    (caseItem) =>
+      caseItem.status === "EVIDENCE_SUBMITTED" ||
+      caseItem.status === "AGENCY_PENDING",
   );
   const completed = cases.filter(
-    (c) => c.status === "VERIFIED" || c.status === "CLOSED",
+    (caseItem) =>
+      caseItem.status === "VERIFIED" || caseItem.status === "CLOSED",
   );
 
   return (
-    <div className="space-y-8 animate-fade-up">
-      <Link
-        to="/developer/check"
-        className="block rounded-2xl border border-forest/25 bg-gradient-to-br from-forest/10 via-off-white to-clay/5 p-5 shadow-soft transition-shadow hover:shadow-lift"
-      >
-        <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-forest/15 text-forest">
-            <Sparkles className="h-5 w-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold uppercase tracking-wider text-forest">
-              Before you build
-            </p>
-            <h2 className="mt-1 font-display text-xl font-bold text-charcoal">
-              Check a plot first
-            </h2>
-            <p className="mt-1 text-sm text-charcoal-muted">
-              Pin your site, answer 4 quick questions, get a risk readout —
-              before satellite flags you.
-            </p>
-          </div>
-          <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-forest" />
+    <main className="mx-auto flex w-full max-w-[96rem] flex-col gap-4 px-3 py-4 sm:px-5 md:gap-5 md:py-6">
+      <header className="flex min-w-0 flex-col gap-3 border-b border-sand pb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-xs font-medium uppercase tracking-wide text-charcoal-muted">
+            Developer workspace
+          </p>
+          <h1 className="mt-1 font-body text-xl font-semibold text-charcoal sm:text-2xl">
+            My cases
+          </h1>
+          <p className="mt-1 max-w-2xl text-sm text-charcoal-muted">
+            Review assigned development cases, submit evidence, and follow verification.
+          </p>
         </div>
-      </Link>
-
-      <Link
-        to="/developer/simulator"
-        className="block rounded-2xl border border-clay/30 bg-off-white p-5 shadow-soft transition-shadow hover:shadow-lift"
-      >
-        <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-clay/10 text-clay-dark">
-            <SlidersHorizontal className="h-5 w-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold uppercase tracking-wider text-clay-dark">
-              Plan before construction
-            </p>
-            <h2 className="mt-1 font-display text-xl font-bold text-charcoal">
-              Open the Development Impact Simulator
-            </h2>
-            <p className="mt-1 text-sm text-charcoal-muted">
-              Select a real parcel, test a proposed footprint, and compare a
-              mitigated alternative.
-            </p>
-          </div>
-          <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-clay-dark" />
-        </div>
-      </Link>
-
-      <PageHero
-        eyebrow="After detection"
-        title="My development cases"
-        description="Cases assigned to you after the ward flags a change — upload proof and track verification."
-      />
-
-      <div className="grid gap-3 sm:grid-cols-3">
-        {[
-          {
-            label: "Action required",
-            value: actionRequired.length,
-            icon: CircleDashed,
-            tone: "text-clay-dark bg-clay/10",
-          },
-          {
-            label: "In verification",
-            value: inProgress.length,
-            icon: CircleDashed,
-            tone: "text-forest bg-forest/10",
-          },
-          {
-            label: "Completed",
-            value: completed.length,
-            icon: CheckCircle2,
-            tone: "text-risk-low bg-risk-low/10",
-          },
-        ].map(({ label, value, icon: Icon, tone }) => (
-          <div
-            key={label}
-            className="rounded-2xl border border-sand bg-off-white p-4 shadow-soft"
+        <div className="flex flex-wrap gap-2 sm:shrink-0">
+          <calcite-button
+            appearance="outline"
+            icon-start="search"
+            scale="s"
+            onClick={() => navigate("/developer/check")}
           >
-            <div className={`mb-3 inline-flex rounded-lg p-2 ${tone}`}>
-              <Icon className="h-5 w-5" strokeWidth={1.75} />
-            </div>
-            <p className="font-display text-2xl font-bold tabular-nums text-charcoal">
-              {value}
-            </p>
-            <p className="mt-1 text-xs font-medium text-charcoal-muted">
-              {label}
-            </p>
-          </div>
-        ))}
-      </div>
+            Check a plot
+          </calcite-button>
+          <calcite-button
+            appearance="outline"
+            icon-start="analysis"
+            scale="s"
+            onClick={() => navigate("/developer/simulator")}
+          >
+            Impact simulator
+          </calcite-button>
+        </div>
+      </header>
 
-      {actionRequired.length > 0 && (
-        <section>
-          <h2 className="mb-3 font-display text-lg font-semibold text-charcoal">
-            Respond now
-          </h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            {actionRequired.map((c) => (
-              <DeveloperActionCard key={c.id} caseItem={c} />
-            ))}
-          </div>
-        </section>
+      {!isLoading && (
+        <dl
+          aria-label="Case status summary"
+          className="grid grid-cols-3 divide-x divide-sand border-b border-sand"
+        >
+          {[
+            { label: "Action required", value: actionRequired.length },
+            { label: "In verification", value: inProgress.length },
+            { label: "Completed", value: completed.length },
+          ].map(({ label, value }) => (
+            <div key={label} className="min-w-0 px-3 py-3 first:pl-0 sm:px-4 sm:py-4">
+              <dt className="truncate text-xs text-charcoal-muted sm:text-sm">
+                {label}
+              </dt>
+              <dd className="mt-1 text-xl font-semibold tabular-nums text-charcoal sm:text-2xl">
+                {value}
+              </dd>
+            </div>
+          ))}
+        </dl>
       )}
 
-      <section>
-        <h2 className="mb-3 font-display text-lg font-semibold text-charcoal">
-          All assigned cases
-        </h2>
-        {isLoading ? (
-          <CaseListSkeleton count={4} />
-        ) : cases.length === 0 ? (
-          <EmptyState
-            title="No assigned cases"
-            description="When a planner assigns mitigation to your developments, they will appear here."
-          />
-        ) : (
-          <div className="space-y-3">
-            {cases.map((c) => (
+      {actionRequired.length > 0 && (
+        <calcite-block
+          heading={`Action required (${actionRequired.length})`}
+          description="Cases awaiting your response."
+          collapsible
+          open
+        >
+          <div className="px-3 pb-3 pt-2 sm:px-4">
+            {actionRequired.map((caseItem) => (
               <CaseListItem
-                key={c.id}
-                caseItem={c}
+                key={caseItem.id}
+                caseItem={caseItem}
+                compact
+                caseLinkPrefix="/developer/cases"
+              />
+            ))}
+          </div>
+        </calcite-block>
+      )}
+
+      <calcite-panel
+        heading={isLoading ? "Assigned cases" : `Assigned cases (${cases.length})`}
+        description="Open a case to review its status and submit requested evidence."
+      >
+        {isLoading ? (
+          <div className="flex min-h-48 items-center justify-center" aria-live="polite">
+            <calcite-loader label="Loading assigned cases" scale="m" />
+          </div>
+        ) : cases.length === 0 ? (
+          <div className="p-4 sm:p-5">
+            <calcite-notice open kind="info" scale="s">
+              <span slot="title">No assigned cases</span>
+              Cases assigned to you will appear here.
+            </calcite-notice>
+          </div>
+        ) : (
+          <div className="min-w-0 overflow-hidden">
+            {cases.map((caseItem) => (
+              <CaseListItem
+                key={caseItem.id}
+                caseItem={caseItem}
                 caseLinkPrefix="/developer/cases"
               />
             ))}
           </div>
         )}
-      </section>
+      </calcite-panel>
 
       {inProgress.length > 0 && (
-        <p className="text-center text-xs text-charcoal-muted">
-          {inProgress.length} case(s) awaiting agency verification —{" "}
+        <calcite-notice open kind="info" scale="s">
+          <span slot="title">Verification in progress</span>
+          {inProgress.length} case{inProgress.length === 1 ? " is" : "s are"} awaiting agency verification. {" "}
           <Link
             to={`/developer/cases/${inProgress[0].id}`}
-            className="font-semibold text-forest"
+            className="font-medium text-[var(--calcite-color-text-1)] underline underline-offset-2"
           >
-            track status
+            Track a case
           </Link>
-        </p>
+        </calcite-notice>
       )}
-    </div>
+    </main>
   );
 }

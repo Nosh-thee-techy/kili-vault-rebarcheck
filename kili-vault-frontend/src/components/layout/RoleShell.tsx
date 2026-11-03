@@ -120,7 +120,7 @@ export function RoleShell({
       >
         <GuidedDemoButton
           compact={compact}
-          className="border-[#cfd2d6] bg-white text-charcoal hover:border-[#babfc6] hover:bg-[#f6f7f8]"
+          className="border-[var(--calcite-color-border-1)] bg-[var(--calcite-color-background)] text-charcoal hover:border-[var(--calcite-color-border-2)] hover:bg-[var(--calcite-color-foreground-2)]"
         />
         <Button
           variant="ghost"
@@ -141,8 +141,8 @@ export function RoleShell({
   );
 
   return (
-    <div className="shell-root flex h-full min-h-screen flex-col bg-white">
-      <header className="sticky top-0 z-40 border-b border-sand bg-white">
+    <div className="shell-root flex h-full min-h-screen flex-col bg-[var(--calcite-color-background)] text-[var(--calcite-color-text-1)]">
+      <header className="sticky top-0 z-40 border-b border-sand bg-[var(--calcite-color-background)]">
         <div className="flex h-14 items-center justify-between gap-3 px-3 md:px-5">
           <div className="flex min-w-0 items-center gap-2">
             <Button
@@ -207,7 +207,7 @@ export function RoleShell({
       <div className="flex min-h-0 flex-1">
         <aside
           className={cn(
-            "shell-sidebar hidden shrink-0 border-r border-sand bg-white transition-[width] duration-300 ease-out lg:flex lg:flex-col",
+            "shell-sidebar hidden shrink-0 border-r border-sand bg-[var(--calcite-color-background)] transition-[width] duration-300 ease-out lg:flex lg:flex-col",
             sidebarCollapsed ? "w-[4.25rem]" : "w-60",
           )}
         >
@@ -218,11 +218,11 @@ export function RoleShell({
           <div className="fixed inset-0 z-50 lg:hidden">
             <button
               type="button"
-              className="absolute inset-0 bg-charcoal/40"
+              className="absolute inset-0 bg-black/40"
               onClick={() => setMobileOpen(false)}
               aria-label="Close menu"
             />
-            <aside className="relative flex h-full w-72 flex-col bg-white shadow-lift">
+            <aside className="relative flex h-full w-72 flex-col bg-[var(--calcite-color-background)] shadow-lift">
               <div className="flex items-center justify-between border-b border-sand p-4">
                 <span className="font-display font-bold text-charcoal">
                   Menu
@@ -256,18 +256,18 @@ export function RoleShell({
 
       <nav
         className={cn(
-          "fixed inset-x-0 bottom-0 z-40 border-t border-sand bg-white lg:hidden",
+          "fixed inset-x-0 bottom-0 z-40 border-t border-sand bg-[var(--calcite-color-background)] lg:hidden",
         )}
       >
         <ul
           className="grid"
           style={{ gridTemplateColumns: `repeat(${bottomNav.length}, 1fr)` }}
         >
-          {bottomNav.map(({ to, label, icon: Icon, end }) => (
-            <li key={to}>
+          {bottomNav.map((item) => (
+            <li key={item.to}>
               <NavLink
-                to={to}
-                end={end}
+                to={item.to}
+                end={item.end}
                 className={({ isActive }) =>
                   cn(
                     "flex min-h-14 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-semibold",
@@ -275,8 +275,12 @@ export function RoleShell({
                   )
                 }
               >
-                <Icon className="h-5 w-5" />
-                <span className="truncate px-1">{label.split(" ")[0]}</span>
+                {item.calciteIcon ? (
+                  <calcite-icon icon={item.calciteIcon} scale="s" />
+                ) : (
+                  <item.icon className="h-5 w-5" />
+                )}
+                <span className="truncate px-1">{item.label}</span>
               </NavLink>
             </li>
           ))}

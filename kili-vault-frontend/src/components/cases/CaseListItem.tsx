@@ -18,11 +18,11 @@ export function CaseListItem({
     <Link
       to={`${caseLinkPrefix}/${caseItem.id}`}
       className={cn(
-        'group flex min-w-0 items-center gap-3 border-b border-sand bg-white px-3 py-3 text-left transition-colors last:border-b-0 hover:bg-[#f7f7f7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--calcite-color-focus)]',
+        'group flex min-w-0 items-center gap-3 border-b border-sand bg-[var(--calcite-color-foreground-1)] px-3 py-3 text-left text-charcoal transition-colors last:border-b-0 hover:bg-[var(--calcite-color-foreground-2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--calcite-color-focus)]',
         compact && 'py-2.5',
       )}
     >
-      <calcite-icon icon="map" scale="m" className="shrink-0 text-charcoal-muted" />
+      <calcite-icon icon="clipboard" scale="m" className="shrink-0 text-charcoal-muted" />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <p className="font-semibold text-charcoal group-hover:underline group-hover:underline-offset-2">

@@ -179,7 +179,7 @@ export function CaseNextStepPanel({ caseItem }: { caseItem: DevelopmentCase }) {
             type="file"
             accept="image/*,.pdf"
             onChange={handleFile}
-            className="mt-2 block w-full rounded border border-sand bg-white p-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-[#454545] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
+            className="mt-2 block w-full rounded border border-sand bg-[var(--calcite-color-foreground-1)] p-2 text-sm text-charcoal file:mr-3 file:rounded file:border-0 file:bg-[var(--calcite-color-foreground-3)] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-charcoal"
           />
           {uploadEvidence.isPending && (
             <p className="mt-2 text-xs text-charcoal-muted">Uploading…</p>

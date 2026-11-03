@@ -25,7 +25,7 @@ export function CaseDetailView({
   const hasHistory = (caseItem.auditEvents?.length ?? 0) > 0;
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col bg-white">
+    <div className="flex h-full min-h-0 w-full flex-col bg-[var(--calcite-color-background)]">
       <header className="flex min-h-14 shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-b border-sand px-3 py-2 sm:px-4">
         <Link
           to={backTo}

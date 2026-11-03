@@ -41,7 +41,7 @@ export function CaseEvidencePanel({ caseItem }: { caseItem: DevelopmentCase }) {
       </dl>
 
       {isPreDevelopment && caseItem.evidence?.description && (
-        <div className="mt-4 flex gap-3 border-l-2 border-sand bg-white p-4">
+        <div className="mt-4 flex gap-3 border-l-2 border-sand bg-[var(--calcite-color-foreground-1)] p-4">
           <calcite-icon icon="file-text" scale="s" className="mt-0.5 shrink-0 text-charcoal-muted" />
           <p className="text-sm leading-relaxed text-charcoal">{caseItem.evidence.description}</p>
         </div>
@@ -83,7 +83,7 @@ export function CaseEvidencePanel({ caseItem }: { caseItem: DevelopmentCase }) {
       )}
 
       {caseItem.evidence?.explanation && (
-        <div className="mt-4 flex gap-3 border-l-2 border-sand bg-white p-4">
+        <div className="mt-4 flex gap-3 border-l-2 border-sand bg-[var(--calcite-color-foreground-1)] p-4">
           <calcite-icon icon="information" scale="s" className="mt-0.5 shrink-0 text-charcoal-muted" />
           <p className="text-sm leading-relaxed text-charcoal">{caseItem.evidence.explanation}</p>
         </div>

@@ -221,11 +221,11 @@ export function CaseSiteMap({
       className={cn(
         className,
         'flex h-full min-h-0 w-full flex-col',
-        isFullscreen && 'fixed inset-0 z-[100] bg-white',
+        isFullscreen && 'fixed inset-0 z-[100] bg-[var(--calcite-color-background)]',
       )}
     >
       {!isFullscreen && (
-        <div className="flex min-h-10 shrink-0 items-center justify-between gap-2 border-b border-sand bg-white px-3 py-1.5">
+        <div className="flex min-h-10 shrink-0 items-center justify-between gap-2 border-b border-sand bg-[var(--calcite-color-background)] px-3 py-1.5">
           <p className="text-sm font-semibold text-charcoal">Site context</p>
           <div className="flex items-center gap-2">
             {viewModeToggle}
@@ -234,16 +234,16 @@ export function CaseSiteMap({
         </div>
       )}
 
-      <div className="relative min-h-0 flex-1 overflow-hidden bg-white">
+      <div className="relative min-h-0 flex-1 overflow-hidden bg-[var(--calcite-color-background)]">
         <div ref={containerRef} className="absolute inset-0 h-full w-full" />
         {!ready && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/85">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--calcite-color-background)]/85">
             <calcite-loader label="Loading case map" scale="m" />
           </div>
         )}
 
         {isFullscreen && (
-          <div className="pointer-events-none absolute inset-x-0 top-0 z-20 bg-white/95 p-3">
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-20 bg-[var(--calcite-color-background)]/95 p-3">
             <div className="pointer-events-auto flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-charcoal">Site context</p>
@@ -259,7 +259,7 @@ export function CaseSiteMap({
 
         <p
           className={cn(
-            'pointer-events-none absolute bottom-3 left-3 z-10 rounded bg-white/90 px-2 py-1 text-[11px] text-charcoal-muted',
+            'pointer-events-none absolute bottom-3 left-3 z-10 rounded bg-[var(--calcite-color-background)]/90 px-2 py-1 text-[11px] text-charcoal-muted',
             isFullscreen && 'bottom-4',
           )}
         >

@@ -40,6 +40,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const root = document.documentElement;
     root.classList.toggle("dark", theme === "dark");
+    root.classList.toggle("calcite-mode-dark", theme === "dark");
     root.style.colorScheme = theme;
     localStorage.setItem(THEME_KEY, theme);
   }, [theme]);

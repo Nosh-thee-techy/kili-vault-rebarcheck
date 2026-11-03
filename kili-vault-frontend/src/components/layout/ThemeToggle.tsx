@@ -1,20 +1,16 @@
-import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
-import { Button } from '@/components/ui/Button';
 
 export function ThemeToggle() {
   const { isDark, toggleTheme } = useTheme();
+  const label = isDark ? 'Switch to light mode' : 'Switch to dark mode';
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      className="text-charcoal-muted hover:bg-[#f6f7f8] hover:text-charcoal"
+    <calcite-action
+      icon={isDark ? 'brightness' : 'moon'}
+      text={label}
+      aria-label={label}
+      title={label}
       onClick={toggleTheme}
-      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-      title={isDark ? 'Light mode' : 'Dark mode'}
-    >
-      {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-    </Button>
+    />
   );
 }
