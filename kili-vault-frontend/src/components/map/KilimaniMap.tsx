@@ -8,6 +8,7 @@ import Graphic from "@arcgis/core/Graphic";
 import Point from "@arcgis/core/geometry/Point";
 import SimpleFillSymbol from "@arcgis/core/symbols/SimpleFillSymbol";
 import SimpleLineSymbol from "@arcgis/core/symbols/SimpleLineSymbol";
+import SimpleMarkerSymbol from "@arcgis/core/symbols/SimpleMarkerSymbol";
 import * as geometryEngine from "@arcgis/core/geometry/geometryEngine";
 import Measurement from "@arcgis/core/widgets/Measurement";
 import Sketch from "@arcgis/core/widgets/Sketch";
@@ -76,18 +77,32 @@ export interface PlannerDetectionSelection {
   confidence: number;
 }
 
+export interface PlannerRebarSelection {
+  kind: "rebar";
+  layerId: string;
+  layerTitle: string;
+  geometry: __esri.Geometry;
+  attributes: Record<string, unknown>;
+  caseId: string;
+  result: string;
+  confidence: number;
+}
+
 export type PlannerMapSelection =
   | PlannerFeatureSelection
-  | PlannerDetectionSelection;
+  | PlannerDetectionSelection
+  | PlannerRebarSelection;
 
 interface KilimaniMapProps {
   cases: DevelopmentCase[];
   detectionsGeoJSON?: GeoJSON.FeatureCollection;
+  rebarGeoJSON?: GeoJSON.FeatureCollection;
   selectedCaseId?: string | null;
   selectedDetectionId?: string | null;
   layerVisibility: Record<string, boolean>;
   showCases: boolean;
   showDetections?: boolean;
+  showRebar?: boolean;
   colorByStatus?: boolean;
   onCaseSelect?: (caseId: string) => void;
   caseLinkPrefix?: string;
@@ -179,6 +194,32 @@ function buildCaseRenderer(colorByStatus: boolean): UniqueValueRenderer {
     defaultSymbol: new SimpleFillSymbol({
       color: "#4A4A4F44",
       outline: new SimpleLineSymbol({ color: "#4A4A4F", width: 1.5 }),
+    }),
+  });
+}
+
+function buildRebarRenderer(): UniqueValueRenderer {
+  const markers: { value: string; label: string; color: string; style: string }[] = [
+    { value: "within_tolerance", label: "Within tolerance (circle)", color: "#5A7D62", style: "circle" },
+    { value: "outside_tolerance", label: "Outside tolerance (square)", color: "#B54A32", style: "square" },
+    { value: "inconclusive", label: "Inconclusive (diamond)", color: "#8A8A8A", style: "diamond" },
+  ];
+  return new UniqueValueRenderer({
+    field: "result",
+    uniqueValueInfos: markers.map((item) => ({
+      value: item.value,
+      label: item.label,
+      symbol: new SimpleMarkerSymbol({
+        style: item.style,
+        color: item.color,
+        size: 11,
+        outline: new SimpleLineSymbol({ color: "#1C1C1E", width: 1 }),
+      }),
+    })),
+    defaultSymbol: new SimpleMarkerSymbol({
+      style: "circle",
+      color: "#8A8A8A",
+      size: 10,
     }),
   });
 }
@@ -290,11 +331,13 @@ async function buildFeatureContext(
 export function KilimaniMap({
   cases,
   detectionsGeoJSON,
+  rebarGeoJSON,
   selectedCaseId,
   selectedDetectionId,
   layerVisibility,
   showCases,
   showDetections = true,
+  showRebar = true,
   colorByStatus = false,
   onCaseSelect,
   caseLinkPrefix = "/planner/cases",
@@ -320,6 +363,7 @@ export function KilimaniMap({
   const analysisRunRef = useRef(0);
   const casesLayerRef = useRef<GeoJSONLayer | null>(null);
   const detectionsLayerRef = useRef<GeoJSONLayer | null>(null);
+  const rebarLayerRef = useRef<GeoJSONLayer | null>(null);
   const highlightHandleRef = useRef<__esri.Handle | null>(null);
   const casesRef = useRef(cases);
   casesRef.current = cases;
@@ -356,6 +400,7 @@ export function KilimaniMap({
 
   const casesGeoJSON = useMemo(() => casesToGeoJSON(cases), [cases]);
   const detectionsFC = detectionsGeoJSON ?? EMPTY_FC;
+  const rebarFC = rebarGeoJSON ?? EMPTY_FC;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -410,6 +455,17 @@ export function KilimaniMap({
     });
     map.add(casesLayer);
 
+    const rebarLayer = new GeoJSONLayer({
+      url: URL.createObjectURL(
+        new Blob([JSON.stringify(rebarFC)], { type: "application/json" }),
+      ),
+      title: "Rebar inspections",
+      visible: showRebar,
+      renderer: buildRebarRenderer(),
+      popupEnabled: false,
+    });
+    map.add(rebarLayer);
+
     const view = new MapView({
       container: containerRef.current,
       map,
@@ -433,6 +489,7 @@ export function KilimaniMap({
     featureLayersRef.current = featureLayers;
     casesLayerRef.current = casesLayer;
     detectionsLayerRef.current = detectionsLayer;
+    rebarLayerRef.current = rebarLayer;
 
     const basemapGallery = new BasemapGallery({ view });
     const basemapExpand = new Expand({
@@ -526,7 +583,7 @@ export function KilimaniMap({
         const sequence = ++clickSequence;
         const response = await view
           .hitTest(event, {
-            include: [casesLayer, detectionsLayer],
+            include: [casesLayer, detectionsLayer, rebarLayer],
           })
           .catch(() => null);
         if (!response || destroyed || sequence !== clickSequence) return;
@@ -562,6 +619,32 @@ export function KilimaniMap({
             result.type === "graphic" &&
             (result as __esri.GraphicHit).graphic.layer === detectionsLayer,
         ) as __esri.GraphicHit | undefined;
+
+        const rebarHit = response.results.find(
+          (result: __esri.ViewHit) =>
+            result.type === "graphic" &&
+            (result as __esri.GraphicHit).graphic.layer === rebarLayer,
+        ) as __esri.GraphicHit | undefined;
+
+        if (rebarHit?.graphic?.geometry) {
+          const attrs = rebarHit.graphic.attributes as Record<string, unknown>;
+          setPlannerFeature(null);
+          setSelection(null);
+          onFeatureSelectRef.current?.({
+            kind: "rebar",
+            layerId: "rebar-inspections",
+            layerTitle: "Rebar inspections",
+            geometry: rebarHit.graphic.geometry,
+            attributes: attrs,
+            caseId: String(attrs.caseId ?? ""),
+            result: String(attrs.result ?? "inconclusive"),
+            confidence: Number(attrs.confidence ?? 0),
+          });
+          view
+            .goTo({ target: rebarHit.graphic, zoom: 18 }, { animate: false })
+            .catch(() => undefined);
+          return;
+        }
 
         if (detectionHit?.graphic?.geometry) {
           const attrs = detectionHit.graphic.attributes;
@@ -713,6 +796,7 @@ export function KilimaniMap({
       sketchLayerRef.current = null;
       casesLayerRef.current = null;
       detectionsLayerRef.current = null;
+      rebarLayerRef.current = null;
     };
   }, [enablePlannerTools, mapLayers, showAttributionFooter]);
 
@@ -937,6 +1021,12 @@ export function KilimaniMap({
   }, [showDetections]);
 
   useEffect(() => {
+    if (rebarLayerRef.current) {
+      rebarLayerRef.current.visible = showRebar;
+    }
+  }, [showRebar]);
+
+  useEffect(() => {
     const layer = casesLayerRef.current;
     if (!layer) return;
 
@@ -963,6 +1053,18 @@ export function KilimaniMap({
 
     return () => URL.revokeObjectURL(url);
   }, [detectionsFC]);
+
+  useEffect(() => {
+    const layer = rebarLayerRef.current;
+    if (!layer) return;
+    const blob = new Blob([JSON.stringify(rebarFC)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    layer.url = url;
+    layer.load().catch(() => undefined);
+    return () => URL.revokeObjectURL(url);
+  }, [rebarFC]);
 
   useEffect(() => {
     const view = viewRef.current;
@@ -1285,6 +1387,14 @@ export function KilimaniMap({
       className={`relative h-full min-h-[360px] overflow-hidden ${className ?? ""}`}
     >
       <div ref={containerRef} className="absolute inset-0 h-full w-full" />
+      {showRebar && (
+        <div className="pointer-events-none absolute bottom-16 left-4 z-20 rounded-xl border border-sand bg-off-white/95 px-3 py-2 text-[11px] text-charcoal shadow-soft">
+          <p className="mb-1 font-semibold">Rebar inspections</p>
+          <p><span className="mr-1 inline-block h-2.5 w-2.5 rounded-full bg-[#5A7D62] align-middle" /> circle · within tolerance</p>
+          <p><span className="mr-1 inline-block h-2.5 w-2.5 bg-[#B54A32] align-middle" /> square · outside tolerance</p>
+          <p><span className="mr-1 inline-block h-2.5 w-2.5 rotate-45 bg-[#8A8A8A] align-middle" /> diamond · inconclusive</p>
+        </div>
+      )}
       {showAttributionFooter && (
         <div
           ref={attributionFooterRef}

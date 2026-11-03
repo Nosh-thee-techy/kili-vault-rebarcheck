@@ -170,6 +170,41 @@ export async function uploadEvidence(
   return response.json();
 }
 
+export async function submitRebarCheck(
+  id: string,
+  file: File,
+  fields: Record<string, string | number | null | undefined> = {},
+): Promise<{
+  success: boolean;
+  data: {
+    evidenceItem: import("@/types").EvidenceItem;
+    rebarCheck: NonNullable<import("@/types").EvidenceItem["metadata"]>["rebarCheck"];
+  };
+}> {
+  const form = new FormData();
+  form.append("file", file);
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value != null) form.append(key, String(value));
+  });
+  const response = await fetch(
+    `${API_BASE}/api/v1/cases/${encodeURIComponent(id)}/evidence/rebar-check`,
+    {
+      method: "POST",
+      headers: authHeaders(),
+      body: form,
+    },
+  );
+  if (!response.ok) {
+    const body = (await response.json()) as { error?: { message?: string } };
+    throw new Error(body.error?.message ?? "RebarCheck failed");
+  }
+  return response.json();
+}
+
+export async function getRebarChecksGeoJSON(): Promise<GeoJSON.FeatureCollection> {
+  return fetchJson("/api/v1/rebar-checks/geojson");
+}
+
 export async function getMyCommunityObservations(): Promise<{
   success: boolean;
   data: {

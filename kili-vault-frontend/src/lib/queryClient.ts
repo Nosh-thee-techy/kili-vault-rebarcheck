@@ -35,3 +35,8 @@ export const detectionKeys = {
   geojson: (filters: Record<string, unknown>) =>
     [...detectionKeys.all, "geojson", filters] as const,
 };
+
+export const rebarCheckKeys = {
+  all: ["rebar-checks"] as const,
+  geojson: () => [...rebarCheckKeys.all, "geojson"] as const,
+};

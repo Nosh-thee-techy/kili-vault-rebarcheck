@@ -6,6 +6,7 @@ import { MapSkeleton } from "@/components/ui/Skeleton";
 import { MAP_LAYERS } from "@/config/mapLayers";
 import { useCasesQuery } from "@/hooks/useCaseQueries";
 import { useDetectionsGeoJSONQuery } from "@/hooks/useDetectionQueries";
+import { useRebarChecksGeoJSONQuery } from "@/hooks/useRebarCheckQueries";
 
 const KilimaniMap = lazy(() =>
   import("@/components/map/KilimaniMap").then((m) => ({
@@ -17,6 +18,7 @@ export function PlannerDashboardPage() {
   const navigate = useNavigate();
   const { data, isLoading } = useCasesQuery({ limit: 50 });
   const { data: detectionsGeoJSON } = useDetectionsGeoJSONQuery();
+  const { data: rebarGeoJSON } = useRebarChecksGeoJSONQuery();
   const cases = data?.data ?? [];
   const reviewQueue = cases.filter(
     (c) => c.status === "AI_FLAGGED" || c.status === "UNDER_REVIEW",
@@ -46,6 +48,7 @@ export function PlannerDashboardPage() {
             <KilimaniMap
               cases={cases}
               detectionsGeoJSON={detectionsGeoJSON}
+              rebarGeoJSON={rebarGeoJSON}
               layerVisibility={layerVisibility}
               showCases={showCases}
               showDetections={showDetections}

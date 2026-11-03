@@ -99,6 +99,28 @@ export function CaseEvidencePanel({ caseItem }: { caseItem: DevelopmentCase }) {
               return (
                 <li key={item.id} className="rounded-xl border border-sand bg-mist/20 p-3">
                   <div className="flex flex-wrap justify-between gap-2"><span className="font-semibold text-charcoal">{item.fileName}</span><span className="capitalize">{item.status}</span></div>
+                  {metadata?.rebarCheck && (
+                    <p className="mt-1">
+                      <span className="rounded-full bg-forest/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-forest">
+                        AI-analysed (RebarCheck)
+                      </span>
+                      {" "}
+                      {(metadata.rebarCheck.result || "inconclusive").replace(/_/g, " ")}
+                      {metadata.rebarCheck.overlayUrl && (
+                        <>
+                          {" · "}
+                          <a
+                            className="text-forest underline"
+                            href={metadata.rebarCheck.overlayUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            overlay
+                          </a>
+                        </>
+                      )}
+                    </p>
+                  )}
                   <p className="mt-1">{hasLocation ? `Geotag: ${metadata.latitude!.toFixed(5)}, ${metadata.longitude!.toFixed(5)}${metadata.accuracyM != null ? ` ±${Math.round(metadata.accuracyM)} m` : ''}` : 'No device geotag recorded.'}</p>
                   {metadata?.parcelRef && <p>Parcel reference: {metadata.parcelRef}</p>}
                   {metadata?.detectionId && <p>Detection reference: {metadata.detectionId}</p>}

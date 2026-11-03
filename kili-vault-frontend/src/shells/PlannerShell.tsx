@@ -13,6 +13,11 @@ const nav = [
     label: "Development Cases",
     calciteIcon: "clipboard",
   },
+  {
+    to: "/rebarcheck",
+    label: "RebarCheck",
+    calciteIcon: "camera",
+  },
 ];
 
 export function PlannerShell() {

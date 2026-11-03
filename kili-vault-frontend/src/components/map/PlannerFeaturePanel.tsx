@@ -4,11 +4,14 @@ import type { DevelopmentCase } from "@/types";
 import type {
   PlannerDetectionSelection,
   PlannerFeatureSelection,
+  PlannerRebarSelection,
 } from "@/components/map/KilimaniMap";
+import { Badge } from "@/components/ui/Badge";
 
 type PlannerPanelSelection =
   | PlannerFeatureSelection
-  | PlannerDetectionSelection;
+  | PlannerDetectionSelection
+  | PlannerRebarSelection;
 
 function attr(attributes: Record<string, unknown>, key: string) {
   const value = attributes[key];
@@ -112,6 +115,89 @@ function downloadBrief(selection: PlannerPanelSelection) {
   URL.revokeObjectURL(url);
 }
 
+function resultChip(result: string) {
+  if (result === "within_tolerance") return { label: "Within tolerance", variant: "forest" as const };
+  if (result === "outside_tolerance") return { label: "Outside tolerance", variant: "clay" as const };
+  return { label: "Inconclusive", variant: "muted" as const };
+}
+
+function gpsLabel(value: unknown) {
+  if (value === true) return "yes";
+  if (value === false) return "no";
+  return "unknown";
+}
+
+function RebarInspectionCard({ selection }: { selection: PlannerRebarSelection }) {
+  const attrs = selection.attributes;
+  const chip = resultChip(selection.result);
+  const overlayUrl = typeof attrs.overlayUrl === "string" ? attrs.overlayUrl : "";
+  const apiBase = import.meta.env.VITE_API_BASE_URL ?? "";
+  const summary = (attrs.summary || {}) as {
+    horizontal?: { meanMm?: number; maxMm?: number };
+    vertical?: { meanMm?: number; maxMm?: number };
+  };
+  const worst = Math.max(
+    summary.horizontal?.maxMm ?? 0,
+    summary.vertical?.maxMm ?? 0,
+  );
+
+  return (
+    <section className="border-t border-sand px-4 py-3 text-sm">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant={chip.variant}>{chip.label}</Badge>
+        <span className="text-xs text-charcoal-muted">
+          Confidence {Math.round(selection.confidence * 100)}%
+        </span>
+      </div>
+      {overlayUrl && (
+        <a href={`${apiBase}${overlayUrl}`} target="_blank" rel="noreferrer" className="mt-3 block">
+          <img
+            src={`${apiBase}${overlayUrl}`}
+            alt="RebarCheck overlay"
+            className="max-h-40 w-full rounded-lg border border-sand object-contain bg-mist/30"
+          />
+          <span className="mt-1 block text-xs text-forest">Enlarge overlay</span>
+        </a>
+      )}
+      <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
+        <div>
+          <dt className="text-charcoal-muted">Mean H / V</dt>
+          <dd className="font-semibold">
+            {summary.horizontal?.meanMm ?? "—"} / {summary.vertical?.meanMm ?? "—"} mm
+          </dd>
+        </div>
+        <div>
+          <dt className="text-charcoal-muted">Worst gap</dt>
+          <dd className="font-semibold">{worst || "—"} mm</dd>
+        </div>
+        <div>
+          <dt className="text-charcoal-muted">Submitter</dt>
+          <dd className="font-semibold">{String(attrs.submitter ?? "—")}</dd>
+        </div>
+        <div>
+          <dt className="text-charcoal-muted">Captured</dt>
+          <dd className="font-semibold">{String(attrs.capturedAt ?? "—")}</dd>
+        </div>
+        <div className="col-span-2">
+          <dt className="text-charcoal-muted">GPS within parcel</dt>
+          <dd className="font-semibold">{gpsLabel(attrs.gpsWithinParcel)}</dd>
+        </div>
+      </dl>
+      {typeof attrs.explanation === "string" && (
+        <p className="mt-3 text-xs leading-relaxed text-charcoal">{attrs.explanation}</p>
+      )}
+      <p className="mt-2 text-[11px] leading-relaxed text-charcoal-muted">
+        {String(attrs.disclaimer ?? "Visual spacing check from a photo. Not an engineer's sign-off. Pending human verification.")}
+      </p>
+      <Link to={`/planner/cases/${selection.caseId}`} className="mt-3 block">
+        <calcite-button appearance="solid" scale="s" className="w-full">
+          Open related case
+        </calcite-button>
+      </Link>
+    </section>
+  );
+}
+
 export function PlannerFeaturePanel({
   selection,
   cases,
@@ -131,6 +217,7 @@ export function PlannerFeaturePanel({
   const isParcel = selection.kind === "parcel";
   const isBuilding = selection.kind === "building";
   const isDetection = selection.kind === "detection";
+  const isRebar = selection.kind === "rebar";
   const context = "context" in selection ? selection.context : undefined;
   const returnedAttributes = Object.entries(selection.attributes).filter(
     ([, value]) => value != null && value !== "",
@@ -154,7 +241,9 @@ export function PlannerFeaturePanel({
         onClick={onClose}
       />
 
-      {isDetection ? (
+      {isRebar ? (
+        <RebarInspectionCard selection={selection} />
+      ) : isDetection ? (
         <section className="mt-4 border-t border-sand pt-3">
           <calcite-notice open scale="s" kind="warning">
             Candidate change requiring human verification. This spatial
@@ -315,6 +404,7 @@ export function PlannerFeaturePanel({
         </section>
       )}
 
+      {!isRebar && (
       <section className="border-t border-sand px-4 py-3">
         <h3 className="text-sm font-semibold text-charcoal">Spatial context</h3>
         <dl className="mt-3 grid gap-3 text-sm">
@@ -348,6 +438,7 @@ export function PlannerFeaturePanel({
           </calcite-notice>
         )}
       </section>
+      )}
 
       {isParcel && (
         <section className="border-t border-sand px-4 py-3">
@@ -406,31 +497,35 @@ export function PlannerFeaturePanel({
         </p>
       )}
 
-      <details className="mt-4 border-t border-sand pt-3">
-        <summary className="cursor-pointer text-xs font-semibold text-charcoal">
-          View all attributes
-        </summary>
-        <dl className="mt-2 space-y-1.5 text-[11px]">
-          {Object.entries(selection.attributes).map(([key, value]) => (
-            <div
-              key={key}
-              className="grid grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] gap-2"
-            >
-              <dt className="truncate text-charcoal-muted" title={key}>
-                {fieldLabel(key)}
-              </dt>
-              <dd className="break-words font-medium text-charcoal">
-                {value == null || value === ""
-                  ? "Not available"
-                  : String(value)}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </details>
-      <p className="mt-3 text-[10px] text-charcoal-muted">
-        Source: {selection.layerTitle} ArcGIS FeatureServer
-      </p>
+      {!isRebar && (
+        <>
+          <details className="mt-4 border-t border-sand pt-3">
+            <summary className="cursor-pointer text-xs font-semibold text-charcoal">
+              View all attributes
+            </summary>
+            <dl className="mt-2 space-y-1.5 text-[11px]">
+              {Object.entries(selection.attributes).map(([key, value]) => (
+                <div
+                  key={key}
+                  className="grid grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] gap-2"
+                >
+                  <dt className="truncate text-charcoal-muted" title={key}>
+                    {fieldLabel(key)}
+                  </dt>
+                  <dd className="break-words font-medium text-charcoal">
+                    {value == null || value === ""
+                      ? "Not available"
+                      : String(value)}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </details>
+          <p className="mt-3 text-[10px] text-charcoal-muted">
+            Source: {selection.layerTitle} ArcGIS FeatureServer
+          </p>
+        </>
+      )}
     </calcite-panel>
   );
 }

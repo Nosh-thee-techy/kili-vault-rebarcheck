@@ -19,6 +19,7 @@ import { AgencyQueuePage } from "@/pages/roles/AgencyQueuePage";
 import { CommunityHomePage } from "@/pages/roles/CommunityHomePage";
 import { CommunityMapPage } from "@/pages/roles/CommunityMapPage";
 import { CommunityReportPage } from "@/pages/roles/CommunityReportPage";
+import { RebarCheckPage } from "@/pages/RebarCheckPage";
 
 export default function App() {
   return (
@@ -30,6 +31,9 @@ export default function App() {
 
           <Route element={<RequireAuth />}>
             <Route index element={<RoleRedirect />} />
+            <Route path="/rebarcheck" element={<PlannerShell />}>
+              <Route index element={<RebarCheckPage />} />
+            </Route>
 
             <Route path="/planner" element={<PlannerShell />}>
               <Route index element={<PlannerDashboardPage />} />

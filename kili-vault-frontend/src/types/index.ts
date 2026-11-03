@@ -53,7 +53,21 @@ export interface EvidenceItem {
     capturedAt?: string | null;
     parcelRef?: string | null;
     detectionId?: string | null;
+    seeded?: boolean;
     verification?: Record<string, unknown>;
+    rebarCheck?: {
+      aiAnalysed?: boolean;
+      result?: string;
+      confidence?: number;
+      overlayUrl?: string | null;
+      explanation?: string;
+      disclaimer?: string;
+      summary?: {
+        horizontal?: { meanMm?: number; maxMm?: number; count?: number };
+        vertical?: { meanMm?: number; maxMm?: number; count?: number };
+      };
+      gpsWithinParcel?: boolean | null;
+    };
   };
 }
 

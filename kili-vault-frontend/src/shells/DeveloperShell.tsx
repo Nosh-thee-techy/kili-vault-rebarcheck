@@ -17,6 +17,11 @@ const nav = [
     label: "Impact simulator",
     calciteIcon: "analysis",
   },
+  {
+    to: "/rebarcheck",
+    label: "RebarCheck",
+    calciteIcon: "camera",
+  },
 ];
 
 export function DeveloperShell() {

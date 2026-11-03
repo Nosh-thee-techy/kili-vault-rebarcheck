@@ -76,6 +76,15 @@ export const PRESENTER_STEPS: PresenterStep[] = [
     actionHint: "Upload a file in the Actions panel",
   },
   {
+    id: "rebarcheck-whatsapp",
+    title: "Field evidence from WhatsApp",
+    instruction:
+      "RebarCheck accepts a top-down cage photo plus a location pin from WhatsApp or the web page. The result is AI-analysed evidence, pending human verification — not an engineer's sign-off.",
+    path: "/rebarcheck",
+    requiredRole: "planner",
+    actionHint: "Submit a photo on /rebarcheck or via the WhatsApp bot",
+  },
+  {
     id: "planner-agency",
     title: "Route to agency",
     instruction:
