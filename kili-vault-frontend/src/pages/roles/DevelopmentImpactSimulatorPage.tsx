@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
   Droplets,
@@ -20,6 +20,7 @@ import {
   type ScenarioMetrics,
   type SiteContext,
 } from "@/lib/developmentSimulator";
+import { getZoningAdvice } from "@/lib/zoningAdvisor";
 
 const EMPTY_INPUTS: ScenarioInputs = {
   footprintAreaM2: 0,
@@ -181,6 +182,8 @@ function MetricRow({
 }
 
 export function DevelopmentImpactSimulatorPage() {
+  const [searchParams] = useSearchParams();
+  const initialParcelRef = searchParams.get("parcel");
   const [site, setSite] = useState<SiteContext | null>(null);
   const [proposed, setProposed] = useState<ScenarioInputs>(EMPTY_INPUTS);
   const [mitigated, setMitigated] = useState<ScenarioInputs>(EMPTY_INPUTS);
@@ -244,6 +247,19 @@ export function DevelopmentImpactSimulatorPage() {
       )
     : null;
 
+  const zoningAdvice = useMemo(() => {
+    if (!site || !proposedMetrics) return [];
+    return getZoningAdvice({
+      landUse: site.landUse,
+      parcelAreaM2: site.parcelAreaM2,
+      footprintAreaM2: proposed.footprintAreaM2,
+      floors: proposed.floors,
+      floorAreaM2: proposedMetrics.floorAreaM2,
+      riverBufferOverlap: proposedMetrics.riverBufferOverlap,
+      roadDistanceM: site.roadDistanceM,
+    });
+  }, [proposed, proposedMetrics, site]);
+
   const recommendations = useMemo(() => {
     if (!site || !proposedMetrics || !mitigatedMetrics) return [];
     const prompts: string[] = [];
@@ -300,6 +316,7 @@ export function DevelopmentImpactSimulatorPage() {
             proposedGeometry={proposedGeometry}
             mitigatedGeometry={mitigatedGeometry}
             onSiteSelected={handleSiteSelected}
+            initialParcelRef={initialParcelRef}
             className="h-full min-h-[520px] rounded-none border-0"
           />
         </section>
@@ -518,6 +535,22 @@ export function DevelopmentImpactSimulatorPage() {
               indicative and require professional planning, environmental and
               engineering review.
             </p>
+          </div>
+        </section>
+      )}
+
+      {site && proposedMetrics && (
+        <section className="rounded-2xl border border-forest/20 bg-mist/25 p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.14em] text-forest">Intelligent planning advisor</p>
+              <h2 className="mt-1 font-display text-2xl font-bold text-charcoal">Kilimani zoning context</h2>
+              <p className="mt-1 max-w-3xl text-sm leading-relaxed text-charcoal-muted">Guide-based prompts derived from the attached Kilimani zoning guidelines and the selected parcel's actual GIS context. These are indicative planning prompts, not an approval or compliance decision.</p>
+            </div>
+            <span className="rounded-full border border-forest/20 bg-off-white px-3 py-1.5 text-[11px] font-semibold text-forest">Review with a registered professional</span>
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            {zoningAdvice.map((item) => <article key={`${item.title}-${item.message}`} className={`rounded-xl border bg-off-white p-4 ${item.tone === "attention" ? "border-clay/40" : item.tone === "review" ? "border-sage/50" : "border-sand"}`}><h3 className="text-sm font-bold text-charcoal">{item.title}</h3><p className="mt-1 text-sm leading-relaxed text-charcoal-muted">{item.message}</p><p className="mt-2 text-[10px] font-medium text-sage">Basis: {item.basis}</p></article>)}
           </div>
         </section>
       )}

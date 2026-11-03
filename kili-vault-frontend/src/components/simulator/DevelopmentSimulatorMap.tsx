@@ -21,6 +21,7 @@ interface DevelopmentSimulatorMapProps {
   proposedGeometry: Geometry | null;
   mitigatedGeometry: Geometry | null;
   onSiteSelected: (site: SiteContext) => void;
+  initialParcelRef?: string | null;
   className?: string;
 }
 
@@ -42,10 +43,54 @@ function scenarioSymbol(fill: string, outline: string) {
   };
 }
 
+async function loadSiteContext(
+  graphic: __esri.Graphic,
+  layers: Record<string, FeatureLayer>,
+): Promise<SiteContext | null> {
+  const parcelGeometry = graphic.geometry;
+  if (!parcelGeometry) return null;
+  const parcelAreaM2 = areaM2(parcelGeometry);
+  const parcelIdValue = attributeValue(graphic.attributes ?? {}, [
+    "parcel_num", "lr_number", "fr_number", "old_parcel", "dp_number", "TARGET_FID", "FID",
+  ]);
+  const landUseValue = attributeValue(graphic.attributes ?? {}, [
+    "LANDUSE", "landuse", "GENERAL_DE", "NAME",
+  ]);
+  const buildings = await queryIntersecting(layers.buildings, parcelGeometry);
+  const existingBuildingGeometry = buildings.map((item) => item.geometry).filter((item): item is Geometry => Boolean(item));
+  const existingBuildingAreaM2 = existingBuildingGeometry.reduce((sum, building) => {
+    return sum + areaM2(geometryEngine.intersect(parcelGeometry, building));
+  }, 0);
+  const searchGeometry = geometryEngine.geodesicBuffer(parcelGeometry, 500, "meters");
+  const [roads, rivers, buffers] = await Promise.all([
+    queryIntersecting(layers.roads, searchGeometry),
+    queryIntersecting(layers.rivers, searchGeometry),
+    queryIntersecting(layers["river-buffer"], parcelGeometry),
+  ]);
+  const nearestDistance = (items: any[]) => {
+    const distances = items.map((item) => item.geometry ? geometryEngine.distance(parcelGeometry, item.geometry, "meters") : null).filter((distance): distance is number => distance != null && Number.isFinite(distance));
+    return distances.length ? Math.min(...distances) : null;
+  };
+  return {
+    parcelId: parcelIdValue == null ? null : String(parcelIdValue),
+    landUse: landUseValue == null ? null : String(landUseValue),
+    parcelAreaM2,
+    parcelGeometry,
+    existingBuildingGeometry,
+    existingBuildingAreaM2,
+    existingBuildingCount: existingBuildingGeometry.length,
+    roadDistanceM: nearestDistance(roads),
+    riverDistanceM: nearestDistance(rivers),
+    riverBufferOverlap: buffers.length > 0,
+    riverBufferGeometries: buffers.map((item) => item.geometry).filter((item): item is Geometry => Boolean(item)),
+  };
+}
+
 export function DevelopmentSimulatorMap({
   proposedGeometry,
   mitigatedGeometry,
   onSiteSelected,
+  initialParcelRef,
   className,
 }: DevelopmentSimulatorMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -131,17 +176,18 @@ export function DevelopmentSimulatorMap({
           const parcelIdValue = attributeValue(
             graphic.graphic.attributes ?? {},
             [
-              "parcel_id",
-              "parcelid",
-              "plot_no",
-              "plot_number",
-              "id",
-              "objectid",
+              "parcel_num",
+              "lr_number",
+              "fr_number",
+              "old_parcel",
+              "dp_number",
+              "TARGET_FID",
+              "FID",
             ],
           );
           const landUseValue = attributeValue(
             graphic.graphic.attributes ?? {},
-            ["land_use", "landuse", "land_use_type", "use", "zone"],
+            ["LANDUSE", "landuse", "GENERAL_DE", "NAME"],
           );
           const buildings = await queryIntersecting(
             layers.buildings,
@@ -238,6 +284,34 @@ export function DevelopmentSimulatorMap({
       scenarioLayerRef.current = null;
     };
   }, [onSiteSelected]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    const parcelLayer = layersRef.current["parcels-landuse"];
+    if (!view || !parcelLayer || !initialParcelRef?.trim()) return;
+    let cancelled = false;
+    const escaped = initialParcelRef.trim().replace(/'/g, "''");
+    const fields = ["parcel_num", "lr_number", "fr_number", "old_parcel", "dp_number"];
+    const where = fields.map((field) => `${field} = '${escaped}'`).join(" OR ");
+    setMessage("Restoring the parcel selected on the Planner map...");
+    parcelLayer.queryFeatures({ where, returnGeometry: true, outFields: ["*"] }).then(async (result: __esri.FeatureSet) => {
+      const graphic = result.features[0] as __esri.Graphic | undefined;
+      if (!graphic || cancelled) {
+        setMessage("The selected parcel could not be found. Select a parcel on this map to continue.");
+        return;
+      }
+      const site = await loadSiteContext(graphic, layersRef.current);
+      if (!site || cancelled) return;
+      selectedLayerRef.current?.removeAll();
+      selectedLayerRef.current?.add(new Graphic({ geometry: site.parcelGeometry, symbol: scenarioSymbol("rgba(196, 120, 90, 0.12)", "#C4785A") }));
+      onSiteSelected(site);
+      setMessage("Parcel restored from the Planner map. Enter a proposal to compare scenarios.");
+      view.goTo({ target: site.parcelGeometry, padding: { top: 80, right: 40, bottom: 80, left: 40 } }).catch(() => undefined);
+    }).catch(() => {
+      if (!cancelled) setMessage("Unable to restore the selected parcel. Select a parcel on this map to continue.");
+    });
+    return () => { cancelled = true; };
+  }, [initialParcelRef, onSiteSelected]);
 
   useEffect(() => {
     const layer = scenarioLayerRef.current;
