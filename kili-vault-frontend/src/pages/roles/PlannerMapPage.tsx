@@ -75,4 +75,8 @@ export function PlannerMapPage() {
               setSearchParams({ detection: detectionId });
             }}
           />
-        </d
+        </div>
+      </calcite-panel>
+    </div>
+  );
+}
