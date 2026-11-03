@@ -1,0 +1,291 @@
+@import 'tailwindcss';
+@import '@arcgis/core/assets/esri/themes/light/main.css';
+
+@theme {
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'Montserrat', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --color-forest: #2a4d38;
+  --color-forest-light: #3d6b50;
+  --color-forest-dark: #1e3828;
+  --color-clay: #c4785a;
+  --color-clay-light: #d4957d;
+  --color-clay-dark: #a86145;
+  --color-charcoal: #1c1c1e;
+  --color-charcoal-muted: #4a4a4f;
+  --color-off-white: #f7f5f2;
+  --color-sand: #e8e4df;
+  --color-sage: #8fa88a;
+  --color-mist: #d4ddd0;
+
+  --color-risk-high: #b54a32;
+  --color-risk-medium: #c4785a;
+  --color-risk-low: #5a7d62;
+
+  --shadow-soft: 0 4px 24px -4px rgb(42 77 56 / 0.12);
+  --shadow-lift: 0 12px 40px -8px rgb(42 77 56 / 0.18);
+}
+
+:root {
+  color-scheme: light;
+}
+
+/* Dark mode — overrides @theme tokens (Tailwind utilities follow these vars) */
+html.dark {
+  color-scheme: dark;
+
+  --color-forest: #4a8f6a;
+  --color-forest-light: #5da67d;
+  --color-forest-dark: #3d6b50;
+  --color-clay: #d4957d;
+  --color-clay-light: #e0ab96;
+  --color-clay-dark: #c4785a;
+  --color-charcoal: #eceae6;
+  --color-charcoal-muted: #9a9a9f;
+  --color-off-white: #121514;
+  --color-sand: #252b28;
+  --color-sage: #6b8572;
+  --color-mist: #1a211e;
+
+  --color-risk-high: #e06b52;
+  --color-risk-medium: #d4957d;
+  --color-risk-low: #6b9a74;
+
+  --shadow-soft: 0 4px 24px -4px rgb(0 0 0 / 0.45);
+  --shadow-lift: 0 12px 40px -8px rgb(0 0 0 / 0.55);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-off-white);
+  color: var(--color-charcoal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-clay);
+  outline-offset: 2px;
+}
+
+.esri-view {
+  font-family: var(--font-body);
+}
+
+.esri-ui-corner .esri-component {
+  box-shadow: var(--shadow-soft);
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-sand) 0%,
+    var(--color-off-white) 50%,
+    var(--color-sand) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.map-loading-pulse,
+.animate-pulse-soft {
+  animation: pulse-soft 1.8s ease-in-out infinite;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.risk-bar {
+  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.4s ease-out forwards;
+}
+
+/* Login page */
+.login-page-grid {
+  background-color: var(--color-off-white);
+}
+
+.login-panel-glow {
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 0%, rgb(196 120 90 / 0.22), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 90% 100%, rgb(255 255 255 / 0.06), transparent 50%);
+}
+
+.login-page-grid main {
+  background-image:
+    linear-gradient(rgb(42 77 56 / 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(42 77 56 / 0.03) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-position: center top;
+}
+
+.login-hero-image {
+  transition: transform 0.35s ease-out;
+  will-change: transform;
+}
+
+@keyframes login-ken-burns {
+  from {
+    transform: scale(1.05);
+  }
+  to {
+    transform: scale(1.14);
+  }
+}
+
+.login-hero-ken-burns {
+  animation: login-ken-burns 18s ease-in-out infinite alternate;
+}
+
+@keyframes login-caption-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-hero-caption {
+  animation: login-caption-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.login-demo-link:active {
+  transform: scale(0.98);
+}
+
+@keyframes login-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-card-animate {
+  opacity: 0;
+  animation: login-card-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.glass-panel {
+  background: rgb(247 245 242 / 0.82);
+}
+
+html.dark .glass-panel {
+  background: rgb(18 21 20 / 0.88);
+}
+
+html.dark .login-page-grid main {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.04) 1px, transparent 1px);
+}
+
+html.dark .shell-sidebar {
+  background: rgb(18 21 20 / 0.6);
+}
+
+html.dark .esri-view {
+  --esri-view-background-color: var(--color-off-white);
+}
+
+/* Intro splash */
+.intro-splash-glow {
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 0%, rgb(196 120 90 / 0.18), transparent 55%),
+    radial-gradient(ellipse 60% 50% at 100% 100%, rgb(255 255 255 / 0.05), transparent 50%);
+}
+
+@keyframes intro-scene-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.intro-scene-animate {
+  animation: intro-scene-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.presenter-guide {
+  animation: fade-up 0.35s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-card-animate,
+  .login-hero-ken-burns,
+  .login-hero-caption,
+  .animate-fade-up,
+  .animate-pulse-soft,
+  .intro-scene-animate,
+  .presenter-guide,
+  .risk-bar {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
