@@ -1,63 +1,51 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import {
-  ArrowRight,
-  Building2,
-  CheckCircle2,
-  FileCheck,
-  Radar,
-  Scale,
-  SkipForward,
-  Sparkles,
-} from 'lucide-react';
 import { Logo } from '@/components/brand/Logo';
-import { Button } from '@/components/ui/Button';
-import { cn } from '@/lib/cn';
 
 export const INTRO_SEEN_KEY = 'kili-vault-intro-seen';
 
 const SCENES = [
   {
     id: 'problem',
-    icon: Building2,
+    icon: 'building',
     kicker: 'The gap',
     title: 'Development has outpaced plot-by-plot monitoring',
-    body: 'Kilimani redeploys faster than traditional inspection can follow. Approvals, site reality, and mitigation drift apart.',
+    body: 'Kilimani redevelops faster than traditional inspection can follow. Approvals, site conditions, and mitigation can drift apart.',
   },
   {
     id: 'detect',
-    icon: Radar,
+    icon: 'analysis',
     kicker: 'Kili-Shadows',
     title: 'Satellite intelligence flags physical change',
-    body: 'Sentinel-2 bi-temporal differencing surfaces candidate developments with confidence — never a legal verdict.',
+    body: 'Satellite imagery surfaces candidate developments with confidence. A detection is a signal for review, not a legal verdict.',
   },
   {
     id: 'assess',
-    icon: Scale,
+    icon: 'map',
     kicker: 'Assess',
-    title: 'GIS intersects planning, infrastructure & risk',
-    body: 'Parcels, roads, riparian buffers, and transparent risk scores give planners spatial context for human review.',
+    title: 'GIS brings planning context together',
+    body: 'Parcels, roads, environmental context, and transparent risk indicators give planners a spatial basis for human review.',
   },
   {
     id: 'require',
-    icon: FileCheck,
+    icon: 'clipboard',
     kicker: 'Require',
-    title: 'Mitigation with a responsible party',
-    body: 'When action is needed, requirements are tracked — who must respond, and who verifies.',
+    title: 'Track mitigation with a responsible party',
+    body: 'Requirements record who must respond, what evidence is needed, and who verifies completion.',
   },
   {
     id: 'verify',
-    icon: CheckCircle2,
+    icon: 'check-circle',
     kicker: 'Verify',
-    title: 'Evidence beats assertion',
-    body: 'Photos, reports, and agency sign-off build a proof chain. A developer’s word is never treated as proof.',
+    title: 'Keep evidence connected to each case',
+    body: 'Photos, reports, and agency review build an auditable record for each development case.',
   },
   {
     id: 'close',
-    icon: Sparkles,
+    icon: 'dashboard',
     kicker: 'Close',
-    title: 'Accountability timeline preserved',
-    body: 'Detect → Assess → Require → Verify → Close. Every step recorded for Kilimani Ward.',
+    title: 'Preserve the accountability timeline',
+    body: 'Detection, assessment, response, verification, and closure remain part of the case history.',
   },
 ] as const;
 
@@ -73,103 +61,119 @@ export function IntroSplash({ onComplete }: IntroSplashProps) {
   const [sceneIndex, setSceneIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const scene = SCENES[sceneIndex];
-  const Icon = scene.icon;
   const isLast = sceneIndex === SCENES.length - 1;
 
   const finish = useCallback(() => {
     sessionStorage.setItem(INTRO_SEEN_KEY, '1');
     onComplete();
-    if (location.pathname !== '/login') {
-      navigate('/login');
-    }
+    if (location.pathname !== '/login') navigate('/login');
   }, [location.pathname, navigate, onComplete]);
 
   useEffect(() => {
     if (paused || isLast) return;
     const timer = window.setTimeout(() => {
-      setSceneIndex((i) => Math.min(i + 1, SCENES.length - 1));
+      setSceneIndex((index) => Math.min(index + 1, SCENES.length - 1));
     }, SCENE_MS);
     return () => window.clearTimeout(timer);
   }, [sceneIndex, paused, isLast]);
 
   return (
-    <div className="intro-splash fixed inset-0 z-[100] flex flex-col bg-forest text-off-white">
-      <header className="relative z-10 flex items-center justify-between px-5 py-4 md:px-8">
-        <div className="flex items-center gap-2">
-          <Logo size={36} className="rounded-lg ring-1 ring-off-white/20" />
-          <span className="font-display text-lg font-bold">Kili-Vault</span>
+    <div className="fixed inset-0 z-[100] flex flex-col bg-[var(--calcite-color-background)] text-[var(--calcite-color-text-1)]">
+      <header className="flex h-14 shrink-0 items-center justify-between border-b border-[var(--calcite-color-border-1)] px-4 sm:px-6">
+        <div className="flex items-center gap-2.5">
+          <Logo size={32} className="rounded-sm" />
+          <span className="text-sm font-semibold">Kili-Vault</span>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="gap-1.5 text-off-white/80 hover:bg-off-white/10 hover:text-off-white"
-          onClick={finish}
-        >
-          <SkipForward className="h-4 w-4" />
-          Skip intro
-        </Button>
+        <calcite-button appearance="transparent" scale="s" icon-start="x" onClick={finish}>
+          Return to portals
+        </calcite-button>
       </header>
 
-      <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 pb-8 pt-4 text-center">
-        <div
-          key={scene.id}
-          className="intro-scene-animate mx-auto max-w-xl"
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-        >
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-clay/90 text-off-white shadow-lift">
-            <Icon className="h-8 w-8" strokeWidth={1.5} />
-          </div>
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-clay-light">{scene.kicker}</p>
-          <h1 className="mt-3 font-display text-3xl font-bold leading-tight md:text-4xl">{scene.title}</h1>
-          <p className="mt-4 text-sm leading-relaxed text-off-white/80 md:text-base">{scene.body}</p>
+      <main className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+        <div className="relative hidden min-h-0 overflow-hidden border-r border-[var(--calcite-color-border-1)] lg:block">
+          <img
+            src="/images/login/footer_image-1.jpg.webp"
+            alt="Nairobi city skyline at dusk"
+            className="absolute inset-0 h-full w-full object-cover object-[24%_center]"
+          />
         </div>
 
-        <div className="mt-10 flex items-center gap-2">
-          {SCENES.map((s, i) => (
-            <button
-              key={s.id}
-              type="button"
-              aria-label={`Scene ${i + 1}: ${s.kicker}`}
-              onClick={() => setSceneIndex(i)}
-              className={cn(
-                'h-1.5 rounded-full transition-all duration-300',
-                i === sceneIndex ? 'w-8 bg-clay' : 'w-1.5 bg-off-white/30 hover:bg-off-white/50',
-              )}
+        <section className="flex min-h-0 flex-col justify-center overflow-y-auto px-5 py-6 sm:px-8 lg:px-10 xl:px-14">
+          <div
+            key={scene.id}
+            className="intro-scene-animate mx-auto w-full max-w-2xl"
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
+          >
+            <calcite-chip scale="s" appearance="outline" icon={scene.icon}>
+              {scene.kicker}
+            </calcite-chip>
+            <h1 className="mt-4 text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">
+              {scene.title}
+            </h1>
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-[var(--calcite-color-text-2)] sm:text-base">
+              {scene.body}
+            </p>
+
+            <calcite-progress
+              className="mt-7"
+              type="determinate"
+              value={String(((sceneIndex + 1) / SCENES.length) * 100)}
+              aria-label={`Introduction scene ${sceneIndex + 1} of ${SCENES.length}`}
             />
-          ))}
-        </div>
 
-        <p className="mt-4 text-xs text-off-white/45">
-          {paused ? 'Paused · move cursor away to continue' : `Scene ${sceneIndex + 1} of ${SCENES.length}`}
-        </p>
+            <div className="mt-6 flex flex-wrap items-center gap-1" aria-label="Introduction scenes">
+              {SCENES.map((item, index) => (
+                <calcite-button
+                  key={item.id}
+                  appearance={index === sceneIndex ? 'solid' : 'transparent'}
+                  scale="s"
+                  onClick={() => setSceneIndex(index)}
+                  aria-label={`Go to scene ${index + 1}: ${item.kicker}`}
+                  title={item.kicker}
+                >
+                  {index + 1}
+                </calcite-button>
+              ))}
+            </div>
+
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--calcite-color-border-1)] pt-4">
+              <p className="text-xs text-[var(--calcite-color-text-2)]">
+                {paused ? 'Paused while you review' : `Scene ${sceneIndex + 1} of ${SCENES.length}`}
+              </p>
+              <div className="flex items-center gap-2">
+                {sceneIndex > 0 && (
+                  <calcite-button
+                    appearance="outline"
+                    scale="s"
+                    icon-start="chevron-left"
+                    onClick={() => setSceneIndex((index) => Math.max(index - 1, 0))}
+                  >
+                    Previous
+                  </calcite-button>
+                )}
+                {isLast ? (
+                  <calcite-button appearance="solid" scale="s" icon-end="chevron-right" onClick={finish}>
+                    Choose a portal
+                  </calcite-button>
+                ) : (
+                  <calcite-button
+                    appearance="solid"
+                    scale="s"
+                    icon-end="chevron-right"
+                    onClick={() => setSceneIndex((index) => Math.min(index + 1, SCENES.length - 1))}
+                  >
+                    Next scene
+                  </calcite-button>
+                )}
+              </div>
+            </div>
+          </div>
+          <p className="mx-auto mt-8 w-full max-w-2xl border-t border-[var(--calcite-color-border-1)] pt-3 text-xs text-[var(--calcite-color-text-3)]">
+            Kilimani Urban Hackathon · Spatial accountability layer
+          </p>
+        </section>
       </main>
-
-      <footer className="relative z-10 border-t border-off-white/10 px-6 py-5 md:px-8">
-        <div className="mx-auto flex max-w-xl flex-col items-center gap-3 sm:flex-row sm:justify-between">
-          <p className="text-xs text-off-white/55">Kilimani Urban Hackathon · Spatial accountability layer</p>
-          {isLast ? (
-            <Button
-              variant="secondary"
-              size="lg"
-              className="gap-2 shadow-lift"
-              onClick={finish}
-            >
-              Choose your role
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-off-white/80 hover:bg-off-white/10"
-              onClick={() => setSceneIndex((i) => Math.min(i + 1, SCENES.length - 1))}
-            >
-              Next scene →
-            </Button>
-          )}
-        </div>
-      </footer>
     </div>
   );
 }

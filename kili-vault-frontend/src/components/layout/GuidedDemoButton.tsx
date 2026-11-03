@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Play } from "lucide-react";
 import { usePresenter } from "@/context/PresenterContext";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
@@ -35,7 +34,7 @@ export function GuidedDemoButton({
       title="Start guided demo"
       aria-label="Start guided demo"
     >
-      <Play className="h-4 w-4" />
+      <calcite-icon icon="play" scale="s" />
       {!compact && "Guided demo"}
     </Button>
   );

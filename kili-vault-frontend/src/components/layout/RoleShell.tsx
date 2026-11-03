@@ -1,13 +1,5 @@
 import { useState, type ReactNode } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-import {
-  ChevronLeft,
-  ChevronRight,
-  LogOut,
-  Menu,
-  X,
-  type LucideIcon,
-} from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 import { Logo } from "@/components/brand/Logo";
 import { GuidedDemoButton } from "@/components/layout/GuidedDemoButton";
@@ -19,8 +11,7 @@ import { cn } from "@/lib/cn";
 export interface NavItem {
   to: string;
   label: string;
-  icon: LucideIcon;
-  calciteIcon?: string;
+  calciteIcon: string;
   end?: boolean;
 }
 
@@ -53,7 +44,7 @@ export function RoleShell({
   const bottomNav = mobileNavItems ?? navItems.slice(0, 3);
 
   const renderNavLink = (item: NavItem, compact: boolean) => {
-    const { to, label, icon: Icon, end } = item;
+    const { to, label, end } = item;
     return (
       <NavLink
         key={to}
@@ -71,11 +62,7 @@ export function RoleShell({
           )
         }
       >
-        {item.calciteIcon ? (
-          <calcite-icon icon={item.calciteIcon} scale="s" />
-        ) : (
-          <Icon className="h-5 w-5 shrink-0" strokeWidth={1.75} />
-        )}
+        <calcite-icon icon={item.calciteIcon} scale="s" />
         {!compact && <span className="truncate">{label}</span>}
         {compact && (
           <span className="pointer-events-none absolute left-full z-50 ml-2 hidden whitespace-nowrap rounded-lg bg-charcoal px-2.5 py-1.5 text-xs font-semibold text-off-white opacity-0 shadow-lift transition-opacity group-hover:opacity-100 lg:group-focus-within:opacity-100 xl:block">
@@ -133,7 +120,7 @@ export function RoleShell({
           title="Sign out"
           aria-label="Sign out"
         >
-          <LogOut className="h-4 w-4" />
+          <calcite-icon icon="sign-out" scale="s" />
           {!compact && "Sign out"}
         </Button>
       </div>
@@ -152,7 +139,7 @@ export function RoleShell({
               onClick={() => setMobileOpen(true)}
               aria-label="Open menu"
             >
-              <Menu className="h-5 w-5" />
+              <calcite-icon icon="hamburger" scale="m" />
             </Button>
             <Button
               variant="ghost"
@@ -165,15 +152,15 @@ export function RoleShell({
               title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               {sidebarCollapsed ? (
-                <ChevronRight className="h-5 w-5" />
+                <calcite-icon icon="chevron-right" scale="m" />
               ) : (
-                <ChevronLeft className="h-5 w-5" />
+                <calcite-icon icon="chevron-left" scale="m" />
               )}
             </Button>
             {isPlannerWorkspace ? (
               <calcite-icon icon="map" scale="l" className="text-charcoal" />
             ) : (
-              <Logo size={36} className="rounded-xl shadow-soft" />
+              <Logo size={36} className="rounded-xl" />
             )}
             <div className="hidden min-w-0 sm:block">
               <h1 className="truncate text-base font-semibold leading-tight text-charcoal md:text-lg">
@@ -233,7 +220,7 @@ export function RoleShell({
                   className="text-charcoal-muted hover:bg-[#f6f7f8] hover:text-charcoal"
                   onClick={() => setMobileOpen(false)}
                 >
-                  <X className="h-5 w-5" />
+                  <calcite-icon icon="x" scale="m" />
                 </Button>
               </div>
               {sidebar(false)}
@@ -243,11 +230,11 @@ export function RoleShell({
 
         <main
           className={cn(
-            "min-h-0 min-w-0 flex-1 pb-20 lg:pb-0",
+            "min-h-0 min-w-0 flex-1 pb-14 lg:pb-0",
             contentBleed ? "overflow-hidden" : "overflow-y-auto",
             !contentBleed &&
               "mx-auto w-full max-w-[100rem] px-3 py-5 md:px-5 md:py-6 lg:px-6 lg:py-7",
-            contentBleed && "p-0 pb-20 lg:p-0 lg:pb-0",
+            contentBleed && "p-0 pb-14 lg:p-0 lg:pb-0",
           )}
         >
           <Outlet />
@@ -275,11 +262,7 @@ export function RoleShell({
                   )
                 }
               >
-                {item.calciteIcon ? (
-                  <calcite-icon icon={item.calciteIcon} scale="s" />
-                ) : (
-                  <item.icon className="h-5 w-5" />
-                )}
+                <calcite-icon icon={item.calciteIcon} scale="s" />
                 <span className="truncate px-1">{item.label}</span>
               </NavLink>
             </li>

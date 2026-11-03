@@ -12,16 +12,10 @@ const IntroContext = createContext<IntroContextValue | null>(null);
 export function IntroProvider({ children }: { children: ReactNode }) {
   const location = useLocation();
   const introRoute = location.pathname === '/login';
-  const [showIntro, setShowIntro] = useState(
-    () => introRoute && sessionStorage.getItem(INTRO_SEEN_KEY) !== '1',
-  );
+  const [showIntro, setShowIntro] = useState(false);
 
   useEffect(() => {
-    if (!introRoute) {
-      setShowIntro(false);
-      return;
-    }
-    if (sessionStorage.getItem(INTRO_SEEN_KEY) !== '1') setShowIntro(true);
+    if (!introRoute) setShowIntro(false);
   }, [introRoute]);
 
   const replayIntro = useCallback(() => {

@@ -6,16 +6,19 @@ interface LogoProps {
   alt?: string;
 }
 
-/** Kili-Vault brand mark. The browser tab uses the Calcite map icon. */
+/** Shared Calcite map mark used in the browser tab and application shell. */
 export function Logo({ size = 36, className, alt = 'Kili-Vault' }: LogoProps) {
   return (
-    <img
-      src="/kili-vault-mark.svg"
-      alt={alt}
-      width={size}
-      height={size}
-      className={cn('shrink-0 select-none', className)}
-      draggable={false}
-    />
+    <span
+      role="img"
+      aria-label={alt}
+      className={cn(
+        'inline-flex shrink-0 select-none items-center justify-center bg-[var(--calcite-color-foreground-2)] text-[var(--calcite-color-text-1)]',
+        className,
+      )}
+      style={{ width: size, height: size }}
+    >
+      <calcite-icon icon="map" scale="l" />
+    </span>
   );
 }

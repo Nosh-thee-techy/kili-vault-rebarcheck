@@ -2,9 +2,9 @@
 @import "@arcgis/core/assets/esri/themes/light/main.css";
 
 @theme {
-  --font-display: "Playfair Display", Georgia, serif;
-  --font-body: "Montserrat", system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-display: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
 
   --color-forest: #2a4d38;
   --color-forest-light: #3d6b50;
@@ -172,98 +172,8 @@ h4 {
   animation: fade-up 0.4s ease-out forwards;
 }
 
-/* Login page */
-.login-page-grid {
-  background-color: var(--color-off-white);
-}
-
-.login-panel-glow {
-  background:
-    radial-gradient(
-      ellipse 80% 60% at 10% 0%,
-      rgb(196 120 90 / 0.22),
-      transparent 55%
-    ),
-    radial-gradient(
-      ellipse 70% 50% at 90% 100%,
-      rgb(255 255 255 / 0.06),
-      transparent 50%
-    );
-}
-
-.login-page-grid main {
-  background-image:
-    linear-gradient(rgb(42 77 56 / 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(42 77 56 / 0.03) 1px, transparent 1px);
-  background-size: 28px 28px;
-  background-position: center top;
-}
-
-.login-hero-image {
-  transition: transform 0.35s ease-out;
-  will-change: transform;
-}
-
-@keyframes login-ken-burns {
-  from {
-    transform: scale(1.05);
-  }
-  to {
-    transform: scale(1.14);
-  }
-}
-
-.login-hero-ken-burns {
-  animation: login-ken-burns 18s ease-in-out infinite alternate;
-}
-
-@keyframes login-caption-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.login-hero-caption {
-  animation: login-caption-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-.login-demo-link:active {
-  transform: scale(0.98);
-}
-
-@keyframes login-card-in {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.login-card-animate {
-  opacity: 0;
-  animation: login-card-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-.glass-panel {
-  background: rgb(247 245 242 / 0.82);
-}
-
-html.dark .glass-panel {
-  background: rgb(18 21 20 / 0.88);
-}
-
-html.dark .login-page-grid main {
-  background-image:
-    linear-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(255 255 255 / 0.04) 1px, transparent 1px);
+.login-portal-page {
+  font-family: var(--font-body);
 }
 
 html.dark .esri-view {
@@ -290,9 +200,6 @@ html.dark .esri-view {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .login-card-animate,
-  .login-hero-ken-burns,
-  .login-hero-caption,
   .animate-fade-up,
   .animate-pulse-soft,
   .intro-scene-animate,

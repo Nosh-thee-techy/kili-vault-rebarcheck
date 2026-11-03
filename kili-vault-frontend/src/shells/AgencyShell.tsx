@@ -1,11 +1,9 @@
-import { ClipboardCheck } from 'lucide-react';
 import { RoleShell } from '@/components/layout/RoleShell';
 
 const nav = [
   {
     to: '/agency',
     label: 'Verification queue',
-    icon: ClipboardCheck,
     calciteIcon: 'check-circle',
     end: true,
   },

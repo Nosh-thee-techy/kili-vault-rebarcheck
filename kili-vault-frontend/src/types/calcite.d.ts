@@ -15,6 +15,7 @@ type CalciteElement = DetailedHTMLProps<
   heading?: string;
   icon?: string;
   "icon-start"?: string;
+  "icon-end"?: string;
   kind?: string;
   layout?: string;
   label?: string;
@@ -54,6 +55,7 @@ declare global {
         "calcite-action-bar": CalciteElement;
         "calcite-button": CalciteElement;
         "calcite-block": CalciteElement;
+        "calcite-card": CalciteElement;
         "calcite-checkbox": CalciteElement;
         "calcite-chip": CalciteElement;
         "calcite-icon": CalciteElement;
