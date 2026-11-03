@@ -6,11 +6,11 @@ interface LogoProps {
   alt?: string;
 }
 
-/** Same mark as `/favicon.svg` (browser tab icon). */
+/** Kili-Vault brand mark. The browser tab uses the Calcite map icon. */
 export function Logo({ size = 36, className, alt = 'Kili-Vault' }: LogoProps) {
   return (
     <img
-      src="/favicon.svg"
+      src="/kili-vault-mark.svg"
       alt={alt}
       width={size}
       height={size}

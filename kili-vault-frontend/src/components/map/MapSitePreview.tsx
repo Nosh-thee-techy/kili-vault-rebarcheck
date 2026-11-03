@@ -1,8 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Radar, X } from 'lucide-react';
-import { CaseStatusBadge } from '@/components/cases/CaseStatusBadge';
-import { RiskBadge } from '@/components/cases/RiskBadge';
-import { Button } from '@/components/ui/Button';
+import { CASE_STATUS_LABELS } from '@/config/theme';
 import { formatArea, formatChangeType, formatConfidence } from '@/lib/format';
 import { formatRoadProximity, type SiteProximity } from '@/lib/siteProximity';
 import type { DevelopmentCase } from '@/types';
@@ -27,118 +24,128 @@ export function MapSitePreview({
   proximity?: SiteProximity | null;
   onClose: () => void;
 }) {
-  return (
-    <div className="pointer-events-auto animate-fade-up w-[min(100%,20rem)] rounded-2xl border border-sand bg-off-white/95 p-4 shadow-lift backdrop-blur-md">
-      <div className="mb-3 flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          {selection.kind === 'case' ? (
-            <>
-              <p className="truncate font-display text-base font-bold text-charcoal">
-                {selection.caseItem.caseNumber}
-              </p>
-              <p className="mt-0.5 truncate text-xs text-charcoal-muted">
-                {selection.caseItem.title ?? formatChangeType(selection.caseItem.changeType)}
-              </p>
-            </>
-          ) : (
-            <>
-              <p className="flex items-center gap-1.5 font-display text-base font-bold text-charcoal">
-                <Radar className="h-4 w-4 text-clay-dark" />
-                Detection
-              </p>
-              <p className="mt-0.5 text-xs text-charcoal-muted">
-                Candidate — not yet a workflow case
-              </p>
-            </>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded-lg p-1 text-charcoal-muted transition-colors hover:bg-mist/60 hover:text-charcoal"
-          aria-label="Close site preview"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
+  const isCase = selection.kind === 'case';
+  const title = isCase
+    ? selection.caseItem.caseNumber
+    : 'Candidate detection';
+  const description = isCase
+    ? selection.caseItem.title ??
+      formatChangeType(selection.caseItem.changeType)
+    : 'Satellite observation · not yet a workflow case';
 
-      {selection.kind === 'case' ? (
+  return (
+    <section className="pointer-events-auto w-[min(100%,20rem)] border border-[var(--calcite-color-border-3)] bg-[var(--calcite-color-background)] p-3 shadow-md">
+      <header className="mb-3 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="truncate text-sm font-semibold text-[var(--calcite-color-text-1)]">
+            {title}
+          </h2>
+          <p className="mt-0.5 line-clamp-2 text-xs text-[var(--calcite-color-text-3)]">
+            {description}
+          </p>
+        </div>
+        <calcite-button
+          appearance="transparent"
+          icon-start="x"
+          scale="s"
+          label="Close map selection"
+          onClick={onClose}
+        />
+      </header>
+
+      {isCase ? (
         <>
-          <div className="flex flex-wrap items-center gap-2">
-            <CaseStatusBadge status={selection.caseItem.status} />
-            <RiskBadge level={selection.caseItem.risk.overall} />
+          <div className="flex flex-wrap gap-2">
+            <calcite-chip scale="s">
+              {CASE_STATUS_LABELS[selection.caseItem.status] ??
+                selection.caseItem.status}
+            </calcite-chip>
+            <calcite-chip scale="s">
+              {selection.caseItem.risk.overall} risk
+            </calcite-chip>
           </div>
-          <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
+          <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
             <div>
-              <dt className="text-charcoal-muted">Change</dt>
-              <dd className="font-semibold text-charcoal">
+              <dt className="text-[var(--calcite-color-text-3)]">Change</dt>
+              <dd className="font-medium text-[var(--calcite-color-text-1)]">
                 {formatChangeType(selection.caseItem.changeType)}
               </dd>
             </div>
             <div>
-              <dt className="text-charcoal-muted">Confidence</dt>
-              <dd className="font-semibold text-charcoal">
+              <dt className="text-[var(--calcite-color-text-3)]">
+                Confidence
+              </dt>
+              <dd className="font-medium text-[var(--calcite-color-text-1)]">
                 {formatConfidence(selection.caseItem.confidence)}
               </dd>
             </div>
             <div className="col-span-2">
-              <dt className="text-charcoal-muted">Area</dt>
-              <dd className="font-semibold text-charcoal">
+              <dt className="text-[var(--calcite-color-text-3)]">Area</dt>
+              <dd className="font-medium text-[var(--calcite-color-text-1)]">
                 {formatArea(selection.caseItem.areaM2)}
               </dd>
             </div>
             {proximity && (
               <>
-                <div className="col-span-2">
-                  <dt className="text-charcoal-muted">Road proximity</dt>
-                  <dd className="font-semibold text-charcoal">
+                <div className="col-span-2 border-t border-[var(--calcite-color-border-3)] pt-2">
+                  <dt className="text-[var(--calcite-color-text-3)]">
+                    Road proximity
+                  </dt>
+                  <dd className="font-medium text-[var(--calcite-color-text-1)]">
                     {formatRoadProximity(proximity.roadDistanceM)}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-charcoal-muted">Sewer</dt>
-                  <dd className="font-semibold text-charcoal">
-                    {proximity.inSeweredArea ? 'Sewered area' : 'Not sewered'}
+                  <dt className="text-[var(--calcite-color-text-3)]">Sewer</dt>
+                  <dd className="font-medium text-[var(--calcite-color-text-1)]">
+                    {proximity.inSeweredArea
+                      ? 'Inside mapped service area'
+                      : 'Outside mapped service area'}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-charcoal-muted">Power</dt>
-                  <dd className="font-semibold text-charcoal">
-                    {proximity.nearPowerLine ? 'Near 11 kV' : 'No line nearby'}
+                  <dt className="text-[var(--calcite-color-text-3)]">Power</dt>
+                  <dd className="font-medium text-[var(--calcite-color-text-1)]">
+                    {proximity.nearPowerLine
+                      ? 'Near mapped 11 kV line'
+                      : 'No nearby line observed'}
                   </dd>
                 </div>
               </>
             )}
           </dl>
-          <Link to={`${caseLinkPrefix}/${selection.caseItem.id}`} className="mt-4 block">
-            <Button variant="primary" size="sm" className="w-full gap-2">
-              Open case
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Button>
+          <Link
+            to={caseLinkPrefix + '/' + selection.caseItem.id}
+            className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-[var(--calcite-color-text-1)] hover:underline"
+          >
+            Open case
+            <calcite-icon icon="chevron-right" scale="s" />
           </Link>
         </>
       ) : (
         <>
-          <dl className="grid grid-cols-2 gap-2 text-xs">
+          <div className="grid grid-cols-2 gap-2 text-xs">
             <div>
-              <dt className="text-charcoal-muted">Change</dt>
-              <dd className="font-semibold text-charcoal">
+              <dt className="text-[var(--calcite-color-text-3)]">Change</dt>
+              <dd className="font-medium text-[var(--calcite-color-text-1)]">
                 {selection.changeType.replace(/_/g, ' ')}
               </dd>
             </div>
             <div>
-              <dt className="text-charcoal-muted">Confidence</dt>
-              <dd className="font-semibold text-charcoal">
+              <dt className="text-[var(--calcite-color-text-3)]">
+                Confidence
+              </dt>
+              <dd className="font-medium text-[var(--calcite-color-text-1)]">
                 {formatConfidence(selection.confidence)}
               </dd>
             </div>
-          </dl>
-          <p className="mt-3 rounded-xl bg-mist/50 px-3 py-2 text-xs text-charcoal-muted">
-            Kili-Shadows flagged this footprint from satellite imagery. A planner can promote it
-            to a case.
-          </p>
+          </div>
+          <calcite-notice open kind="info" scale="s" className="mt-3">
+            This candidate comes from satellite imagery. A planner must review
+            it before it is treated as a workflow case.
+          </calcite-notice>
         </>
       )}
-    </div>
+    </section>
   );
 }

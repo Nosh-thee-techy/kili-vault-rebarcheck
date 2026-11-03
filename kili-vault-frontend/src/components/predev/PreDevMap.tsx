@@ -29,6 +29,7 @@ interface PreDevMapProps {
   lat: number | null;
   lon: number | null;
   onPinDrop: (lat: number, lon: number) => void;
+  showProximity?: boolean;
   className?: string;
 }
 
@@ -52,7 +53,13 @@ function proximityRingSymbol(meters: number, fill: string, outline: string) {
   });
 }
 
-export function PreDevMap({ lat, lon, onPinDrop, className }: PreDevMapProps) {
+export function PreDevMap({
+  lat,
+  lon,
+  onPinDrop,
+  showProximity = true,
+  className,
+}: PreDevMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<MapView | null>(null);
   const overlayLayerRef = useRef<GraphicsLayer | null>(null);
@@ -169,21 +176,22 @@ export function PreDevMap({ lat, lon, onPinDrop, className }: PreDevMapProps) {
     }
 
     const point = new Point({ longitude: lon, latitude: lat });
-    const buffers = geometryEngine.geodesicBuffer(point, [30, 50], 'meters');
-    const ringGeometries = Array.isArray(buffers) ? buffers : [buffers];
-
-    ringGeometries.forEach((geometry, index) => {
-      overlay.add(
-        new Graphic({
-          geometry,
-          symbol: proximityRingSymbol(
-            index === 0 ? 30 : 50,
-            index === 0 ? 'rgba(45, 80, 22, 0.12)' : 'rgba(196, 120, 90, 0.08)',
-            index === 0 ? 'rgba(45, 80, 22, 0.85)' : 'rgba(196, 120, 90, 0.75)',
-          ) as __esri.SymbolUnion,
-        }),
-      );
-    });
+    if (showProximity) {
+      const buffers = geometryEngine.geodesicBuffer(point, [30, 50], 'meters');
+      const ringGeometries = Array.isArray(buffers) ? buffers : [buffers];
+      ringGeometries.forEach((geometry, index) => {
+        overlay.add(
+          new Graphic({
+            geometry,
+            symbol: proximityRingSymbol(
+              index === 0 ? 30 : 50,
+              index === 0 ? 'rgba(45, 80, 22, 0.12)' : 'rgba(196, 120, 90, 0.08)',
+              index === 0 ? 'rgba(45, 80, 22, 0.85)' : 'rgba(196, 120, 90, 0.75)',
+            ) as __esri.SymbolUnion,
+          }),
+        );
+      });
+    }
 
     overlay.add(
       new Graphic({
@@ -209,7 +217,10 @@ export function PreDevMap({ lat, lon, onPinDrop, className }: PreDevMapProps) {
     const roads = featureLayersRef.current.roads;
     const sewer = featureLayersRef.current['sewer-areas'];
     const power = featureLayersRef.current['power-lines'];
-    if (!roads) return;
+    if (!showProximity || !roads) {
+      setProximity(null);
+      return;
+    }
 
     let cancelled = false;
     analyzeSiteProximity(lat, lon, roads, sewer, power)
@@ -223,7 +234,7 @@ export function PreDevMap({ lat, lon, onPinDrop, className }: PreDevMapProps) {
     return () => {
       cancelled = true;
     };
-  }, [lat, lon]);
+  }, [lat, lon, showProximity]);
 
   const layerControls = (
     <div className="pointer-events-auto absolute right-3 top-14 z-20 w-60 max-w-[90%] border border-sand bg-[var(--calcite-color-background)] shadow-soft">
@@ -297,7 +308,9 @@ export function PreDevMap({ lat, lon, onPinDrop, className }: PreDevMapProps) {
         scale="s"
         className="pointer-events-none absolute left-3 top-14 z-10 max-w-[90%]"
       >
-        Dotted rings show 30 m and 50 m proximity guides.
+        {showProximity
+          ? 'Dotted rings show 30 m and 50 m proximity guides.'
+          : 'Tap the map to place or move the report pin.'}
       </calcite-chip>
 
       {layerControls}

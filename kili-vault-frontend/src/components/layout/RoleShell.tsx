@@ -247,7 +247,7 @@ export function RoleShell({
             contentBleed ? "overflow-hidden" : "overflow-y-auto",
             !contentBleed &&
               "mx-auto w-full max-w-[100rem] px-3 py-5 md:px-5 md:py-6 lg:px-6 lg:py-7",
-            contentBleed && "p-0 lg:p-0",
+            contentBleed && "p-0 pb-20 lg:p-0 lg:pb-0",
           )}
         >
           <Outlet />

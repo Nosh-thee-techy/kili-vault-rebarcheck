@@ -1,47 +1,46 @@
-import { HardHat, Leaf, Megaphone, MoreHorizontal, Trash2, Waves } from 'lucide-react';
 import type { CommunityReportCategory } from '@/types';
 
 export const COMMUNITY_REPORT_TYPES: {
   id: CommunityReportCategory;
   label: string;
   hint: string;
-  icon: typeof HardHat;
+  calciteIcon: string;
 }[] = [
   {
     id: 'CONSTRUCTION',
     label: 'Construction',
     hint: 'New building work, extensions, or heavy machinery on site',
-    icon: HardHat,
+    calciteIcon: 'hammer',
   },
   {
     id: 'LAND_CLEARING',
     label: 'Land clearing',
     hint: 'Trees removed, vegetation stripped, or soil dug up',
-    icon: Leaf,
+    calciteIcon: 'tree',
   },
   {
     id: 'DUMPING',
     label: 'Illegal dumping',
     hint: 'Rubble, waste, or materials dumped on open ground',
-    icon: Trash2,
+    calciteIcon: 'trash',
   },
   {
     id: 'DRAINAGE',
     label: 'Drainage issue',
     hint: 'Blocked drain, flooding, or work near a waterway',
-    icon: Waves,
+    calciteIcon: 'water-drop',
   },
   {
     id: 'NOISE',
     label: 'Noise / disturbance',
     hint: 'Loud building work outside reasonable hours',
-    icon: Megaphone,
+    calciteIcon: 'sound',
   },
   {
     id: 'OTHER',
     label: 'Something else',
     hint: 'Any other physical change you noticed',
-    icon: MoreHorizontal,
+    calciteIcon: 'ellipsis',
   },
 ];
 

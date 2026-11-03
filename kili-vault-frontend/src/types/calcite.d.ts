@@ -21,6 +21,7 @@ type CalciteElement = DetailedHTMLProps<
   labelText?: string;
   loading?: boolean;
   max?: string;
+  maxLength?: number;
   min?: string;
   message?: string;
   name?: string;
