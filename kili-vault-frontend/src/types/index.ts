@@ -1,24 +1,24 @@
 export type ChangeType =
-  | 'BUILDING_DEVELOPMENT'
-  | 'INFRASTRUCTURE_CHANGE'
-  | 'LAND_CLEARING'
-  | 'VEGETATION_CHANGE'
-  | 'SURFACE_CHANGE'
-  | 'UNKNOWN';
+  | "BUILDING_DEVELOPMENT"
+  | "INFRASTRUCTURE_CHANGE"
+  | "LAND_CLEARING"
+  | "VEGETATION_CHANGE"
+  | "SURFACE_CHANGE"
+  | "UNKNOWN";
 
 export type CaseStatus =
-  | 'AI_FLAGGED'
-  | 'UNDER_REVIEW'
-  | 'MITIGATION_REQUIRED'
-  | 'EVIDENCE_SUBMITTED'
-  | 'AGENCY_PENDING'
-  | 'VERIFIED'
-  | 'REJECTED'
-  | 'CLOSED';
+  | "AI_FLAGGED"
+  | "UNDER_REVIEW"
+  | "MITIGATION_REQUIRED"
+  | "EVIDENCE_SUBMITTED"
+  | "AGENCY_PENDING"
+  | "VERIFIED"
+  | "REJECTED"
+  | "CLOSED";
 
-export type RiskLevel = 'HIGH' | 'MEDIUM' | 'LOW';
+export type RiskLevel = "HIGH" | "MEDIUM" | "LOW";
 
-export type UserRole = 'planner' | 'developer' | 'community' | 'agency';
+export type UserRole = "planner" | "developer" | "community" | "agency";
 
 export interface AuthUser {
   id: string;
@@ -48,7 +48,7 @@ export interface EvidenceItem {
 }
 
 export interface PreDevFlag {
-  severity: 'info' | 'warning';
+  severity: "info" | "warning";
   text: string;
 }
 
@@ -79,7 +79,7 @@ export interface DetectionEvidence {
   prithvi?: {
     available?: boolean;
     predicted_class?: string;
-    class_probabilities?: Partial<Record<ChangeType | 'UNKNOWN', number>>;
+    class_probabilities?: Partial<Record<ChangeType | "UNKNOWN", number>>;
   };
   raw_signals?: {
     area_m2?: number;
@@ -152,14 +152,17 @@ export interface LinkedDetection {
 }
 
 export type CommunityReportCategory =
-  | 'CONSTRUCTION'
-  | 'LAND_CLEARING'
-  | 'DUMPING'
-  | 'DRAINAGE'
-  | 'NOISE'
-  | 'OTHER';
+  | "CONSTRUCTION"
+  | "LAND_CLEARING"
+  | "DUMPING"
+  | "DRAINAGE"
+  | "NOISE"
+  | "OTHER";
 
-export type CommunityObservationStatus = 'PENDING_REVIEW' | 'LINKED_TO_CASE' | 'DISMISSED';
+export type CommunityObservationStatus =
+  | "PENDING_REVIEW"
+  | "LINKED_TO_CASE"
+  | "DISMISSED";
 
 export interface CommunityObservation {
   id: string;
@@ -204,6 +207,54 @@ export interface DevelopmentCase {
   linkedDetection?: LinkedDetection;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface PropertyDevelopmentRecord {
+  recordId: string;
+  caseId: string;
+  caseNumber: string;
+  status: "CLOSED";
+  closedAt: string | null;
+  property: {
+    parcelId: string | null;
+    ward: string | null;
+    constituency: string | null;
+    location: { latitude: number; longitude: number } | null;
+    landUse: string | null;
+    geometryReference: string | null;
+    developmentType: string | null;
+  };
+  lifecycle: {
+    stage: string;
+    timestamp: string | null;
+    actor: string | null;
+    details: string | null;
+  }[];
+  development: {
+    existing: Record<string, unknown> | null;
+    proposed: Record<string, unknown> | null;
+    mitigated: Record<string, unknown> | null;
+    observed: Record<string, unknown> | null;
+  };
+  comparison: Record<string, unknown> | null;
+  spatialContext: Record<string, unknown>;
+  verification: {
+    status: string;
+    verifiedAt: string | null;
+    reviewer: string | null;
+    notes: string | null;
+    closureReason: string | null;
+  };
+  evidence: {
+    id: string;
+    type: string;
+    name: string;
+    reference: string;
+    uploadedAt: string;
+    status: string;
+  }[];
+  provenance: Record<string, string>;
+  limitations: string[];
 }
 
 export interface CaseStats {

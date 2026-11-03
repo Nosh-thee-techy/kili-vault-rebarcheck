@@ -289,6 +289,16 @@ Triggers an automated processing run.
 
 ---
 
+## 4. Closed Case Property Record
+
+### `GET /api/v1/cases/:caseId/property-record`
+
+Returns a derived, permission-checked Property Development Record for a case whose status is `CLOSED`. The response references existing case audit events, evidence items, linked detection data, and any recorded pre-development assessment. It does not create a duplicate record table or infer missing property/scenario values.
+
+Returns `409 RECORD_UNAVAILABLE` when the case is not closed, `404 NOT_FOUND` when the case does not exist, and `403 FORBIDDEN` when an assigned developer requests another developer's case.
+
+---
+
 ## 4. Model Management & Automation Endpoints
 
 ### `GET /api/v1/models/status`
