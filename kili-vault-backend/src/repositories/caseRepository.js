@@ -69,6 +69,13 @@ module.exports = {
   verify: wrapSync('verify', (id, decision, audit) => fileStore.verify(id, decision, audit)),
   getStats: wrapSync('getStats', () => fileStore.getStats()),
   getEvidenceDir: (caseId) => fileStore.getEvidenceDir(caseId),
+  createPreDevelopment: async (input, assessment, user) => {
+    const mode = await detectStorageMode();
+    if (mode === 'postgres') {
+      throw new Error('createPreDevelopment should use preDevelopmentService for postgres');
+    }
+    return fileStore.createPreDevelopment(input, assessment, user);
+  },
   resetModeCache: () => {
     storageMode = null;
   },

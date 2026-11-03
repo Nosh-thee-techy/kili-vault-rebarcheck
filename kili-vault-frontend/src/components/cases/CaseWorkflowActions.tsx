@@ -45,20 +45,21 @@ export function CaseWorkflowActions({ caseItem }: { caseItem: DevelopmentCase })
   };
 
   return (
-    <div className="space-y-4 rounded-2xl border border-forest/15 bg-gradient-to-br from-forest/5 to-off-white p-5">
-      <h3 className="font-display text-lg font-semibold text-charcoal">Actions</h3>
+    <div className="space-y-3 rounded-2xl border border-forest/15 bg-gradient-to-br from-forest/5 to-off-white p-4">
+      <h3 className="font-display text-base font-semibold text-charcoal">Actions</h3>
 
       {transitions.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-2">
           {transitions.map((status) => (
             <Button
               key={status}
               variant={status === 'CLOSED' || status === 'REJECTED' ? 'outline' : 'primary'}
               size="sm"
+              className="w-full justify-center"
               isLoading={updateStatus.isPending}
               onClick={() => handleStatus(status)}
             >
-              → {CASE_STATUS_LABELS[status]}
+              {CASE_STATUS_LABELS[status]}
             </Button>
           ))}
         </div>

@@ -1,12 +1,10 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
-import { usePresenter } from '@/context/PresenterContext';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Maximize2, Radar } from 'lucide-react';
 import { CaseListItem } from '@/components/cases/CaseListItem';
 import { CommandKpiStrip } from '@/components/dashboard/CommandKpiStrip';
 import { CommunityObservationsCard } from '@/components/dashboard/CommunityObservationsCard';
 import { PromoteDetectionsBanner } from '@/components/dashboard/PromoteDetectionsBanner';
-import { HackathonDemoPath } from '@/components/dashboard/HackathonDemoPath';
 import { PageHero } from '@/components/dashboard/PageHero';
 import { SpotlightCaseCard } from '@/components/dashboard/SpotlightCaseCard';
 import { WorkflowPipeline } from '@/components/dashboard/WorkflowPipeline';
@@ -36,7 +34,6 @@ function pickSpotlight(cases: DevelopmentCase[]): DevelopmentCase | undefined {
 }
 
 export function PlannerDashboardPage() {
-  const { setSpotlightCaseId } = usePresenter();
   const { data, isLoading } = useCasesQuery({ limit: 50 });
   const { stats, isLoading: statsLoading } = useNormalizedCaseStats();
   const { data: detectionStats } = useDetectionStatsQuery();
@@ -46,10 +43,6 @@ export function PlannerDashboardPage() {
     (c) => c.status === 'AI_FLAGGED' || c.status === 'UNDER_REVIEW',
   );
   const spotlight = useMemo(() => pickSpotlight(cases), [cases]);
-
-  useEffect(() => {
-    if (spotlight?.id) setSpotlightCaseId(spotlight.id);
-  }, [spotlight?.id, setSpotlightCaseId]);
 
   const [layerVisibility] = useState(() =>
     Object.fromEntries(MAP_LAYERS.map((l) => [l.id, l.defaultVisible])),
@@ -67,8 +60,6 @@ export function PlannerDashboardPage() {
 
   return (
     <div className="space-y-6 animate-fade-up">
-      <HackathonDemoPath spotlightCaseId={spotlight?.id} />
-
       <PageHero
         eyebrow="Operations command center"
         title="Kilimani oversight"

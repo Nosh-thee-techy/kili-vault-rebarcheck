@@ -289,6 +289,72 @@ class CaseStore {
     return toApiCase(store.cases[idx]);
   }
 
+  createPreDevelopment(input, assessment, user) {
+    const store = readStore();
+    const now = new Date().toISOString();
+    const id = `case_${uuidv4().slice(0, 8)}`;
+    const num = 10127 + store.cases.length;
+    const d = 0.00008;
+    const { lat, lon } = input;
+
+    const row = {
+      id,
+      case_number: `KV-${String(num).padStart(5, '0')}`,
+      detection_id: null,
+      title: `Pre-development check: ${input.changeType.replace(/_/g, ' ').toLowerCase()} near ${lat.toFixed(4)}, ${lon.toFixed(4)}`,
+      change_type: input.changeType,
+      status: 'UNDER_REVIEW',
+      confidence: assessment.confidence,
+      risk: assessment.risk,
+      area_m2: assessment.areaM2,
+      centroid_lat: lat,
+      centroid_lon: lon,
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [lon - d, lat - d],
+            [lon + d, lat - d],
+            [lon + d, lat + d],
+            [lon - d, lat + d],
+            [lon - d, lat - d],
+          ],
+        ],
+      },
+      evidence: {
+        preDevelopment: true,
+        proposedFloors: input.proposedFloors,
+        coveragePercent: input.coveragePercent,
+        setbackMeters: input.setbackMeters,
+        description: input.description,
+        flags: assessment.flags,
+        disclaimer: assessment.disclaimer,
+        assessedAt: now,
+      },
+      parcel_ref: null,
+      assigned_developer_id: user.role === 'developer' ? user.id : user.id,
+      mitigation_requirements: [],
+      audit_events: [
+        {
+          id: uuidv4(),
+          action: 'PRE_DEVELOPMENT_SUBMITTED',
+          actor_role: user.role,
+          actor_id: user.id,
+          actor_name: user.name,
+          timestamp: now,
+          details: `Pre-development check submitted (${assessment.risk.overall} projected risk)`,
+        },
+      ],
+      evidence_items: [],
+      created_at: now,
+      updated_at: now,
+    };
+
+    store.cases.unshift(row);
+    writeStore(store);
+    return toApiCase(row);
+  }
+
   getStats() {
     const store = readStore();
     const cases = store.cases;

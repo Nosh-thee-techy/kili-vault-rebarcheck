@@ -3,6 +3,7 @@
 const caseService = require('../services/caseService');
 const caseRepository = require('../repositories/caseRepository');
 const detectionPromotionService = require('../services/detectionPromotionService');
+const preDevelopmentService = require('../services/preDevelopmentService');
 const path = require('path');
 
 async function listCases(req, res, next) {
@@ -153,9 +154,36 @@ async function submitObservation(req, res, next) {
   }
 }
 
+async function previewPreDevelopment(req, res, next) {
+  try {
+    const data = await preDevelopmentService.preview(req.body);
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function submitPreDevelopment(req, res, next) {
+  try {
+    const data = await preDevelopmentService.submit(req.body, req.user);
+    res.status(201).json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function listObservations(req, res, next) {
   try {
     const data = await caseService.listObservations(req.user, Number(req.query.limit) || 50);
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function listMyObservations(req, res, next) {
+  try {
+    const data = await caseService.listMyObservations(req.user, Number(req.query.limit) || 50);
     res.json({ success: true, data });
   } catch (err) {
     next(err);
@@ -174,6 +202,9 @@ module.exports = {
   verify,
   submitObservation,
   listObservations,
+  listMyObservations,
+  previewPreDevelopment,
+  submitPreDevelopment,
   promoteDetections,
   unpromotedDetectionCount,
 };

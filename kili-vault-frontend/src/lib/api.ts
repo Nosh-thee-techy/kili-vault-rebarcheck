@@ -6,6 +6,9 @@ import type {
   DetectionStats,
   DevelopmentCase,
   PaginatedResponse,
+  PreDevelopmentAssessment,
+  PreDevelopmentInput,
+  CommunityReportCategory,
 } from '@/types';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
@@ -144,11 +147,24 @@ export async function uploadEvidence(
   return response.json();
 }
 
+export async function getMyCommunityObservations(): Promise<{
+  success: boolean;
+  data: {
+    observations: import('@/types').CommunityObservation[];
+    total: number;
+    pendingCount: number;
+    linkedCount: number;
+  };
+}> {
+  return fetchJson('/api/v1/cases/observations/mine');
+}
+
 export async function submitObservation(data: {
   lat: number;
   lon: number;
   description: string;
-}): Promise<{ success: boolean; data: unknown }> {
+  category?: CommunityReportCategory;
+}): Promise<{ success: boolean; data: import('@/types').CommunityObservation }> {
   return fetchJson('/api/v1/cases/observations', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -214,6 +230,38 @@ export async function promoteDetections(options?: {
   });
 }
 
+function preDevelopmentBody(input: PreDevelopmentInput) {
+  return {
+    lat: input.lat,
+    lon: input.lon,
+    changeType: input.changeType,
+    proposedFloors: input.proposedFloors,
+    coveragePercent: input.coveragePercent,
+    setbackMeters: input.setbackMeters,
+    description: input.description,
+  };
+}
+
+export async function previewPreDevelopment(
+  input: PreDevelopmentInput,
+): Promise<{ success: boolean; data: PreDevelopmentAssessment }> {
+  return fetchJson('/api/v1/cases/pre-development/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(preDevelopmentBody(input)),
+  });
+}
+
+export async function submitPreDevelopment(
+  input: PreDevelopmentInput,
+): Promise<{ success: boolean; data: DevelopmentCase }> {
+  return fetchJson('/api/v1/cases/pre-development/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(preDevelopmentBody(input)),
+  });
+}
+
 export async function checkHealth(): Promise<boolean> {
   try {
     const res = await fetch(`${API_BASE}/health`);
@@ -222,3 +270,5 @@ export async function checkHealth(): Promise<boolean> {
     return false;
   }
 }
+
+export type { PreDevelopmentInput };

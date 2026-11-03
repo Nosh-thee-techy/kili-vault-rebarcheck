@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { CheckCircle2, CircleDashed } from 'lucide-react';
+import { CheckCircle2, CircleDashed, ClipboardCheck } from 'lucide-react';
 import { CaseListItem } from '@/components/cases/CaseListItem';
 import { DeveloperActionCard } from '@/components/dashboard/DeveloperActionCard';
 import { PageHero } from '@/components/dashboard/PageHero';
@@ -22,6 +22,15 @@ export function DeveloperHomePage() {
         eyebrow="Compliance workspace"
         title="My development cases"
         description="Plain-language view of what you owe, what you've submitted, and where verification stands — no GIS jargon required."
+        action={
+          <Link
+            to="/developer/check"
+            className="inline-flex h-11 items-center gap-2 rounded-xl border-2 border-forest/20 bg-off-white px-5 text-sm font-semibold text-forest transition-colors hover:border-forest/40 hover:bg-sand/50"
+          >
+            <ClipboardCheck className="h-4 w-4" />
+            Check a plot
+          </Link>
+        }
       />
 
       <div className="grid gap-3 sm:grid-cols-3">

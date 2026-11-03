@@ -20,6 +20,7 @@ import type { DevelopmentCase, UserRole } from '@/types';
 const ACTIVE_KEY = 'kili-vault-presenter-active';
 const STEP_KEY = 'kili-vault-presenter-step';
 const CASE_KEY = 'kili-vault-presenter-case';
+const MINIMIZED_KEY = 'kili-vault-presenter-minimized';
 
 function pickSpotlightCase(cases: DevelopmentCase[]): DevelopmentCase | undefined {
   const candidates = cases.filter(
@@ -32,6 +33,7 @@ function pickSpotlightCase(cases: DevelopmentCase[]): DevelopmentCase | undefine
 
 interface PresenterContextValue {
   isActive: boolean;
+  isMinimized: boolean;
   stepIndex: number;
   step: PresenterStep | null;
   totalSteps: number;
@@ -42,6 +44,7 @@ interface PresenterContextValue {
   prev: () => void;
   exit: () => void;
   goToStep: (index: number) => void;
+  toggleMinimized: () => void;
 }
 
 const PresenterContext = createContext<PresenterContextValue | null>(null);
@@ -58,6 +61,9 @@ export function PresenterProvider({ children }: { children: ReactNode }) {
   });
   const [spotlightCaseId, setSpotlightCaseIdState] = useState<string | null>(
     () => sessionStorage.getItem(CASE_KEY),
+  );
+  const [isMinimized, setIsMinimized] = useState(
+    () => sessionStorage.getItem(MINIMIZED_KEY) === '1',
   );
 
   const setSpotlightCaseId = useCallback((id: string) => {
@@ -117,6 +123,8 @@ export function PresenterProvider({ children }: { children: ReactNode }) {
       if (resolvedId) setSpotlightCaseId(resolvedId);
 
       setIsActive(true);
+      setIsMinimized(false);
+      sessionStorage.setItem(MINIMIZED_KEY, '0');
       setStepIndex(0);
       persist(true, 0);
       applyStep(0, resolvedId ?? null);
@@ -146,12 +154,23 @@ export function PresenterProvider({ children }: { children: ReactNode }) {
 
   const exit = useCallback(() => {
     setIsActive(false);
+    setIsMinimized(false);
+    sessionStorage.setItem(MINIMIZED_KEY, '0');
     persist(false, 0);
   }, [persist]);
+
+  const toggleMinimized = useCallback(() => {
+    setIsMinimized((prev) => {
+      const next = !prev;
+      sessionStorage.setItem(MINIMIZED_KEY, next ? '1' : '0');
+      return next;
+    });
+  }, []);
 
   const value = useMemo(
     () => ({
       isActive,
+      isMinimized,
       stepIndex,
       step: isActive ? PRESENTER_STEPS[stepIndex] ?? null : null,
       totalSteps: PRESENTER_STEPS.length,
@@ -162,9 +181,11 @@ export function PresenterProvider({ children }: { children: ReactNode }) {
       prev,
       exit,
       goToStep,
+      toggleMinimized,
     }),
     [
       isActive,
+      isMinimized,
       stepIndex,
       spotlightCaseId,
       setSpotlightCaseId,
@@ -173,6 +194,7 @@ export function PresenterProvider({ children }: { children: ReactNode }) {
       prev,
       exit,
       goToStep,
+      toggleMinimized,
     ],
   );
 

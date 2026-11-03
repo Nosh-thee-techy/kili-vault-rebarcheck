@@ -20,6 +20,7 @@ export const caseKeys = {
   geojson: () => [...caseKeys.all, 'geojson'] as const,
   unpromoted: (min: number) => [...caseKeys.all, 'unpromoted', min] as const,
   observations: () => [...caseKeys.all, 'observations'] as const,
+  myObservations: () => [...caseKeys.all, 'my-observations'] as const,
 };
 
 export const detectionKeys = {

@@ -225,9 +225,25 @@ class CaseService {
       lat: Number(data.lat),
       lon: Number(data.lon),
       description: data.description.trim(),
+      category: data.category || data.report_type || null,
       submittedById: user.id,
       submittedByName: user.name,
     });
+  }
+
+  async listMyObservations(user, limit = 50) {
+    if (user.role !== 'community') {
+      throw new AppError('FORBIDDEN', 'Community role required', 403);
+    }
+    const observations = await observationRepository.findBySubmitter(user.id, limit);
+    const linkedCount = observations.filter((o) => o.status === 'LINKED_TO_CASE').length;
+    const pendingCount = observations.filter((o) => o.status === 'PENDING_REVIEW').length;
+    return {
+      observations,
+      total: observations.length,
+      pendingCount,
+      linkedCount,
+    };
   }
 
   async listObservations(user, limit = 50) {

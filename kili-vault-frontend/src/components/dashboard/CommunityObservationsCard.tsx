@@ -1,5 +1,6 @@
 import { MapPin, Users } from 'lucide-react';
 import { useCommunityObservationsQuery } from '@/hooks/useObservationQueries';
+import { COMMUNITY_REPORT_TYPES } from '@/config/communityReports';
 import { formatDate } from '@/lib/format';
 
 export function CommunityObservationsCard() {
@@ -26,13 +27,20 @@ export function CommunityObservationsCard() {
         </div>
       </div>
       <ul className="space-y-2">
-        {observations.slice(0, 3).map((obs) => (
+        {observations.slice(0, 3).map((obs) => {
+          const type = COMMUNITY_REPORT_TYPES.find((t) => t.id === obs.category);
+          return (
           <li
             key={obs.id}
             className="flex gap-3 rounded-xl border border-sand/80 bg-off-white/80 px-3 py-2.5 text-sm"
           >
             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-forest" />
             <div className="min-w-0">
+              {type && (
+                <p className="text-[10px] font-bold uppercase tracking-wider text-sage">
+                  {type.label}
+                </p>
+              )}
               <p className="line-clamp-2 text-charcoal">{obs.description}</p>
               <p className="mt-1 text-xs text-charcoal-muted">
                 {obs.submittedByName ?? 'Resident'} · {formatDate(obs.createdAt)} ·{' '}
@@ -40,7 +48,8 @@ export function CommunityObservationsCard() {
               </p>
             </div>
           </li>
-        ))}
+        );
+        })}
       </ul>
     </div>
   );

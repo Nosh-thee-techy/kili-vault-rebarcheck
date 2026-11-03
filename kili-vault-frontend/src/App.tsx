@@ -13,9 +13,11 @@ import { PlannerMapPage } from '@/pages/roles/PlannerMapPage';
 import { PlannerCasesPage } from '@/pages/roles/PlannerCasesPage';
 import { SharedCaseDetailPage } from '@/pages/roles/SharedCaseDetailPage';
 import { DeveloperHomePage } from '@/pages/roles/DeveloperHomePage';
+import { PreDevelopmentCheckPage } from '@/pages/roles/PreDevelopmentCheckPage';
 import { AgencyQueuePage } from '@/pages/roles/AgencyQueuePage';
+import { CommunityHomePage } from '@/pages/roles/CommunityHomePage';
 import { CommunityMapPage } from '@/pages/roles/CommunityMapPage';
-import { CommunityObservePage } from '@/pages/roles/CommunityObservePage';
+import { CommunityReportPage } from '@/pages/roles/CommunityReportPage';
 
 export default function App() {
   return (
@@ -40,6 +42,7 @@ export default function App() {
 
           <Route path="/developer" element={<DeveloperShell />}>
             <Route index element={<DeveloperHomePage />} />
+            <Route path="check" element={<PreDevelopmentCheckPage />} />
             <Route
               path="cases/:id"
               element={<SharedCaseDetailPage backTo="/developer" />}
@@ -55,8 +58,14 @@ export default function App() {
           </Route>
 
           <Route path="/community" element={<CommunityShell />}>
-            <Route index element={<CommunityMapPage />} />
-            <Route path="observe" element={<CommunityObservePage />} />
+            <Route index element={<CommunityHomePage />} />
+            <Route path="report" element={<CommunityReportPage />} />
+            <Route path="map" element={<CommunityMapPage />} />
+            <Route
+              path="cases/:id"
+              element={<SharedCaseDetailPage backTo="/community" />}
+            />
+            <Route path="observe" element={<Navigate to="/community/report" replace />} />
           </Route>
         </Route>
 

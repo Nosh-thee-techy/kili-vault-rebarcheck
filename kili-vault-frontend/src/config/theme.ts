@@ -31,7 +31,7 @@ export const CASE_STATUS_LABELS: Record<CaseStatus, string> = {
 
 export const CASE_STATUS_COLORS: Record<CaseStatus, string> = {
   AI_FLAGGED: '#C4785A',
-  UNDER_REVIEW: '#2A4D38',
+  UNDER_REVIEW: '#8FA88A',
   MITIGATION_REQUIRED: '#B54A32',
   EVIDENCE_SUBMITTED: '#5A7D62',
   AGENCY_PENDING: '#8FA88A',

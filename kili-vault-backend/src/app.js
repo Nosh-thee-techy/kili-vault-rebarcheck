@@ -116,6 +116,8 @@ const getEngineInfo = (req, res) => {
         observations: 'GET/POST /api/v1/cases/observations',
         promote_detections: 'POST /api/v1/cases/promote-detections',
         unpromoted_detections: 'GET /api/v1/cases/unpromoted-detections',
+        pre_development_preview: 'POST /api/v1/cases/pre-development/preview',
+        pre_development_submit: 'POST /api/v1/cases/pre-development/submit',
       },
       processing: {
         runs: "/api/v1/processing/runs",

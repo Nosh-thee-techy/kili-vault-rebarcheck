@@ -47,12 +47,71 @@ export interface EvidenceItem {
   status: string;
 }
 
+export interface PreDevFlag {
+  severity: 'info' | 'warning';
+  text: string;
+}
+
 export interface DetectionEvidence {
   spectral_change?: boolean;
   ndbi_increase?: boolean;
   ndvi_decrease?: boolean;
   recent_built_signature?: boolean;
   explanation?: string;
+  preDevelopment?: boolean;
+  proposedFloors?: number;
+  coveragePercent?: number;
+  setbackMeters?: number;
+  description?: string;
+  flags?: PreDevFlag[];
+  disclaimer?: string;
+  assessedAt?: string;
+  /** Nested GEE / pipeline evidence payload */
+  baseline?: {
+    delta_ndbi?: number;
+    delta_ndvi?: number;
+    ndbi_increase?: boolean;
+    ndvi_decrease?: boolean;
+    spectral_change?: boolean;
+    recent_built_signature?: boolean;
+    explanation?: string;
+  };
+  prithvi?: {
+    available?: boolean;
+    predicted_class?: string;
+    class_probabilities?: Partial<Record<ChangeType | 'UNKNOWN', number>>;
+  };
+  raw_signals?: {
+    area_m2?: number;
+    delta_ndbi?: number;
+    delta_ndvi?: number;
+    recent_observations?: number;
+    baseline_observations?: number;
+  };
+  temporal_persistence?: number | { value?: number; method?: string };
+  persistence?: number;
+  area_plausibility?: number;
+  observation_quality?: number;
+}
+
+export interface PreDevelopmentInput {
+  lat: number;
+  lon: number;
+  changeType: ChangeType;
+  proposedFloors: number;
+  coveragePercent: number;
+  setbackMeters: number;
+  description: string;
+}
+
+export interface PreDevelopmentAssessment {
+  risk: RiskBreakdown;
+  flags: PreDevFlag[];
+  confidence: number;
+  areaM2: number;
+  disclaimer: string;
+  title: string;
+  input: PreDevelopmentInput;
 }
 
 export interface Detection {
@@ -92,12 +151,23 @@ export interface LinkedDetection {
   createdAt?: string;
 }
 
+export type CommunityReportCategory =
+  | 'CONSTRUCTION'
+  | 'LAND_CLEARING'
+  | 'DUMPING'
+  | 'DRAINAGE'
+  | 'NOISE'
+  | 'OTHER';
+
+export type CommunityObservationStatus = 'PENDING_REVIEW' | 'LINKED_TO_CASE' | 'DISMISSED';
+
 export interface CommunityObservation {
   id: string;
   lat: number;
   lon: number;
   description: string;
-  status: string;
+  category?: CommunityReportCategory | null;
+  status: CommunityObservationStatus | string;
   submittedById?: string;
   submittedByName?: string;
   caseId?: string | null;
@@ -115,7 +185,7 @@ export interface RiskBreakdown {
 export interface DevelopmentCase {
   id: string;
   caseNumber: string;
-  detectionId: string;
+  detectionId?: string | null;
   title: string;
   changeType: ChangeType;
   status: CaseStatus;

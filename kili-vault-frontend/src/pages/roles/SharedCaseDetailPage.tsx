@@ -26,7 +26,7 @@ export function SharedCaseDetailPage({ backTo }: { backTo: string }) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-4">
       <Link to={backTo}>
         <Button variant="ghost" size="sm" className="gap-2 px-0 hover:bg-transparent">
           <ArrowLeft className="h-4 w-4" />

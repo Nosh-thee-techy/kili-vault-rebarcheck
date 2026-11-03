@@ -27,6 +27,7 @@ function mapRow(row) {
     lat: Number(row.lat),
     lon: Number(row.lon),
     description: row.description,
+    category: row.category ?? null,
     status: row.status,
     submittedById: row.submitted_by_id,
     submittedByName: row.submitted_by_name,
@@ -47,6 +48,7 @@ class ObservationRepository {
       submitted_by_id: data.submittedById,
       submitted_by_name: data.submittedByName,
       case_id: null,
+      category: data.category || null,
       created_at: new Date().toISOString(),
     };
 
@@ -54,14 +56,15 @@ class ObservationRepository {
       try {
         const res = await db.query(
           `INSERT INTO community_observations
-             (id, lat, lon, description, status, submitted_by_id, submitted_by_name, case_id, created_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+             (id, lat, lon, description, category, status, submitted_by_id, submitted_by_name, case_id, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
            RETURNING *`,
           [
             record.id,
             record.lat,
             record.lon,
             record.description,
+            record.category,
             record.status,
             record.submitted_by_id,
             record.submitted_by_name,
@@ -101,6 +104,27 @@ class ObservationRepository {
     const store = readFileStore();
     return store.observations
       .filter((o) => o.status === 'PENDING_REVIEW')
+      .slice(0, limit)
+      .map(mapRow);
+  }
+
+  async findBySubmitter(submittedById, limit = 50) {
+    const mode = await caseRepository.detectStorageMode();
+
+    if (mode === 'postgres') {
+      const res = await db.query(
+        `SELECT * FROM community_observations
+         WHERE submitted_by_id = $1
+         ORDER BY created_at DESC
+         LIMIT $2`,
+        [submittedById, limit],
+      );
+      return res.rows.map(mapRow);
+    }
+
+    const store = readFileStore();
+    return store.observations
+      .filter((o) => o.submitted_by_id === submittedById)
       .slice(0, limit)
       .map(mapRow);
   }

@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
 import { Logo } from '@/components/brand/Logo';
-import { DemoModePill } from '@/components/layout/DemoModePill';
+import { GuidedDemoButton } from '@/components/layout/GuidedDemoButton';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { useTheme } from '@/context/ThemeContext';
 import { Button } from '@/components/ui/Button';
@@ -96,7 +96,7 @@ export function RoleShell({
       <div className="flex flex-col gap-1">{navItems.map((item) => renderNavLink(item, compact))}</div>
 
       <div className={cn('mt-auto space-y-2 pt-4', compact && 'flex flex-col items-center')}>
-        {!compact && <DemoModePill />}
+        <GuidedDemoButton compact={compact} />
         <Button
           variant="ghost"
           size={compact ? 'icon' : 'sm'}
@@ -153,9 +153,6 @@ export function RoleShell({
 
           <div className="flex items-center gap-1.5 sm:gap-2">
             <ThemeToggle />
-            <div className="hidden sm:block">
-              <DemoModePill />
-            </div>
             <div className="flex items-center gap-2 rounded-xl border border-sand px-2 py-1.5 md:px-3 md:py-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-forest/10 text-xs font-bold text-forest">
                 {user?.name?.slice(0, 2).toUpperCase()}

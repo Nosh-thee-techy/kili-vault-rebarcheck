@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS community_observations (
     submitted_by_id VARCHAR(64),
     submitted_by_name VARCHAR(128),
     case_id VARCHAR(64) REFERENCES development_cases(id) ON DELETE SET NULL,
+    category VARCHAR(64),
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -23,6 +24,7 @@ ALTER TABLE community_observations ADD COLUMN IF NOT EXISTS submitted_by_id VARC
 ALTER TABLE community_observations ADD COLUMN IF NOT EXISTS submitted_by_name VARCHAR(128);
 ALTER TABLE community_observations ADD COLUMN IF NOT EXISTS case_id VARCHAR(64);
 ALTER TABLE community_observations ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE community_observations ADD COLUMN IF NOT EXISTS category VARCHAR(64);
 
 CREATE INDEX IF NOT EXISTS idx_observations_status ON community_observations(status, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_observations_lat_lon ON community_observations(lat, lon);
