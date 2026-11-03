@@ -90,6 +90,21 @@ const configSchema = z.object({
   INFRASTRUCTURE_ROADS_LAYER_PATH: z.string().optional(),
   INFRASTRUCTURE_RIPARIAN_LAYER_PATH: z.string().optional(),
   INFRASTRUCTURE_DRAINAGE_LAYER_PATH: z.string().optional(),
+
+  // RebarCheck / Meta Model API (optional — pipeline falls back without them)
+  META_API_KEY: z.string().optional(),
+  META_API_BASE_URL: z.string().optional(),
+  REBARCHECK_SEGMENTER: z.enum(["meta", "classical", "mock"]).optional(),
+  REBARCHECK_PYTHON: z.string().optional(),
+  REBARCHECK_DEFAULT_CASE_ID: z.string().optional(),
+  PUBLIC_BASE_URL: z.string().optional(),
+
+  // WhatsApp Cloud API (optional — web chat is the fallback channel)
+  WHATSAPP_TOKEN: z.string().optional(),
+  WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
+  WHATSAPP_VERIFY_TOKEN: z.string().optional(),
+  WHATSAPP_APP_SECRET: z.string().optional(),
+  WHATSAPP_GRAPH_VERSION: z.string().optional(),
 });
 
 // Parse and validate configuration

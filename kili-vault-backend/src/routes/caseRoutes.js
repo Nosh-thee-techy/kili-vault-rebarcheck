@@ -3,8 +3,14 @@
 const express = require("express");
 const multer = require("multer");
 const caseController = require("../controllers/caseController");
+const rebarCheckController = require("../controllers/rebarCheckController");
 const caseRepository = require("../repositories/caseRepository");
 const { devAuthMiddleware } = require("../middleware/devAuth");
+const validate = require("../middleware/validate");
+const {
+  rebarCheckBodySchema,
+  rebarCheckParamsSchema,
+} = require("../validators/rebarCheckValidator");
 
 const router = express.Router();
 router.use(devAuthMiddleware);
@@ -39,6 +45,12 @@ router.get("/:id/evidence/:filename", caseController.serveEvidence);
 router.get("/:id", caseController.getCase);
 router.patch("/:id/status", caseController.updateStatus);
 router.post("/:id/mitigation", caseController.addMitigation);
+router.post(
+  "/:id/evidence/rebar-check",
+  upload.single("file"),
+  validate({ params: rebarCheckParamsSchema, body: rebarCheckBodySchema }),
+  rebarCheckController.submitRebarCheck,
+);
 router.post(
   "/:id/evidence",
   upload.single("file"),

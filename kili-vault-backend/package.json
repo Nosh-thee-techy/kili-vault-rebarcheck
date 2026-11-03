@@ -20,7 +20,10 @@
     "gee:run": "python -m gee.main --output output/detections.geojson --summary output/processing_summary.json",
     "gee:ingest": "node scripts/ingest_detections.js",
     "cases:promote": "node scripts/promote_detections.js",
-    "pipeline:full": "npm run gee:run && npm run gee:ingest && npm run cases:promote -- --min-confidence=0.75 --limit=25"
+    "pipeline:full": "npm run gee:run && npm run gee:ingest && npm run cases:promote -- --min-confidence=0.75 --limit=25",
+    "rebarcheck:demo": "python -m rebarcheck.demo",
+    "rebarcheck:seed": "node scripts/seed_rebarcheck.js",
+    "rebarcheck:test": "python -m pytest rebarcheck/tests -q"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

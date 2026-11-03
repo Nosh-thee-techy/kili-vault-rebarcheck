@@ -62,7 +62,18 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // 4. Request parsing
-app.use(express.json({ limit: "10mb" }));
+// Stash the raw body only for the WhatsApp webhook so HMAC verification can
+// use the exact bytes Meta signed, without changing JSON parsing elsewhere.
+app.use(
+  express.json({
+    limit: "10mb",
+    verify: (req, _res, buf) => {
+      if (req.originalUrl && req.originalUrl.includes("/whatsapp/webhook")) {
+        req.rawBody = buf;
+      }
+    },
+  }),
+);
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // 5. Request Correlation ID & Logging
@@ -112,6 +123,7 @@ const getEngineInfo = (req, res) => {
         update_status: 'PATCH /api/v1/cases/:id/status',
         mitigation: 'POST /api/v1/cases/:id/mitigation',
         evidence: 'POST /api/v1/cases/:id/evidence',
+        rebar_check: 'POST /api/v1/cases/:id/evidence/rebar-check',
         verify: 'POST /api/v1/cases/:id/verify',
         observations: 'GET/POST /api/v1/cases/observations',
         promote_detections: 'POST /api/v1/cases/promote-detections',
@@ -122,6 +134,10 @@ const getEngineInfo = (req, res) => {
       processing: {
         runs: "/api/v1/processing/runs",
         get_run: "/api/v1/processing/runs/:id",
+      },
+      rebarcheck: {
+        geojson: "/api/v1/rebar-checks/geojson",
+        whatsapp_webhook: "/api/v1/whatsapp/webhook",
       },
     },
   });
