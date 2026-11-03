@@ -6,6 +6,8 @@ KILIMANI_UTM_BUILDINGS:https://services8.arcgis.com/oTalEaSXAuyNT7xf/arcgis/rest
 KILIMANI_WARD_BOUNDARY: https://services8.arcgis.com/oTalEaSXAuyNT7xf/arcgis/rest/services/KILIMANI_WARD_BOUNDARY/FeatureServer
 RIVERS_UTM: https://services8.arcgis.com/oTalEaSXAuyNT7xf/arcgis/rest/services/RIVERS_UTM/FeatureServer
 ROADS_UTM: https://services8.arcgis.com/oTalEaSXAuyNT7xf/arcgis/rest/services/ROADS_UTM/FeatureServer
+KV11_POWER_GRID:https://services8.arcgis.com/oTalEaSXAuyNT7xf/arcgis/rest/services/KV11_POWER_GRID/FeatureServer
+KV66_POWER_GRID:https://services8.arcgis.com/oTalEaSXAuyNT7xf/arcgis/rest/services/KV66_POWER_GRID/FeatureServer
 KILIMANI_BUILDINGS_PARCEL_LANDUSE_JOIN:https://services8.arcgis.com/oTalEaSXAuyNT7xf/arcgis/rest/services/KILIMANI_BUILDINGS_PARCEL_LANDUSE_JOIN/FeatureServer
 CULTURAL_PLACES_KILIMANI:https://services8.arcgis.com/oTalEaSXAuyNT7xf/arcgis/rest/services/CULTURAL_PLACES_KILIMANI/FeatureServer
 EDUCATION_FACILITIES_KILIMANI:https://services8.arcgis.com/oTalEaSXAuyNT7xf/arcgis/rest/services/EDUCATION_FACILITIES_KILIMANI/FeatureServer
@@ -34,6 +36,8 @@ The Planner map uses ArcGIS metadata rather than invented fields. The services r
 | `EDUCATION_FACILITIES_KILIMANI`            | Point    | Service-defined place, type, and category fields                                                                           | Service-defined place, type, and category fields                  | Education facility context                                              |
 | `HEALTH_FACILITIES_KILIMANI`               | Point    | Service-defined place, type, and category fields                                                                           | Service-defined place, type, and category fields                  | Health facility context                                                 |
 | `KILIMANI_POINTS_OF_INTEREST`              | Point    | Service-defined place, type, and category fields                                                                           | Service-defined place, type, and category fields                  | Local orientation points                                                |
+| `KV11_POWER_GRID`                          | Polyline | `RCC1`, `County2`, `Branch3`, `Feeder_o21`, `voltage48`, `Length_m_`                                                        | `RCC1`, `County2`, `Branch3`, `Feeder_o21`                        | 11 kV wayleave screening                                                |
+| `KV66_POWER_GRID`                          | Polyline | `RCC1`, `County2`, `Branch3`, `Primary_6`, `Feeder_o17`, `Voltage47`, `Length_km`                                         | `RCC1`, `County2`, `Branch3`, `Feeder_o17`                        | 66 kV wayleave screening                                                |
 
 The Planner selection panel shows prioritized planning fields first and exposes the complete returned attribute set under **View all attributes**. Missing values are displayed as `Not available in current dataset`.
 
@@ -43,6 +47,6 @@ The Kiliplan workspace displays `KILIMANI_BUILDINGS_PARCEL_LANDUSE_JOIN` as **Bu
 
 The current map registry includes the 15 m river buffer for spatial screening. Flood-zone, protected-wetland, and historic-preservation layers are not configured in this workspace. The planner tools report those checks as unavailable rather than treating missing datasets as clear.
 
-Point layers are selectable through the shared map hit-test workflow. Selecting a road, power line, facility, or point of interest highlights the real ArcGIS feature and exposes its returned attributes; unavailable service fields remain unavailable rather than being inferred.
+Point layers are selectable through the shared map hit-test workflow. Selecting a road, power line, facility, or point of interest highlights the real ArcGIS feature, queries intersecting parcel context, and shows key planning fields first. Technical identifiers such as OSM IDs and source codes are available under **View all attributes**.
 
-The parcel renderer uses planning land-use categories with distinct zone colours. The configured 11 kV power-line layer is screened with a 10 m wayleave buffer in parcel checks; wider 30–60 m clearances must be confirmed against the installation voltage and the responsible Kenya Power, KENGEN, or KETRACO record.
+The parcel renderer uses planning land-use categories with distinct zone colours. Dataset values `Institutional` and `Public Purpose` are both classified as Public Purpose and use yellow; `Open space` is treated as recreation and uses the recreation colour. Parcel checks use a 10 m preliminary screen for 11 kV lines and a 60 m preliminary screen for 66 kV lines. These are planning screens, not legal clearances; confirm the applicable wayleave against the installation voltage and the responsible Kenya Power, KENGEN, or KETRACO record.

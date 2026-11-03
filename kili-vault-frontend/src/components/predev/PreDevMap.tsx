@@ -37,7 +37,9 @@ const DEFAULT_LAYER_VISIBILITY: Record<SiteInfraLayerId, boolean> = {
   buildings: true,
   roads: true,
   'sewer-areas': true,
-  'power-lines': true,
+  // The utility service remains queryable for proximity checks but is not
+  // rendered until requested, avoiding a large line dataset blocking startup.
+  'power-lines': false,
   rivers: false,
   'river-buffer': false,
 };

@@ -54,6 +54,9 @@ export interface PlannerFeatureSelection {
   attributes: Record<string, unknown>;
   context?: {
     parcelAreaM2: number | null;
+    parcelReference: string | null;
+    parcelLandUse: string | null;
+    intersectingParcelCount: number | null;
     buildingCount: number | null;
     buildingFootprintM2: number | null;
     roadDistanceM: number | null;
@@ -212,7 +215,6 @@ async function buildFeatureContext(
   geometry: __esri.Geometry,
   layers: Record<string, FeatureLayer>,
 ): Promise<PlannerFeatureSelection["context"]> {
-  const parcelAreaM2 = layerId === "parcels-landuse" ? areaM2(geometry) : null;
   const searchGeometry = geometryEngine.geodesicBuffer(
     geometry,
     500,
@@ -230,14 +232,14 @@ async function buildFeatureContext(
         geometry: target,
         spatialRelationship: "intersects",
         returnGeometry,
-        outFields: ["OBJECTID"],
+        outFields: ["*"],
       });
       return result.features as __esri.Graphic[];
     } catch {
       return [] as __esri.Graphic[];
     }
   };
-  const [buildings, roads, rivers, buffers] = await Promise.all([
+  const [buildings, roads, rivers, buffers, parcels] = await Promise.all([
     query(
       layers["buildings-parcels"] ?? layers.buildings,
       layerId === "parcels-landuse" ? geometry : searchGeometry as __esri.Geometry,
@@ -245,6 +247,7 @@ async function buildFeatureContext(
     query(layers.roads, searchGeometry as __esri.Geometry),
     query(layers.rivers, searchGeometry as __esri.Geometry),
     query(layers["river-buffer"], geometry, false),
+    query(layers["parcels-landuse"], geometry),
   ]);
   const nearest = (features: __esri.Graphic[]) => {
     const distances = features
@@ -255,15 +258,29 @@ async function buildFeatureContext(
       .filter((distance): distance is number => Number.isFinite(distance));
     return distances.length ? Math.min(...distances) : null;
   };
+  const parcelGeometry =
+    parcels[0]?.geometry ??
+    (layerId === "parcels-landuse" ? geometry : null);
   return {
-    parcelAreaM2,
+    parcelAreaM2: parcelGeometry ? areaM2(parcelGeometry) : null,
+    parcelReference:
+      String(
+        parcels[0]?.attributes?.parcel_num ??
+          parcels[0]?.attributes?.lr_number ??
+          "",
+      ) || null,
+    parcelLandUse: String(parcels[0]?.attributes?.LANDUSE ?? "") || null,
+    intersectingParcelCount: parcels.length || null,
     buildingCount: layerId === "parcels-landuse" ? buildings.length : null,
-    buildingFootprintM2: buildings.reduce((total, building) => {
-      const intersection = building.geometry
-        ? geometryEngine.intersect(geometry, building.geometry)
-        : null;
-      return total + areaM2(intersection);
-    }, 0),
+    buildingFootprintM2:
+      layerId === "parcels-landuse"
+        ? buildings.reduce((total, building) => {
+            const intersection = building.geometry
+              ? geometryEngine.intersect(geometry, building.geometry)
+              : null;
+            return total + areaM2(intersection);
+          }, 0)
+        : null,
     roadDistanceM: nearest(roads),
     riverDistanceM: nearest(rivers),
     riverBufferOverlap: buffers.length > 0,
@@ -548,12 +565,6 @@ export function KilimaniMap({
 
         if (detectionHit?.graphic?.geometry) {
           const attrs = detectionHit.graphic.attributes;
-          const highlighted = await highlightForClick(
-            detectionsLayer,
-            detectionHit.graphic,
-            sequence,
-          );
-          if (!highlighted) return;
           setPlannerFeature(null);
           setSelection({
             kind: "detection",
@@ -1013,10 +1024,6 @@ export function KilimaniMap({
         if (!feature.geometry) return;
         const attrs = (feature.attributes ?? {}) as Record<string, unknown>;
         setPlannerFeature(null);
-        const layerView = await view.whenLayerView(layer);
-        if (cancelled) return;
-        highlightHandleRef.current?.remove();
-        highlightHandleRef.current = layerView.highlight(feature);
         setSelection({
           kind: "detection",
           id: selectedDetectionId,
@@ -1169,6 +1176,7 @@ export function KilimaniMap({
     const checks = [
       { id: "river-buffer", title: "15 m river buffer" },
       { id: "power-lines", title: "11 kV power wayleave (10 m screen)" },
+      { id: "power-lines-66kv", title: "66 kV power wayleave (60 m screen)" },
       { id: "flood-zones", title: "Flood zones" },
       { id: "wetlands", title: "Protected wetlands" },
       { id: "historic-districts", title: "Historic preservation districts" },
@@ -1192,10 +1200,10 @@ export function KilimaniMap({
 
           try {
             const queryGeometry =
-              id === "power-lines"
+              id === "power-lines" || id === "power-lines-66kv"
                 ? geometryEngine.geodesicBuffer(
                     plannerFeature.geometry,
-                    10,
+                    id === "power-lines-66kv" ? 60 : 10,
                     "meters",
                   )
                 : plannerFeature.geometry;

@@ -30,6 +30,48 @@ function fieldLabel(key: string) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+const FEATURE_SUMMARY_FIELDS: Record<string, string[]> = {
+  "points-of-interest": ["name", "fclass"],
+  "cultural-places": [
+    "name",
+    "name_en",
+    "tourism",
+    "amenity",
+    "historic",
+    "heritage",
+    "operator",
+  ],
+  "education-facilities": [
+    "name",
+    "name_en",
+    "amenity",
+    "building",
+    "operator_t",
+    "capacity_p",
+    "addr_full",
+  ],
+  "health-facilities": [
+    "name",
+    "name_en",
+    "amenity",
+    "healthcare",
+    "healthca_1",
+    "operator_t",
+    "capacity_p",
+    "addr_full",
+  ],
+  roads: ["name", "ref", "fclass", "maxspeed", "oneway"],
+  "power-lines": ["RCC1", "County2", "Branch3", "Feeder_o21", "voltage48"],
+  "power-lines-66kv": [
+    "RCC1",
+    "County2",
+    "Branch3",
+    "Primary_6",
+    "Feeder_o17",
+    "Voltage47",
+  ],
+};
+
 function downloadBrief(selection: PlannerPanelSelection) {
   const isDetection = selection.kind === "detection";
   const parcel =
@@ -93,6 +135,10 @@ export function PlannerFeaturePanel({
   const returnedAttributes = Object.entries(selection.attributes).filter(
     ([, value]) => value != null && value !== "",
   );
+  const summaryFields = FEATURE_SUMMARY_FIELDS[selection.layerId] ?? [];
+  const summaryAttributes = summaryFields
+    .map((key) => [key, selection.attributes[key]] as const)
+    .filter(([, value]) => value != null && value !== "");
 
   return (
     <calcite-panel
@@ -182,6 +228,31 @@ export function PlannerFeaturePanel({
                 </dd>
               </div>
             )}
+            {context?.parcelReference != null && (
+              <div>
+                <dt className="text-charcoal-muted">Intersecting parcel / plot</dt>
+                <dd className="font-semibold text-charcoal">
+                  {context.parcelReference}
+                </dd>
+              </div>
+            )}
+            {context?.parcelLandUse != null && (
+              <div>
+                <dt className="text-charcoal-muted">Parcel land use</dt>
+                <dd className="font-semibold text-charcoal">
+                  {context.parcelLandUse}
+                </dd>
+              </div>
+            )}
+            {context?.intersectingParcelCount != null &&
+              context.intersectingParcelCount > 1 && (
+                <div>
+                  <dt className="text-charcoal-muted">Intersecting parcels</dt>
+                  <dd className="font-semibold text-charcoal">
+                    {context.intersectingParcelCount}
+                  </dd>
+                </div>
+              )}
             {context?.buildingCount != null && (
               <div>
                 <dt className="text-charcoal-muted">Mapped buildings</dt>
@@ -199,13 +270,13 @@ export function PlannerFeaturePanel({
               </div>
             )}
           </dl>
-          {!isParcel && !isBuilding && returnedAttributes.length > 0 && (
+          {!isParcel && !isBuilding && summaryAttributes.length > 0 && (
             <div className="mt-4 border-t border-sand pt-3">
               <h3 className="text-sm font-semibold text-charcoal">
-                Feature attributes
+                Key details
               </h3>
               <dl className="mt-2 grid gap-2 text-xs">
-                {returnedAttributes.slice(0, 16).map(([key, value]) => (
+                {summaryAttributes.map(([key, value]) => (
                   <div
                     key={key}
                     className="flex items-start justify-between gap-3"
@@ -218,6 +289,28 @@ export function PlannerFeaturePanel({
                 ))}
               </dl>
             </div>
+          )}
+          {returnedAttributes.length > summaryAttributes.length && (
+            <calcite-block
+              heading="View all attributes"
+              className="mt-3 border-t border-sand pt-2"
+            >
+              <dl className="grid gap-2 text-xs">
+                {returnedAttributes
+                  .filter(([key]) => !summaryFields.includes(key))
+                  .map(([key, value]) => (
+                    <div
+                      key={key}
+                      className="flex items-start justify-between gap-3"
+                    >
+                      <dt className="text-charcoal-muted">{fieldLabel(key)}</dt>
+                      <dd className="max-w-[62%] break-words text-right font-medium text-charcoal">
+                        {String(value)}
+                      </dd>
+                    </div>
+                  ))}
+              </dl>
+            </calcite-block>
           )}
         </section>
       )}

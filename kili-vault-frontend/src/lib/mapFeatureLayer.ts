@@ -38,8 +38,12 @@ export function createMapFeatureLayer(
       Educational: "#FFAA00",
       Recreation: "#A3FF73",
       Recreational: "#A3FF73",
+      "Open space": "#A3FF73",
+      "Open Space": "#A3FF73",
       "Public Purpose": "#FFFF00",
       "Public purpose": "#FFFF00",
+      Institutional: "#FFFF00",
+      institutional: "#FFFF00",
       Commercial: "#FF0000",
       "Business Cum Residential": "#D94F4F",
       "Public utilities": "#0070FF",
@@ -137,17 +141,66 @@ export function createMapFeatureLayer(
       }),
     };
   } else if (config.geometryType === "point") {
-    const pointColors: Record<string, string> = {
-      "cultural-places": "#8B5CF6",
-      "education-facilities": "#F59E0B",
-      "health-facilities": "#DC2626",
-      "points-of-interest": "#0F766E",
+    const pointLayerStyles: Record<
+      string,
+      { field: string; values: Record<string, { color: string; style: "circle" | "diamond" | "square" | "triangle" | "cross" }> }
+    > = {
+      "cultural-places": {
+        field: "amenity",
+        values: {
+          theatre: { color: "#7C3AED", style: "diamond" },
+          arts_centre: { color: "#8B5CF6", style: "diamond" },
+          museum: { color: "#6D28D9", style: "diamond" },
+          place_of_worship: { color: "#A855F7", style: "cross" },
+        },
+      },
+      "education-facilities": {
+        field: "amenity",
+        values: {
+          school: { color: "#D97706", style: "triangle" },
+          kindergarten: { color: "#F59E0B", style: "triangle" },
+          college: { color: "#B45309", style: "triangle" },
+        },
+      },
+      "health-facilities": {
+        field: "healthcare",
+        values: {
+          hospital: { color: "#B91C1C", style: "cross" },
+          clinic: { color: "#DC2626", style: "cross" },
+          pharmacy: { color: "#EF4444", style: "cross" },
+        },
+      },
+      "points-of-interest": {
+        field: "fclass",
+        values: {
+          restaurant: { color: "#0F766E", style: "circle" },
+          cafe: { color: "#14B8A6", style: "circle" },
+          kindergarten: { color: "#F59E0B", style: "triangle" },
+          place_of_worship: { color: "#7C3AED", style: "cross" },
+          attraction: { color: "#2563EB", style: "diamond" },
+        },
+      },
     };
+    const pointStyle = pointLayerStyles[config.id];
+    const infos = pointStyle
+      ? Object.entries(pointStyle.values).map(([value, style]) => ({
+          value,
+          label: value.replace(/_/g, " "),
+          symbol: new SimpleMarkerSymbol({
+            color: style.color,
+            style: style.style,
+            size: 10,
+            outline: new SimpleLineSymbol({ color: "#FFFFFF", width: 1 }),
+          }),
+        }))
+      : [];
     layer.renderer = {
-      type: "simple",
-      symbol: new SimpleMarkerSymbol({
-        color: pointColors[config.id] ?? "#2563EB",
-        size: 8,
+      type: "unique-value",
+      field: pointStyle?.field ?? "name",
+      uniqueValueInfos: infos,
+      defaultSymbol: new SimpleMarkerSymbol({
+        color: "#2563EB",
+        size: 9,
         outline: new SimpleLineSymbol({ color: "#FFFFFF", width: 1 }),
       }),
     };
