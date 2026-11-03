@@ -14,7 +14,7 @@ export interface MapLayerConfig {
   layerId: number;
   defaultVisible: boolean;
   group: MapLayerGroup;
-  geometryType: "polygon" | "polyline";
+  geometryType: "point" | "polygon" | "polyline";
   description: string;
   lineColor?: string;
   /** CSS color or rgba(), e.g. `rgba(76, 129, 205, 0.28)` */
@@ -181,6 +181,54 @@ export const MAP_LAYERS: MapLayerConfig[] = [
     lineWidth: 2.5,
     description:
       "KPLC 11 kV feeders — clearance and wayleave checks near high-voltage routes.",
+  },
+  {
+    id: "cultural-places",
+    title: "Cultural Places",
+    url: `${ARCGIS_HOST}/CULTURAL_PLACES_KILIMANI/FeatureServer`,
+    layerId: 0,
+    defaultVisible: false,
+    group: "planning",
+    geometryType: "point",
+    description: "Mapped cultural places and community heritage locations.",
+    displayFields: ["name", "type", "category"],
+    searchFields: ["name", "type", "category"],
+  },
+  {
+    id: "education-facilities",
+    title: "Education Facilities",
+    url: `${ARCGIS_HOST}/EDUCATION_FACILITIES_KILIMANI/FeatureServer`,
+    layerId: 0,
+    defaultVisible: false,
+    group: "planning",
+    geometryType: "point",
+    description: "Mapped schools and education facilities.",
+    displayFields: ["name", "type", "category"],
+    searchFields: ["name", "type", "category"],
+  },
+  {
+    id: "health-facilities",
+    title: "Health Facilities",
+    url: `${ARCGIS_HOST}/HEALTH_FACILITIES_KILIMANI/FeatureServer`,
+    layerId: 0,
+    defaultVisible: false,
+    group: "planning",
+    geometryType: "point",
+    description: "Mapped health facilities and care locations.",
+    displayFields: ["name", "type", "category"],
+    searchFields: ["name", "type", "category"],
+  },
+  {
+    id: "points-of-interest",
+    title: "Kilimani Points of Interest",
+    url: `${ARCGIS_HOST}/KILIMANI_POINTS_OF_INTEREST/FeatureServer`,
+    layerId: 0,
+    defaultVisible: false,
+    group: "planning",
+    geometryType: "point",
+    description: "Mapped points of interest for local orientation.",
+    displayFields: ["name", "type", "category"],
+    searchFields: ["name", "type", "category"],
   },
   {
     id: "rivers",

@@ -180,6 +180,18 @@ html.dark .esri-view {
   --esri-view-background-color: var(--color-off-white);
 }
 
+/* Keep legacy Tailwind navigation/status text readable against dark Calcite surfaces. */
+html.dark .text-charcoal,
+html.dark .hover\:text-charcoal:hover,
+html.dark .group:hover .group-hover\:text-charcoal {
+  color: #000 !important;
+}
+
+html.dark .hover\:bg-\[\#f6f7f8\]:hover,
+html.dark .hover\:bg-\[\#f1f2f3\]:hover {
+  background-color: #fff !important;
+}
+
 @keyframes intro-scene-in {
   from {
     opacity: 0;

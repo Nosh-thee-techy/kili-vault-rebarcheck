@@ -90,6 +90,9 @@ export function PlannerFeaturePanel({
   const isBuilding = selection.kind === "building";
   const isDetection = selection.kind === "detection";
   const context = "context" in selection ? selection.context : undefined;
+  const returnedAttributes = Object.entries(selection.attributes).filter(
+    ([, value]) => value != null && value !== "",
+  );
 
   return (
     <calcite-panel
@@ -196,6 +199,26 @@ export function PlannerFeaturePanel({
               </div>
             )}
           </dl>
+          {!isParcel && !isBuilding && returnedAttributes.length > 0 && (
+            <div className="mt-4 border-t border-sand pt-3">
+              <h3 className="text-sm font-semibold text-charcoal">
+                Feature attributes
+              </h3>
+              <dl className="mt-2 grid gap-2 text-xs">
+                {returnedAttributes.slice(0, 16).map(([key, value]) => (
+                  <div
+                    key={key}
+                    className="flex items-start justify-between gap-3"
+                  >
+                    <dt className="text-charcoal-muted">{fieldLabel(key)}</dt>
+                    <dd className="max-w-[62%] break-words text-right font-medium text-charcoal">
+                      {String(value)}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
         </section>
       )}
 

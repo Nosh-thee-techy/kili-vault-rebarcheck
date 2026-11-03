@@ -1,6 +1,7 @@
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 import SimpleFillSymbol from "@arcgis/core/symbols/SimpleFillSymbol";
 import SimpleLineSymbol from "@arcgis/core/symbols/SimpleLineSymbol";
+import SimpleMarkerSymbol from "@arcgis/core/symbols/SimpleMarkerSymbol";
 import UniqueValueRenderer from "@arcgis/core/renderers/UniqueValueRenderer";
 import type { MapLayerConfig } from "@/config/mapLayers";
 
@@ -17,6 +18,8 @@ export function createMapFeatureLayer(
     opacity:
       config.id === "parcels-landuse"
         ? 1
+        : config.geometryType === "point"
+          ? 0.95
         : config.geometryType === "polygon"
           ? 0.6
           : 0.92,
@@ -24,21 +27,32 @@ export function createMapFeatureLayer(
     outFields,
   });
 
-  if (config.id === "landuse") {
-    const landUseColors: Record<string, string> = {
+  const landUseColors: Record<string, string> = {
       Residential: "#D7C29E",
+      "Residential Low Density": "#D7C29E",
+      "Medium Density": "#C9A66B",
+      "High Density": "#A97B45",
       Industrial: "#C500FF",
+      "Heavy Industrial": "#8B3A8B",
+      "Light Industries": "#B45AC5",
       Educational: "#FFAA00",
       Recreation: "#A3FF73",
       Recreational: "#A3FF73",
+      "Public Purpose": "#FFFF00",
       "Public purpose": "#FFFF00",
       Commercial: "#FF0000",
+      "Business Cum Residential": "#D94F4F",
       "Public utilities": "#0070FF",
+      "Public Utilities": "#0070FF",
       Transportation: "#CCCCCC",
+      "Bus Park": "#A8A8A8",
       Conservation: "#FFFFBE",
       Agricultural: "#FFFFE6",
+      Agriculture: "#FFFFE6",
       Other: "#8A8A8A",
-    };
+  };
+
+  if (["landuse", "parcels-landuse"].includes(config.id)) {
     layer.renderer = new UniqueValueRenderer({
       field: "LANDUSE",
       uniqueValueInfos: Object.entries(landUseColors).map(([value, color]) => ({
@@ -50,18 +64,13 @@ export function createMapFeatureLayer(
         }),
       })),
       defaultSymbol: new SimpleFillSymbol({
-        color: "#8A8A8A99",
-        outline: new SimpleLineSymbol({ color: "#666666", width: 0.8 }),
+        color: config.id === "parcels-landuse" ? "#FFFFFF14" : "#8A8A8A99",
+        outline: new SimpleLineSymbol({
+          color: config.id === "parcels-landuse" ? "#303030" : "#666666",
+          width: config.id === "parcels-landuse" ? 0.9 : 0.8,
+        }),
       }),
     });
-  } else if (config.id === "parcels-landuse") {
-    layer.renderer = {
-      type: "simple",
-      symbol: new SimpleFillSymbol({
-        color: [0, 0, 0, 0],
-        outline: new SimpleLineSymbol({ color: "#303030", width: 1.1 }),
-      }),
-    };
   } else if (["buildings", "buildings-parcels"].includes(config.id)) {
     layer.renderer = {
       type: "simple",
@@ -125,6 +134,21 @@ export function createMapFeatureLayer(
           width: 1,
           style: "dash",
         }),
+      }),
+    };
+  } else if (config.geometryType === "point") {
+    const pointColors: Record<string, string> = {
+      "cultural-places": "#8B5CF6",
+      "education-facilities": "#F59E0B",
+      "health-facilities": "#DC2626",
+      "points-of-interest": "#0F766E",
+    };
+    layer.renderer = {
+      type: "simple",
+      symbol: new SimpleMarkerSymbol({
+        color: pointColors[config.id] ?? "#2563EB",
+        size: 8,
+        outline: new SimpleLineSymbol({ color: "#FFFFFF", width: 1 }),
       }),
     };
   }

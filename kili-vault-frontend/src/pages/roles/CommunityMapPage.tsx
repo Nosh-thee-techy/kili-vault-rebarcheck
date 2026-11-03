@@ -25,7 +25,7 @@ export function CommunityMapPage() {
 
   return (
     <section className="flex h-full min-h-0 w-full flex-col bg-[var(--calcite-color-background)]">
-      <header className="z-10 flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-[var(--calcite-color-border-1)] bg-[var(--calcite-color-background)] px-3 py-2.5 sm:px-4">
+      <header className="relative z-30 flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-[var(--calcite-color-border-1)] bg-[var(--calcite-color-background)] px-3 py-2.5 sm:px-4">
         <div className="flex min-w-0 items-center gap-2.5">
           <calcite-icon icon="map" scale="m" className="text-[var(--calcite-color-text-2)]" />
           <div className="min-w-0">
