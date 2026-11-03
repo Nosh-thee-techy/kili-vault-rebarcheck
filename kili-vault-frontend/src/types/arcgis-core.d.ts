@@ -138,6 +138,14 @@ declare module "@arcgis/core/widgets/LayerList" {
   export default LayerList;
 }
 
+declare module "@arcgis/core/widgets/Legend" {
+  class Legend {
+    [key: string]: any;
+    constructor(options?: any);
+  }
+  export default Legend;
+}
+
 declare module "@arcgis/core/widgets/Attribution" {
   class Attribution {
     [key: string]: any;

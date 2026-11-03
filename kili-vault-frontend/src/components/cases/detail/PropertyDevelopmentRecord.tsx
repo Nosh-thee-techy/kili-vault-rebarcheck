@@ -1,5 +1,4 @@
 import { useState, type ReactNode } from "react";
-import { CaseSiteMap } from "@/components/cases/detail/CaseSiteMap";
 import { usePropertyRecordQuery } from "@/hooks/useCaseQueries";
 import type {
   DevelopmentCase,
@@ -29,12 +28,14 @@ function RecordSection({
   children: ReactNode;
 }) {
   return (
-    <calcite-panel
+    <calcite-block
       heading={title}
       description={source ? `Source: ${source}` : undefined}
+      collapsible
+      open
     >
-      <div className="p-4">{children}</div>
-    </calcite-panel>
+      <div className="px-4 pb-3 pt-2">{children}</div>
+    </calcite-block>
   );
 }
 
@@ -102,36 +103,37 @@ export function PropertyDevelopmentRecord({
 
   if (caseItem.status !== "CLOSED") {
     return (
-      <calcite-panel
+      <calcite-block
         heading="Property development record"
         description="Available after case closure."
+        collapsible
+        open
       >
-        <div className="p-4">
+        <div className="px-4 pb-3 pt-2">
           <calcite-notice open kind="info" scale="s">
             This case is still active. Its structured property record will be presented when verification and closure are complete.
           </calcite-notice>
         </div>
-      </calcite-panel>
+      </calcite-block>
     );
   }
 
   return (
-    <calcite-panel
+    <calcite-block
       heading="Property development record"
       description="Traceable summary of the detected, reviewed, verified, and evidenced case."
+      collapsible
+      open
     >
       {query.data && (
-        <calcite-button
-          slot="header-actions-end"
-          appearance="outline"
-          scale="s"
-          icon-start="download"
+        <calcite-action
+          slot="actions-end"
+          icon="download"
+          text="Export JSON"
           onClick={() => downloadRecord(query.data!)}
-        >
-          Export JSON
-        </calcite-button>
+        />
       )}
-      <div className="space-y-4 p-4">
+      <div className="space-y-4 px-4 pb-3 pt-2">
       {!expanded ? (
         <calcite-button appearance="solid" scale="m" icon-start="file-text" onClick={() => setExpanded(true)}>
           Open property record
@@ -145,19 +147,17 @@ export function PropertyDevelopmentRecord({
           The closed case could not be assembled into a property record. Please try again.
         </calcite-notice>
       ) : query.data ? (
-        <RecordBody record={query.data} caseItem={caseItem} />
+        <RecordBody record={query.data} />
       ) : null}
       </div>
-    </calcite-panel>
+    </calcite-block>
   );
 }
 
 function RecordBody({
   record,
-  caseItem,
 }: {
   record: RecordData;
-  caseItem: DevelopmentCase;
 }) {
   const observed = record.development.observed;
   return (
@@ -335,18 +335,9 @@ function RecordBody({
           title="Spatial context"
           source="ArcGIS case and context layers"
         >
-          <div className="relative h-[360px] overflow-hidden rounded-xl border border-sand">
-            <CaseSiteMap
-              caseItem={caseItem}
-              compact
-              className="h-full min-h-0 rounded-none border-0"
-            />
-          </div>
-          <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-charcoal-muted">
-            <calcite-icon icon="map" scale="s" className="mt-0.5 shrink-0" />
-            The map shows the case geometry with live planning context layers.
-            Missing parcel proximity values are not inferred.
-          </p>
+          <calcite-notice open kind="info" scale="s">
+            The case geometry and configured planning layers remain visible in the workspace map. Missing parcel proximity values are not inferred.
+          </calcite-notice>
         </RecordSection>
         <div className="space-y-4">
           <RecordSection title="Verification" source="Case audit events">

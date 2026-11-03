@@ -9,8 +9,8 @@ export function CaseFlaggingSummary({ caseItem }: { caseItem: DevelopmentCase })
   const hiddenCount = reasons.length - 3;
 
   return (
-    <calcite-panel heading="Assessment" description="Why this case was flagged.">
-      <ul className="space-y-3 p-4">
+    <calcite-block heading="Assessment" description="Why this case was flagged." collapsible open>
+      <ul className="space-y-3 px-4 pb-3 pt-2">
         {visible.map((reason) => (
           <li
             key={`${reason.category}-${reason.text}`}
@@ -27,7 +27,7 @@ export function CaseFlaggingSummary({ caseItem }: { caseItem: DevelopmentCase })
         ))}
       </ul>
       {hiddenCount > 0 && (
-        <div className="border-t border-sand px-4 py-2">
+        <div className="border-t border-sand px-3 py-1">
           <calcite-button
             appearance="transparent"
             scale="s"
@@ -38,6 +38,6 @@ export function CaseFlaggingSummary({ caseItem }: { caseItem: DevelopmentCase })
           </calcite-button>
         </div>
       )}
-    </calcite-panel>
+    </calcite-block>
   );
 }

@@ -48,7 +48,8 @@ export function RoleShell({
   const isPlannerDashboard = location.pathname === "/planner";
   const isPlannerWorkspace =
     isPlannerDashboard || location.pathname.startsWith("/planner/map");
-  const contentBleed = fullBleed || isMapView || isPlannerDashboard;
+  const isCaseDetail = /\/cases\/[^/]+$/.test(location.pathname);
+  const contentBleed = fullBleed || isMapView || isPlannerDashboard || isCaseDetail;
   const bottomNav = mobileNavItems ?? navItems.slice(0, 3);
 
   const renderNavLink = (item: NavItem, compact: boolean) => {

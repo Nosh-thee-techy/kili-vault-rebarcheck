@@ -22,7 +22,6 @@ export function CaseNextStepPanel({ caseItem }: { caseItem: DevelopmentCase }) {
   const [assignedDeveloperId, setAssignedDeveloperId] = useState(DEFAULT_DEVELOPER_ID);
   const [verifyNote, setVerifyNote] = useState('');
   const [showMitigationForm, setShowMitigationForm] = useState(false);
-  const [minimized, setMinimized] = useState(false);
   const [locationStatus, setLocationStatus] = useState<string | null>(null);
 
   if (!user) return null;
@@ -83,23 +82,8 @@ export function CaseNextStepPanel({ caseItem }: { caseItem: DevelopmentCase }) {
     (caseItem.status === 'AGENCY_PENDING' || caseItem.status === 'EVIDENCE_SUBMITTED');
 
   return (
-    <calcite-panel heading="Next step" description={guide.statusLabel}>
-      <calcite-button
-        slot="header-actions-end"
-        appearance="transparent"
-        scale="s"
-        icon-start={minimized ? 'chevron-down' : 'chevron-up'}
-        label={minimized ? 'Expand guidance' : 'Minimize guidance'}
-        aria-expanded={!minimized}
-        onClick={() => setMinimized((value) => !value)}
-      />
-
-      {minimized ? (
-        <p className="px-4 py-3 text-sm leading-relaxed text-charcoal-muted">
-          {guide.instruction}
-        </p>
-      ) : (
-        <div className="space-y-4 p-4">
+    <calcite-block heading="Next step" description={guide.statusLabel} collapsible open>
+      <div className="space-y-4 px-4 pb-4 pt-2">
           <p className="text-base leading-relaxed text-charcoal">{guide.summary}</p>
           <calcite-notice open kind="info" scale="s">
             {guide.instruction}
@@ -243,8 +227,7 @@ export function CaseNextStepPanel({ caseItem }: { caseItem: DevelopmentCase }) {
           </div>
         </div>
       )}
-        </div>
-      )}
-    </calcite-panel>
+      </div>
+    </calcite-block>
   );
 }
