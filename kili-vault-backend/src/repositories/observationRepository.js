@@ -24,8 +24,8 @@ function writeFileStore(data) {
 function mapRow(row) {
   return {
     id: row.id,
-    lat: Number(row.lat),
-    lon: Number(row.lon),
+    lat: Number(row.lat ?? row.latitude),
+    lon: Number(row.lon ?? row.longitude),
     description: row.description,
     category: row.category ?? null,
     status: row.status,
@@ -56,8 +56,11 @@ class ObservationRepository {
       try {
         const res = await db.query(
           `INSERT INTO community_observations
-             (id, lat, lon, description, category, status, submitted_by_id, submitted_by_name, case_id, created_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+             (id, latitude, longitude, geometry, description, observation_type,
+              submitted_by, submitter_name, status, photo_url, linked_case_id,
+              lat, lon, category, submitted_by_id, submitted_by_name, case_id, created_at)
+           VALUES ($1, $2, $3, ST_SetSRID(ST_MakePoint($3, $2), 4326), $4, $5,
+                   $7, $8, $6, NULL, $9, $2, $3, $5, $7, $8, $9, $10)
            RETURNING *`,
           [
             record.id,

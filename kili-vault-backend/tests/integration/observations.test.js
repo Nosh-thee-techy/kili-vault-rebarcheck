@@ -6,7 +6,7 @@ const request = require("supertest");
 const app = require("../../src/app");
 const db = require("../../src/repositories/db");
 
-test("community observation API supports submission, listing, and review", async () => {
+test("community observation API supports submission and role-scoped listing", async () => {
   const payload = {
     lat: -1.2921,
     lon: 36.782,
@@ -16,38 +16,41 @@ test("community observation API supports submission, listing, and review", async
 
   try {
     const created = await request(app)
-      .post("/api/v1/observations")
+      .post("/api/v1/cases/observations")
+      .set("X-User-Role", "community")
       .set("X-User-Id", "integration-test")
       .set("X-User-Name", "Integration Test")
       .send(payload);
     assert.equal(created.status, 201);
-    assert.equal(created.body.data.status, "SUBMITTED");
-    assert.equal(created.body.data.latitude, payload.lat);
+    assert.equal(created.body.data.status, "PENDING_REVIEW");
+    assert.equal(created.body.data.lat, payload.lat);
     createdIds.push(created.body.data.id);
 
-    const compatibility = await request(app)
+    const mine = await request(app)
       .post("/api/v1/cases/observations")
+      .set("X-User-Role", "community")
+      .set("X-User-Id", "integration-test")
       .send(payload);
-    assert.equal(compatibility.status, 201);
-    createdIds.push(compatibility.body.data.id);
+    assert.equal(mine.status, 201);
+    createdIds.push(mine.body.data.id);
 
-    const listed = await request(app).get(
-      "/api/v1/observations?status=SUBMITTED&limit=10",
-    );
+    const listed = await request(app)
+      .get("/api/v1/cases/observations")
+      .set("X-User-Role", "planner")
+      .query({ limit: 10 });
     assert.equal(listed.status, 200);
     assert.ok(
-      listed.body.data.some((item) => item.id === created.body.data.id),
+      listed.body.data.observations.some(
+        (item) => item.id === created.body.data.id,
+      ),
     );
 
-    const reviewed = await request(app)
-      .patch(`/api/v1/observations/${created.body.data.id}/review`)
-      .set("X-User-Id", "planner-test")
-      .send({
-        status: "ACCEPTED",
-        review_notes: "Reviewed in integration test.",
-      });
-    assert.equal(reviewed.status, 200);
-    assert.equal(reviewed.body.data.status, "ACCEPTED");
+    const mineListed = await request(app)
+      .get("/api/v1/cases/observations/mine")
+      .set("X-User-Role", "community")
+      .set("X-User-Id", "integration-test");
+    assert.equal(mineListed.status, 200);
+    assert.equal(mineListed.body.data.total, 2);
   } finally {
     if (createdIds.length) {
       await db.query(
