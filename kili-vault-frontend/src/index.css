@@ -270,21 +270,6 @@ html.dark .esri-view {
   --esri-view-background-color: var(--color-off-white);
 }
 
-/* Intro splash */
-.intro-splash-glow {
-  background:
-    radial-gradient(
-      ellipse 90% 70% at 50% 0%,
-      rgb(196 120 90 / 0.18),
-      transparent 55%
-    ),
-    radial-gradient(
-      ellipse 60% 50% at 100% 100%,
-      rgb(255 255 255 / 0.05),
-      transparent 50%
-    );
-}
-
 @keyframes intro-scene-in {
   from {
     opacity: 0;

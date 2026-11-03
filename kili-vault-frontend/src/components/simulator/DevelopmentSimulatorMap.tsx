@@ -417,7 +417,7 @@ export function DevelopmentSimulatorMap({
           <MapSkeleton />
         </div>
       )}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-off-white/90 to-transparent p-4">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 border-b border-sand bg-[var(--calcite-color-background)]/95 p-4">
         <p className="inline-flex rounded-full border border-off-white/70 bg-off-white/90 px-3 py-1.5 text-xs font-semibold text-forest shadow-soft">
           {message}
         </p>

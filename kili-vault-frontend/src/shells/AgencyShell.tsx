@@ -1,11 +1,21 @@
-import { ClipboardCheck, Shield } from 'lucide-react';
+import { ClipboardCheck } from 'lucide-react';
 import { RoleShell } from '@/components/layout/RoleShell';
+
+const nav = [
+  {
+    to: '/agency',
+    label: 'Verification queue',
+    icon: ClipboardCheck,
+    calciteIcon: 'check-circle',
+    end: true,
+  },
+];
 
 export function AgencyShell() {
   return (
     <RoleShell
-      navItems={[{ to: '/agency', label: 'Verification queue', icon: ClipboardCheck, end: true }]}
-      mobileNavItems={[{ to: '/agency', label: 'Queue', icon: Shield, end: true }]}
+      navItems={nav}
+      mobileNavItems={nav}
       subtitle="Agency · Formal verification"
     />
   );

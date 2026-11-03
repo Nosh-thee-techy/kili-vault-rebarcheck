@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Map from '@arcgis/core/Map';
-import SceneView from '@arcgis/core/views/SceneView';
+import MapView from '@arcgis/core/views/MapView';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import Graphic from '@arcgis/core/Graphic';
 import Point from '@arcgis/core/geometry/Point';
@@ -54,11 +54,11 @@ function proximityRingSymbol(meters: number, fill: string, outline: string) {
 
 export function PreDevMap({ lat, lon, onPinDrop, className }: PreDevMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const viewRef = useRef<SceneView | null>(null);
+  const viewRef = useRef<MapView | null>(null);
   const overlayLayerRef = useRef<GraphicsLayer | null>(null);
   const featureLayersRef = useRef<Partial<Record<SiteInfraLayerId, FeatureLayer>>>({});
   const [ready, setReady] = useState(false);
-  const [mode3d, setMode3d] = useState(true);
+  const [mapError, setMapError] = useState<string | null>(null);
   const [layerVisibility, setLayerVisibility] =
     useState<Record<SiteInfraLayerId, boolean>>(DEFAULT_LAYER_VISIBILITY);
   const [proximity, setProximity] = useState<SiteProximity | null>(null);
@@ -73,10 +73,7 @@ export function PreDevMap({ lat, lon, onPinDrop, className }: PreDevMapProps) {
     const overlayLayer = new GraphicsLayer({ title: 'Site pin & proximity' });
     overlayLayerRef.current = overlayLayer;
 
-    const map = new Map({
-      basemap: 'satellite',
-      ground: 'world-elevation',
-    });
+    const map = new Map({ basemap: 'arcgis-topographic' });
 
     const featureLayers: Partial<Record<SiteInfraLayerId, FeatureLayer>> = {};
     MAP_LAYERS.filter((config) =>
@@ -93,24 +90,36 @@ export function PreDevMap({ lat, lon, onPinDrop, className }: PreDevMapProps) {
     featureLayersRef.current = featureLayers;
     map.add(overlayLayer);
 
-    const view = new SceneView({
+    const view = new MapView({
       container: containerRef.current,
       map,
-      qualityProfile: 'medium',
-      environment: { lighting: { directShadowsEnabled: true } },
       extent: KILIMANI_WARD_EXTENT,
       padding: { top: 48, right: 16, bottom: 72, left: 16 },
-      camera: {
-        position: { longitude: 36.782, latitude: -1.2921, z: 1200 },
-        tilt: 55,
-        heading: 25,
-      },
     });
 
     viewRef.current = view;
 
-    view.when(() => {
-      if (!destroyed) setReady(true);
+    const loadingTimeout = window.setTimeout(() => {
+      if (destroyed) return;
+      setReady(true);
+      setMapError('The planning map is taking too long to load. You can still continue with your selected location.');
+    }, 15000);
+
+    view.when().then(() => {
+      if (!destroyed) {
+        window.clearTimeout(loadingTimeout);
+        setReady(true);
+        setMapError(null);
+      }
+    }).catch((reason: unknown) => {
+      if (destroyed) return;
+      window.clearTimeout(loadingTimeout);
+      setReady(true);
+      setMapError(
+        reason instanceof Error
+          ? reason.message
+          : 'The planning map could not be initialized.',
+      );
     });
 
     const handle = view.on('click', (event: __esri.ViewClickEvent) => {
@@ -121,6 +130,7 @@ export function PreDevMap({ lat, lon, onPinDrop, className }: PreDevMapProps) {
 
     return () => {
       destroyed = true;
+      window.clearTimeout(loadingTimeout);
       handle.remove();
       view.destroy();
       viewRef.current = null;
@@ -142,12 +152,11 @@ export function PreDevMap({ lat, lon, onPinDrop, className }: PreDevMapProps) {
 
     view
       .goTo({
-        position: { longitude: lon, latitude: lat, z: mode3d ? 420 : 1400 },
-        tilt: mode3d ? 62 : 0,
-        heading: mode3d ? 35 : 0,
+        center: [lon, lat],
+        zoom: 17,
       })
       .catch(() => undefined);
-  }, [mode3d, lat, lon]);
+  }, [lat, lon]);
 
   useEffect(() => {
     const overlay = overlayLayerRef.current;
@@ -203,35 +212,18 @@ export function PreDevMap({ lat, lon, onPinDrop, className }: PreDevMapProps) {
     if (!roads) return;
 
     let cancelled = false;
-    analyzeSiteProximity(lat, lon, roads, sewer, power).then((result) => {
-      if (!cancelled) setProximity(result);
-    });
+    analyzeSiteProximity(lat, lon, roads, sewer, power)
+      .then((result) => {
+        if (!cancelled) setProximity(result);
+      })
+      .catch(() => {
+        if (!cancelled) setProximity(null);
+      });
 
     return () => {
       cancelled = true;
     };
   }, [lat, lon]);
-
-  const viewModeToggle = (
-    <div className="pointer-events-auto flex items-center gap-1">
-      <calcite-button
-        appearance={mode3d ? "outline" : "solid"}
-        scale="s"
-        aria-pressed={!mode3d}
-        onClick={() => setMode3d(false)}
-      >
-        2D
-      </calcite-button>
-      <calcite-button
-        appearance={mode3d ? "solid" : "outline"}
-        scale="s"
-        aria-pressed={mode3d}
-        onClick={() => setMode3d(true)}
-      >
-        3D
-      </calcite-button>
-    </div>
-  );
 
   const layerControls = (
     <div className="pointer-events-auto absolute right-3 top-14 z-20 w-60 max-w-[90%] border border-sand bg-[var(--calcite-color-background)] shadow-soft">
@@ -281,6 +273,14 @@ export function PreDevMap({ lat, lon, onPinDrop, className }: PreDevMapProps) {
           <MapSkeleton />
         </div>
       )}
+      {mapError && (
+        <div className="pointer-events-none absolute inset-x-3 top-24 z-30 sm:max-w-md">
+          <calcite-notice open kind="warning" scale="s">
+            <span slot="title">Map unavailable</span>
+            {mapError}
+          </calcite-notice>
+        </div>
+      )}
 
       <div className="pointer-events-none absolute inset-x-3 top-3 z-20">
         <div className="flex flex-wrap items-start justify-between gap-2">
@@ -289,7 +289,7 @@ export function PreDevMap({ lat, lon, onPinDrop, className }: PreDevMapProps) {
               ? 'Site selected — tap to move pin'
               : 'Tap map to set your plot location'}
           </calcite-chip>
-          {viewModeToggle}
+          <calcite-chip scale="s">Top-down map</calcite-chip>
         </div>
       </div>
 
@@ -297,9 +297,7 @@ export function PreDevMap({ lat, lon, onPinDrop, className }: PreDevMapProps) {
         scale="s"
         className="pointer-events-none absolute left-3 top-14 z-10 max-w-[90%]"
       >
-        {mode3d
-          ? '3D tilt · buildings, roads, sewers & power'
-          : 'Top-down · dashed ring = 30 m road setback guide'}
+        Dotted rings show 30 m and 50 m proximity guides.
       </calcite-chip>
 
       {layerControls}

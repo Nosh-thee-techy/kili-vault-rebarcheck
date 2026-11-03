@@ -419,6 +419,7 @@ export function PreDevelopmentCheckPage() {
                     icon-start="analysis"
                     scale="m"
                     loading={previewMutation.isPending}
+                    disabled={previewMutation.isPending || !buildInput}
                     onClick={() => void runPreview()}
                   >
                     Check my plot

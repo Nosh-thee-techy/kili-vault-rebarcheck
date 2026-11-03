@@ -94,8 +94,6 @@ export function IntroSplash({ onComplete }: IntroSplashProps) {
 
   return (
     <div className="intro-splash fixed inset-0 z-[100] flex flex-col bg-forest text-off-white">
-      <div className="intro-splash-glow pointer-events-none absolute inset-0" aria-hidden />
-
       <header className="relative z-10 flex items-center justify-between px-5 py-4 md:px-8">
         <div className="flex items-center gap-2">
           <Logo size={36} className="rounded-lg ring-1 ring-off-white/20" />
