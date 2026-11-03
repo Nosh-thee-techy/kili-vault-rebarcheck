@@ -99,30 +99,32 @@ export function IntroSplash({ onComplete }: IntroSplashProps) {
         </div>
 
         <section className="flex min-h-0 flex-col justify-center overflow-y-auto px-5 py-6 sm:px-8 lg:px-10 xl:px-14">
-          <div
+          <calcite-card
             key={scene.id}
             className="intro-scene-animate mx-auto w-full max-w-2xl"
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}
           >
-            <calcite-chip scale="s" appearance="outline" icon={scene.icon}>
-              {scene.kicker}
-            </calcite-chip>
-            <h1 className="mt-4 text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">
+            <span slot="heading" className="flex items-center gap-2">
+              <calcite-icon icon={scene.icon} scale="s" />
               {scene.title}
-            </h1>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-[var(--calcite-color-text-2)] sm:text-base">
+            </span>
+            <span slot="description">
+              {scene.kicker} · Scene {sceneIndex + 1} of {SCENES.length}
+            </span>
+
+            <p className="max-w-xl text-sm leading-relaxed text-[var(--calcite-color-text-2)] sm:text-base">
               {scene.body}
             </p>
 
             <calcite-progress
-              className="mt-7"
+              className="mt-5"
               type="determinate"
               value={String(((sceneIndex + 1) / SCENES.length) * 100)}
               aria-label={`Introduction scene ${sceneIndex + 1} of ${SCENES.length}`}
             />
 
-            <div className="mt-6 flex flex-wrap items-center gap-1" aria-label="Introduction scenes">
+            <div className="mt-4 flex flex-wrap items-center gap-1" aria-label="Introduction scenes">
               {SCENES.map((item, index) => (
                 <calcite-button
                   key={item.id}
@@ -137,10 +139,10 @@ export function IntroSplash({ onComplete }: IntroSplashProps) {
               ))}
             </div>
 
-            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--calcite-color-border-1)] pt-4">
-              <p className="text-xs text-[var(--calcite-color-text-2)]">
-                {paused ? 'Paused while you review' : `Scene ${sceneIndex + 1} of ${SCENES.length}`}
-              </p>
+            <span slot="footer-start" className="text-xs text-[var(--calcite-color-text-2)]">
+              {paused ? 'Paused while you review' : 'Introduction'}
+            </span>
+            <span slot="footer-end" className="flex flex-wrap items-center justify-end gap-2">
               <div className="flex items-center gap-2">
                 {sceneIndex > 0 && (
                   <calcite-button
@@ -167,8 +169,8 @@ export function IntroSplash({ onComplete }: IntroSplashProps) {
                   </calcite-button>
                 )}
               </div>
-            </div>
-          </div>
+            </span>
+          </calcite-card>
           <p className="mx-auto mt-8 w-full max-w-2xl border-t border-[var(--calcite-color-border-1)] pt-3 text-xs text-[var(--calcite-color-text-3)]">
             Kilimani Urban Hackathon · Spatial accountability layer
           </p>
