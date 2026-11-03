@@ -50,6 +50,7 @@ export function PlannerDashboardPage() {
               showCases={showCases}
               showDetections={showDetections}
               colorByStatus
+              showAttributionFooter
               onCaseSelect={(id) => navigate(`/planner/cases/${id}`)}
               onFeatureSelect={setFeatureSelection}
               clearSelectionToken={clearSelectionToken}
@@ -69,7 +70,7 @@ export function PlannerDashboardPage() {
           }}
         />
 
-        <div className="pointer-events-auto absolute bottom-4 left-1/2 z-30 -translate-x-1/2">
+        <div className="pointer-events-auto absolute bottom-8 left-1/2 z-30 -translate-x-1/2">
           <calcite-button
             appearance="solid"
             scale="m"
@@ -81,7 +82,7 @@ export function PlannerDashboardPage() {
           </calcite-button>
         </div>
 
-        <div className="pointer-events-auto absolute bottom-4 left-4 z-30">
+        <div className="pointer-events-auto absolute bottom-8 left-4 z-30">
           {!metricsOpen && (
             <calcite-button
               appearance="outline"

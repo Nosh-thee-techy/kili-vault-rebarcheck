@@ -46,6 +46,7 @@ export function PlannerMapPage() {
               layerVisibility={layerVisibility}
               mapLayers={PLANNER_MAP_LAYERS}
               enablePlannerTools
+              showAttributionFooter
               showCases={showCases}
               showDetections={showDetections}
               colorByStatus

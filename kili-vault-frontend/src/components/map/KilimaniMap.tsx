@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Map from "@arcgis/core/Map";
 import MapView from "@arcgis/core/views/MapView";
 import GeoJSONLayer from "@arcgis/core/layers/GeoJSONLayer";
@@ -16,6 +17,7 @@ import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
 import Expand from "@arcgis/core/widgets/Expand";
 import Home from "@arcgis/core/widgets/Home";
 import LayerList from "@arcgis/core/widgets/LayerList";
+import Attribution from "@arcgis/core/widgets/Attribution";
 import {
   KILIMANI_WARD_EXTENT,
   MAP_LAYERS,
@@ -89,6 +91,7 @@ interface KilimaniMapProps {
   clearSelectionToken?: number;
   mapLayers?: MapLayerConfig[];
   enablePlannerTools?: boolean;
+  showAttributionFooter?: boolean;
   className?: string;
 }
 
@@ -278,12 +281,15 @@ export function KilimaniMap({
   clearSelectionToken = 0,
   mapLayers = MAP_LAYERS,
   enablePlannerTools = false,
+  showAttributionFooter = false,
   className,
 }: KilimaniMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const attributionFooterRef = useRef<HTMLDivElement>(null);
   const measurementContainerRef = useRef<HTMLDivElement>(null);
   const sketchContainerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<MapView | null>(null);
+  const plannerToolsExpandRef = useRef<Expand | null>(null);
   const featureLayersRef = useRef<Record<string, FeatureLayer>>({});
   const proximityLayerRef = useRef<GraphicsLayer | null>(null);
   const analysisLayerRef = useRef<GraphicsLayer | null>(null);
@@ -304,11 +310,12 @@ export function KilimaniMap({
     "loading",
   );
   const [mapError, setMapError] = useState<string | null>(null);
+  const [plannerToolsControl, setPlannerToolsControl] =
+    useState<HTMLDivElement | null>(null);
   const [selection, setSelection] = useState<MapSelection | null>(null);
   const [plannerFeature, setPlannerFeature] =
     useState<PlannerFeatureSelection | null>(null);
   const [proximity, setProximity] = useState<SiteProximity | null>(null);
-  const [plannerToolsOpen, setPlannerToolsOpen] = useState(false);
   const [activePlannerTool, setActivePlannerTool] =
     useState<PlannerTool | null>(null);
   const [measurementMode, setMeasurementMode] = useState<"distance" | "area">(
@@ -398,6 +405,11 @@ export function KilimaniMap({
     });
 
     viewRef.current = view;
+
+    const attribution = showAttributionFooter && attributionFooterRef.current
+      ? new Attribution({ view, container: attributionFooterRef.current })
+      : null;
+    if (attribution) view.ui.remove("attribution");
     featureLayersRef.current = featureLayers;
     casesLayerRef.current = casesLayer;
     detectionsLayerRef.current = detectionsLayer;
@@ -422,6 +434,32 @@ export function KilimaniMap({
     });
     view.ui.add(basemapExpand, "top-right", 0);
     view.ui.add(layerExpand, "top-right", 1);
+
+    const plannerToolsNode = enablePlannerTools
+      ? document.createElement("div")
+      : null;
+    const plannerToolsExpand = plannerToolsNode
+      ? new Expand({
+          view,
+          content: plannerToolsNode,
+          group: "top-right",
+          expandIcon: "analysis",
+          expandTooltip: "Planning tools",
+          collapseTooltip: "Close planning tools",
+          label: "Planning tools",
+        })
+      : null;
+    const plannerToolsExpandHandle = plannerToolsExpand?.watch(
+      "expanded",
+      (expanded: boolean) => {
+        if (!expanded) setActivePlannerTool(null);
+      },
+    );
+    if (plannerToolsExpand && plannerToolsNode) {
+      view.ui.add(plannerToolsExpand, "top-right", 2);
+      plannerToolsExpandRef.current = plannerToolsExpand;
+      setPlannerToolsControl(plannerToolsNode);
+    }
 
     view
       .when(() => {
@@ -595,6 +633,11 @@ export function KilimaniMap({
       basemapGallery.destroy();
       layerExpand.destroy();
       layerList.destroy();
+      plannerToolsExpandHandle?.remove();
+      plannerToolsExpand?.destroy();
+      plannerToolsNode?.remove();
+      plannerToolsExpandRef.current = null;
+      attribution?.destroy();
       measurementRef.current?.destroy();
       measurementRef.current = null;
       sketchWidgetRef.current?.destroy();
@@ -603,6 +646,7 @@ export function KilimaniMap({
       highlightHandleRef.current = null;
       view.destroy();
       viewRef.current = null;
+      setPlannerToolsControl(null);
       featureLayersRef.current = {};
       proximityLayerRef.current = null;
       analysisLayerRef.current = null;
@@ -610,7 +654,7 @@ export function KilimaniMap({
       casesLayerRef.current = null;
       detectionsLayerRef.current = null;
     };
-  }, [mapLayers]);
+  }, [enablePlannerTools, mapLayers, showAttributionFooter]);
 
   useEffect(() => {
     if (clearSelectionToken === 0) return;
@@ -1173,6 +1217,231 @@ export function KilimaniMap({
       className={`relative h-full min-h-[360px] overflow-hidden ${className ?? ""}`}
     >
       <div ref={containerRef} className="absolute inset-0 h-full w-full" />
+      {showAttributionFooter && (
+        <div
+          ref={attributionFooterRef}
+          className="planner-map-attribution absolute inset-x-0 bottom-0 z-30 flex items-center"
+          role="contentinfo"
+          aria-label="Map attribution"
+        />
+      )}
+      {enablePlannerTools && plannerToolsControl && createPortal(
+            <calcite-panel
+              id="planner-tools-panel"
+              heading="Planning tools"
+              description="Temporary, client-side map analysis"
+              className="pointer-events-auto max-h-[min(72vh,44rem)] w-[min(24rem,calc(100vw-2rem))] overflow-y-auto"
+            >
+              <calcite-button
+                slot="header-actions-end"
+                appearance="transparent"
+                icon-start="x"
+                label="Close planning tools"
+                onClick={() => {
+                  if (plannerToolsExpandRef.current) {
+                    plannerToolsExpandRef.current.expanded = false;
+                  }
+                  setActivePlannerTool(null);
+                }}
+              />
+
+              <calcite-block heading="Measure" open>
+                <p className="mb-2 text-sm">
+                  Measure map distance in metres or area in acres.
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <calcite-button
+                    appearance={
+                      activePlannerTool === "measurement" &&
+                      measurementMode === "distance"
+                        ? "solid"
+                        : "outline"
+                    }
+                    scale="s"
+                    icon-start="measure"
+                    onClick={() => {
+                      setMeasurementMode("distance");
+                      setActivePlannerTool("measurement");
+                    }}
+                  >
+                    Distance
+                  </calcite-button>
+                  <calcite-button
+                    appearance={
+                      activePlannerTool === "measurement" &&
+                      measurementMode === "area"
+                        ? "solid"
+                        : "outline"
+                    }
+                    scale="s"
+                    icon-start="measure-area"
+                    onClick={() => {
+                      setMeasurementMode("area");
+                      setActivePlannerTool("measurement");
+                    }}
+                  >
+                    Area
+                  </calcite-button>
+                </div>
+                {activePlannerTool === "measurement" && (
+                  <div className="mt-2">
+                    <div ref={measurementContainerRef} className="min-h-24" />
+                    <calcite-button
+                      appearance="transparent"
+                      scale="s"
+                      onClick={() => measurementRef.current?.clear()}
+                    >
+                      Clear measurement
+                    </calcite-button>
+                  </div>
+                )}
+              </calcite-block>
+
+              <calcite-block heading="Site sketch" open>
+                <p className="mb-2 text-sm">
+                  Draw temporary footprint polygons or access routes on the map.
+                </p>
+                <calcite-button
+                  appearance={activePlannerTool === "sketch" ? "solid" : "outline"}
+                  scale="s"
+                  icon-start="pencil"
+                  onClick={() => setActivePlannerTool("sketch")}
+                >
+                  Open sketch tools
+                </calcite-button>
+                {activePlannerTool === "sketch" && (
+                  <div ref={sketchContainerRef} className="mt-2" />
+                )}
+                <calcite-button
+                  appearance="transparent"
+                  scale="s"
+                  className="mt-1"
+                  onClick={() => sketchLayerRef.current?.removeAll()}
+                >
+                  Clear all sketches
+                </calcite-button>
+              </calcite-block>
+
+              <calcite-block heading="Proximity buffer" open>
+                <p className="mb-2 text-sm">
+                  Highlight mapped parcels within a distance of the selected parcel.
+                </p>
+                <div className="flex items-end gap-2">
+                  <calcite-input
+                    type="number"
+                    min="1"
+                    max="5000"
+                    step="50"
+                    value={bufferDistance}
+                    label="Buffer distance in metres"
+                    onInput={(event) =>
+                      setBufferDistance((event.target as HTMLInputElement).value)
+                    }
+                    className="min-w-0 flex-1"
+                  />
+                  <calcite-button
+                    appearance="solid"
+                    scale="s"
+                    icon-start="rings"
+                    disabled={bufferLoading || plannerFeature?.kind !== "parcel"}
+                    onClick={runParcelBuffer}
+                  >
+                    {bufferLoading ? "Checking" : "Run buffer"}
+                  </calcite-button>
+                </div>
+                {plannerFeature?.kind !== "parcel" && (
+                  <p className="mt-2 text-sm">
+                    Select a parcel on the map to run this analysis.
+                  </p>
+                )}
+                {bufferLoading && <calcite-loader label="Finding surrounding parcels" />}
+                {bufferResult && (
+                  <div className="mt-2">
+                    <p className="mb-2 text-sm">
+                      {bufferResult.features.length} mapped parcel
+                      {bufferResult.features.length === 1 ? "" : "s"} within{" "}
+                      {bufferResult.distanceMeters} m. All returned parcels are
+                      highlighted on the map for notification review.
+                    </p>
+                    <calcite-notice open kind="warning" scale="s">
+                      This is a proximity screen. Confirm the applicable
+                      notification rules before using it as a legal notice list.
+                    </calcite-notice>
+                    <calcite-list label="Nearby parcel candidates" className="mt-2">
+                      {bufferResult.features.slice(0, 25).map((feature, index) => {
+                        const parcelReference =
+                          feature.attributes?.parcel_num ??
+                          feature.attributes?.lr_number;
+                        return (
+                          <calcite-list-item
+                            key={String(feature.attributes?.OBJECTID ?? index)}
+                            label={
+                              parcelReference == null || parcelReference === ""
+                                ? "Parcel reference unavailable"
+                                : String(parcelReference)
+                            }
+                          />
+                        );
+                      })}
+                    </calcite-list>
+                    {bufferResult.features.length > 25 && (
+                      <p className="mt-1 text-xs">
+                        Showing 25 of {bufferResult.features.length} returned
+                        parcels; all are highlighted on the map.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </calcite-block>
+
+              <calcite-block heading="Environmental checks" open>
+                <p className="mb-2 text-sm">
+                  Check the selected parcel against available mapped constraints.
+                </p>
+                <calcite-button
+                  appearance="outline"
+                  scale="s"
+                  icon-start="check-square"
+                  disabled={checksLoading || plannerFeature?.kind !== "parcel"}
+                  onClick={runConstraintChecks}
+                >
+                  {checksLoading ? "Checking layers" : "Check constraints"}
+                </calcite-button>
+                {checksLoading && <calcite-loader label="Checking constraint layers" />}
+                {constraintChecks && (
+                  <calcite-list label="Environmental and planning constraints" className="mt-2">
+                    {constraintChecks.map((check) => {
+                      const description =
+                        check.state === "intersects"
+                          ? `Potential overlap in ${check.count} mapped feature${check.count === 1 ? "" : "s"}`
+                          : check.state === "clear"
+                            ? "No overlap returned from the available layer"
+                            : check.state === "unavailable"
+                              ? "Layer unavailable in this map"
+                              : "Layer query failed; result is unknown";
+                      return (
+                        <calcite-list-item
+                          key={check.title}
+                          label={check.title}
+                          description={description}
+                        />
+                      );
+                    })}
+                  </calcite-list>
+                )}
+                {constraintChecks && (
+                  <calcite-notice open kind="warning" scale="s" className="mt-2">
+                    A detected overlap requires source and planning review.
+                    Flood, wetland, and historic layers are not configured in
+                    this map, so their status remains unknown.
+                  </calcite-notice>
+                )}
+              </calcite-block>
+
+              {analysisMessage && <calcite-notice open kind="danger" scale="s">{analysisMessage}</calcite-notice>}
+            </calcite-panel>,
+        plannerToolsControl,
+      )}
       {mapStatus === "ready" && (
         <>
           <form
@@ -1212,258 +1481,7 @@ export function KilimaniMap({
               {searchMessage}
             </calcite-notice>
           )}
-          {enablePlannerTools && (
-            <div className="pointer-events-none absolute right-4 top-24 z-30 flex flex-col items-end gap-2">
-              <calcite-button
-                className="pointer-events-auto"
-                appearance={plannerToolsOpen ? "solid" : "outline"}
-                scale="m"
-                icon-start="analysis"
-                label="Planning tools"
-                aria-label="Planning tools"
-                aria-expanded={plannerToolsOpen}
-                aria-controls="planner-tools-panel"
-                title="Planning tools"
-                onClick={() => {
-                  if (plannerToolsOpen) setActivePlannerTool(null);
-                  setPlannerToolsOpen(!plannerToolsOpen);
-                }}
-              />
-              {plannerToolsOpen && (
-                <calcite-panel
-                  id="planner-tools-panel"
-                  heading="Planning tools"
-                  description="Temporary, client-side map analysis"
-                  className="pointer-events-auto max-h-[min(72vh,44rem)] w-[min(24rem,calc(100vw-2rem))] overflow-y-auto"
-                >
-                  <calcite-button
-                    slot="header-actions-end"
-                    appearance="transparent"
-                    icon-start="x"
-                    label="Close planning tools"
-                    onClick={() => {
-                      setPlannerToolsOpen(false);
-                      setActivePlannerTool(null);
-                    }}
-                  />
 
-                  <calcite-block heading="Measure" open>
-                    <p className="mb-2 text-sm">
-                      Measure map distance in metres or area in acres.
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <calcite-button
-                        appearance={
-                          activePlannerTool === "measurement" &&
-                          measurementMode === "distance"
-                            ? "solid"
-                            : "outline"
-                        }
-                        scale="s"
-                        icon-start="measure"
-                        onClick={() => {
-                          setMeasurementMode("distance");
-                          setActivePlannerTool("measurement");
-                        }}
-                      >
-                        Distance
-                      </calcite-button>
-                      <calcite-button
-                        appearance={
-                          activePlannerTool === "measurement" &&
-                          measurementMode === "area"
-                            ? "solid"
-                            : "outline"
-                        }
-                        scale="s"
-                        icon-start="measure-area"
-                        onClick={() => {
-                          setMeasurementMode("area");
-                          setActivePlannerTool("measurement");
-                        }}
-                      >
-                        Area
-                      </calcite-button>
-                    </div>
-                    {activePlannerTool === "measurement" && (
-                      <div className="mt-2">
-                        <div
-                          ref={measurementContainerRef}
-                          className="min-h-24"
-                        />
-                        <calcite-button
-                          appearance="transparent"
-                          scale="s"
-                          onClick={() => measurementRef.current?.clear()}
-                        >
-                          Clear measurement
-                        </calcite-button>
-                      </div>
-                    )}
-                  </calcite-block>
-
-                  <calcite-block heading="Site sketch" open>
-                    <p className="mb-2 text-sm">
-                      Draw temporary footprint polygons or access routes on the map.
-                    </p>
-                    <calcite-button
-                      appearance={activePlannerTool === "sketch" ? "solid" : "outline"}
-                      scale="s"
-                      icon-start="pencil"
-                      onClick={() => setActivePlannerTool("sketch")}
-                    >
-                      Open sketch tools
-                    </calcite-button>
-                    {activePlannerTool === "sketch" && (
-                      <div ref={sketchContainerRef} className="mt-2" />
-                    )}
-                    <calcite-button
-                      appearance="transparent"
-                      scale="s"
-                      className="mt-1"
-                      onClick={() => sketchLayerRef.current?.removeAll()}
-                    >
-                      Clear all sketches
-                    </calcite-button>
-                  </calcite-block>
-
-                  <calcite-block heading="Proximity buffer" open>
-                    <p className="mb-2 text-sm">
-                      Highlight mapped parcels within a distance of the selected parcel.
-                    </p>
-                    <div className="flex items-end gap-2">
-                      <calcite-input
-                        type="number"
-                        min="1"
-                        max="5000"
-                        step="50"
-                        value={bufferDistance}
-                        label="Buffer distance in metres"
-                        onInput={(event) =>
-                          setBufferDistance(
-                            (event.target as HTMLInputElement).value,
-                          )
-                        }
-                        className="min-w-0 flex-1"
-                      />
-                      <calcite-button
-                        appearance="solid"
-                        scale="s"
-                        icon-start="rings"
-                        disabled={
-                          bufferLoading || plannerFeature?.kind !== "parcel"
-                        }
-                        onClick={runParcelBuffer}
-                      >
-                        {bufferLoading ? "Checking" : "Run buffer"}
-                      </calcite-button>
-                    </div>
-                    {plannerFeature?.kind !== "parcel" && (
-                      <p className="mt-2 text-sm">
-                        Select a parcel on the map to run this analysis.
-                      </p>
-                    )}
-                    {bufferLoading && (
-                      <calcite-loader label="Finding surrounding parcels" />
-                    )}
-                    {bufferResult && (
-                      <div className="mt-2">
-                        <p className="mb-2 text-sm">
-                          {bufferResult.features.length} mapped parcel
-                          {bufferResult.features.length === 1 ? "" : "s"} within{" "}
-                          {bufferResult.distanceMeters} m. All returned parcels are
-                          highlighted on the map for notification review.
-                        </p>
-                        <calcite-notice open kind="warning" scale="s">
-                          This is a proximity screen. Confirm the applicable
-                          notification rules before using it as a legal notice list.
-                        </calcite-notice>
-                        <calcite-list label="Nearby parcel candidates" className="mt-2">
-                          {bufferResult.features.slice(0, 25).map((feature, index) => {
-                            const parcelReference =
-                              feature.attributes?.parcel_num ??
-                              feature.attributes?.lr_number;
-                            return (
-                              <calcite-list-item
-                                key={String(
-                                  feature.attributes?.OBJECTID ?? index,
-                                )}
-                                label={
-                                  parcelReference == null || parcelReference === ""
-                                    ? "Parcel reference unavailable"
-                                    : String(parcelReference)
-                                }
-                              />
-                            );
-                          })}
-                        </calcite-list>
-                        {bufferResult.features.length > 25 && (
-                          <p className="mt-1 text-xs">
-                            Showing 25 of {bufferResult.features.length} returned
-                            parcels; all are highlighted on the map.
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </calcite-block>
-
-                  <calcite-block heading="Environmental checks" open>
-                    <p className="mb-2 text-sm">
-                      Check the selected parcel against available mapped constraints.
-                    </p>
-                    <calcite-button
-                      appearance="outline"
-                      scale="s"
-                      icon-start="check-square"
-                      disabled={
-                        checksLoading || plannerFeature?.kind !== "parcel"
-                      }
-                      onClick={runConstraintChecks}
-                    >
-                      {checksLoading ? "Checking layers" : "Check constraints"}
-                    </calcite-button>
-                    {checksLoading && (
-                      <calcite-loader label="Checking constraint layers" />
-                    )}
-                    {constraintChecks && (
-                      <calcite-list label="Environmental and planning constraints" className="mt-2">
-                        {constraintChecks.map((check) => {
-                          const description =
-                            check.state === "intersects"
-                              ? `Potential overlap in ${check.count} mapped feature${check.count === 1 ? "" : "s"}`
-                              : check.state === "clear"
-                                ? "No overlap returned from the available layer"
-                                : check.state === "unavailable"
-                                  ? "Layer unavailable in this map"
-                                  : "Layer query failed; result is unknown";
-                          return (
-                            <calcite-list-item
-                              key={check.title}
-                              label={check.title}
-                              description={description}
-                            />
-                          );
-                        })}
-                      </calcite-list>
-                    )}
-                    {constraintChecks && (
-                      <calcite-notice open kind="warning" scale="s" className="mt-2">
-                        A detected overlap requires source and planning review.
-                        Flood, wetland, and historic layers are not configured in
-                        this map, so their status remains unknown.
-                      </calcite-notice>
-                    )}
-                  </calcite-block>
-
-                  {analysisMessage && (
-                    <calcite-notice open kind="danger" scale="s">
-                      {analysisMessage}
-                    </calcite-notice>
-                  )}
-                </calcite-panel>
-              )}
-            </div>
-          )}
         </>
       )}
       {mapStatus === "loading" && (

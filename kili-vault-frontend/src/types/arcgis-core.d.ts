@@ -138,6 +138,15 @@ declare module "@arcgis/core/widgets/LayerList" {
   export default LayerList;
 }
 
+declare module "@arcgis/core/widgets/Attribution" {
+  class Attribution {
+    [key: string]: any;
+    constructor(options?: any);
+    destroy(): void;
+  }
+  export default Attribution;
+}
+
 declare module "@arcgis/core/widgets/Measurement" {
   class Measurement {
     [key: string]: any;

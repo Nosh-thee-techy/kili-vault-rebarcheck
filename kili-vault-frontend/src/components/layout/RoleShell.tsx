@@ -46,6 +46,8 @@ export function RoleShell({
     /\/map(\/|$|\?)/.test(location.pathname) ||
     /^\/community\/?$/.test(location.pathname);
   const isPlannerDashboard = location.pathname === "/planner";
+  const isPlannerWorkspace =
+    isPlannerDashboard || location.pathname.startsWith("/planner/map");
   const contentBleed = fullBleed || isMapView || isPlannerDashboard;
   const bottomNav = mobileNavItems ?? navItems.slice(0, 3);
 
@@ -63,12 +65,8 @@ export function RoleShell({
             "group relative flex items-center rounded-xl text-sm font-medium transition-all",
             compact ? "justify-center px-2 py-3" : "gap-3 px-3 py-3",
             isActive
-              ? isPlannerDashboard
-                ? "bg-sand text-charcoal shadow-sm"
-                : "bg-forest text-off-white shadow-soft"
-              : isPlannerDashboard
-                ? "text-charcoal hover:bg-sand"
-                : "text-charcoal-muted hover:bg-mist/50 hover:text-charcoal",
+              ? "bg-[#f1f2f3] text-charcoal shadow-sm ring-1 ring-inset ring-[#d8dade]"
+              : "text-charcoal-muted hover:bg-[#f6f7f8] hover:text-charcoal",
           )
         }
       >
@@ -92,8 +90,7 @@ export function RoleShell({
       {!compact && (
         <p
           className={cn(
-            "mb-2 px-3 text-[11px] font-bold uppercase tracking-[0.14em] text-sage",
-            isPlannerDashboard && "text-charcoal",
+            "mb-2 px-3 text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-muted",
           )}
         >
           {user?.title}
@@ -102,8 +99,7 @@ export function RoleShell({
       {compact && user?.title && (
         <p
           className={cn(
-            "mb-2 truncate px-1 text-center text-[9px] font-bold uppercase tracking-wider text-sage",
-            isPlannerDashboard && "text-charcoal",
+            "mb-2 truncate px-1 text-center text-[9px] font-bold uppercase tracking-wider text-charcoal-muted",
           )}
           title={user.title}
         >
@@ -123,18 +119,14 @@ export function RoleShell({
       >
         <GuidedDemoButton
           compact={compact}
-          className={
-            isPlannerDashboard
-              ? "border border-sand bg-transparent text-charcoal hover:bg-sand"
-              : undefined
-          }
+          className="border-[#cfd2d6] bg-white text-charcoal hover:border-[#babfc6] hover:bg-[#f6f7f8]"
         />
         <Button
           variant="ghost"
           size={compact ? "icon" : "sm"}
           className={cn(
             !compact && "w-full justify-start gap-2",
-            isPlannerDashboard && "text-charcoal hover:bg-sand",
+            "text-charcoal-muted hover:bg-[#f6f7f8] hover:text-charcoal",
           )}
           onClick={logout}
           title="Sign out"
@@ -148,14 +140,14 @@ export function RoleShell({
   );
 
   return (
-    <div className="shell-root flex h-full min-h-screen flex-col bg-off-white">
+    <div className="shell-root flex h-full min-h-screen flex-col bg-white">
       <header className="sticky top-0 z-40 border-b border-sand bg-white">
         <div className="flex h-14 items-center justify-between gap-3 px-3 md:px-5">
           <div className="flex min-w-0 items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden"
+              className="text-charcoal-muted hover:bg-[#f6f7f8] hover:text-charcoal lg:hidden"
               onClick={() => setMobileOpen(true)}
               aria-label="Open menu"
             >
@@ -177,8 +169,8 @@ export function RoleShell({
                 <ChevronLeft className="h-5 w-5" />
               )}
             </Button>
-            {isPlannerDashboard ? (
-              <calcite-icon icon="map" scale="l" />
+            {isPlannerWorkspace ? (
+              <calcite-icon icon="map" scale="l" className="text-charcoal" />
             ) : (
               <Logo size={36} className="rounded-xl shadow-soft" />
             )}
@@ -214,8 +206,7 @@ export function RoleShell({
       <div className="flex min-h-0 flex-1">
         <aside
           className={cn(
-            "shell-sidebar hidden shrink-0 border-r border-sand transition-[width] duration-300 ease-out lg:flex lg:flex-col",
-            isPlannerDashboard && "border-sand bg-white",
+            "shell-sidebar hidden shrink-0 border-r border-sand bg-white transition-[width] duration-300 ease-out lg:flex lg:flex-col",
             sidebarCollapsed ? "w-[4.25rem]" : "w-60",
           )}
         >
@@ -230,7 +221,7 @@ export function RoleShell({
               onClick={() => setMobileOpen(false)}
               aria-label="Close menu"
             />
-            <aside className="relative flex h-full w-72 flex-col bg-off-white shadow-lift">
+            <aside className="relative flex h-full w-72 flex-col bg-white shadow-lift">
               <div className="flex items-center justify-between border-b border-sand p-4">
                 <span className="font-display font-bold text-charcoal">
                   Menu
@@ -238,6 +229,7 @@ export function RoleShell({
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="text-charcoal-muted hover:bg-[#f6f7f8] hover:text-charcoal"
                   onClick={() => setMobileOpen(false)}
                 >
                   <X className="h-5 w-5" />
@@ -263,8 +255,7 @@ export function RoleShell({
 
       <nav
         className={cn(
-          "fixed inset-x-0 bottom-0 z-40 border-t border-sand bg-off-white/95 backdrop-blur-md lg:hidden",
-          isPlannerDashboard && "border-sand bg-white",
+          "fixed inset-x-0 bottom-0 z-40 border-t border-sand bg-white lg:hidden",
         )}
       >
         <ul
@@ -279,13 +270,7 @@ export function RoleShell({
                 className={({ isActive }) =>
                   cn(
                     "flex min-h-14 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-semibold",
-                    isActive
-                      ? isPlannerDashboard
-                        ? "text-charcoal"
-                        : "text-forest"
-                      : isPlannerDashboard
-                        ? "text-charcoal-muted"
-                        : "text-charcoal-muted",
+                    isActive ? "text-charcoal" : "text-charcoal-muted",
                   )
                 }
               >
