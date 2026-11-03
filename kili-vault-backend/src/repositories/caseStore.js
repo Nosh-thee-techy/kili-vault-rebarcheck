@@ -2,75 +2,86 @@
  * Kili-Vault: File-backed Development Case Store
  * Persists cases, audit events, and evidence metadata when PostGIS case tables are unavailable.
  */
-'use strict';
+"use strict";
 
-const fs = require('fs');
-const path = require('path');
-const { v4: uuidv4 } = require('uuid');
-const logger = require('../utils/logger');
+const fs = require("fs");
+const path = require("path");
+const { v4: uuidv4 } = require("uuid");
+const logger = require("../utils/logger");
 
-const DATA_DIR = path.resolve(__dirname, '../../data');
-const STORE_PATH = path.join(DATA_DIR, 'development_cases.json');
-const EVIDENCE_DIR = path.join(DATA_DIR, 'evidence');
+const DATA_DIR = path.resolve(__dirname, "../../data");
+const STORE_PATH = path.join(DATA_DIR, "development_cases.json");
+const EVIDENCE_DIR = path.join(DATA_DIR, "evidence");
 
 const STATUSES = [
-  'AI_FLAGGED',
-  'UNDER_REVIEW',
-  'MITIGATION_REQUIRED',
-  'EVIDENCE_SUBMITTED',
-  'AGENCY_PENDING',
-  'VERIFIED',
-  'REJECTED',
-  'CLOSED',
+  "AI_FLAGGED",
+  "UNDER_REVIEW",
+  "MITIGATION_REQUIRED",
+  "EVIDENCE_SUBMITTED",
+  "AGENCY_PENDING",
+  "VERIFIED",
+  "REJECTED",
+  "CLOSED",
 ];
 
 function ensureDirs() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-  if (!fs.existsSync(EVIDENCE_DIR)) fs.mkdirSync(EVIDENCE_DIR, { recursive: true });
+  if (!fs.existsSync(EVIDENCE_DIR))
+    fs.mkdirSync(EVIDENCE_DIR, { recursive: true });
 }
 
 function buildRisk(confidence, changeType) {
   const base = Math.round(confidence * 100);
-  const planning = Math.min(100, base + (changeType === 'BUILDING_DEVELOPMENT' ? 8 : 0));
+  const planning = Math.min(
+    100,
+    base + (changeType === "BUILDING_DEVELOPMENT" ? 8 : 0),
+  );
   const infrastructure = Math.min(
     100,
-    base + (changeType === 'INFRASTRUCTURE_CHANGE' ? 12 : 4),
+    base + (changeType === "INFRASTRUCTURE_CHANGE" ? 12 : 4),
   );
   const environmental = Math.min(100, base - 10);
-  const community = Math.min(100, Math.round((planning + infrastructure) / 2 - 5));
-  let overall = 'LOW';
-  if (confidence >= 0.8 && ['INFRASTRUCTURE_CHANGE', 'BUILDING_DEVELOPMENT'].includes(changeType)) {
-    overall = 'HIGH';
-  } else if (confidence >= 0.65) overall = 'MEDIUM';
+  const community = Math.min(
+    100,
+    Math.round((planning + infrastructure) / 2 - 5),
+  );
+  let overall = "LOW";
+  if (
+    confidence >= 0.8 &&
+    ["INFRASTRUCTURE_CHANGE", "BUILDING_DEVELOPMENT"].includes(changeType)
+  ) {
+    overall = "HIGH";
+  } else if (confidence >= 0.65) overall = "MEDIUM";
   return { planning, infrastructure, environmental, community, overall };
 }
 
 function seedCases() {
   const types = [
-    'BUILDING_DEVELOPMENT',
-    'INFRASTRUCTURE_CHANGE',
-    'LAND_CLEARING',
-    'BUILDING_DEVELOPMENT',
-    'VEGETATION_CHANGE',
-    'SURFACE_CHANGE',
-    'BUILDING_DEVELOPMENT',
-    'INFRASTRUCTURE_CHANGE',
+    "BUILDING_DEVELOPMENT",
+    "INFRASTRUCTURE_CHANGE",
+    "LAND_CLEARING",
+    "BUILDING_DEVELOPMENT",
+    "VEGETATION_CHANGE",
+    "SURFACE_CHANGE",
+    "BUILDING_DEVELOPMENT",
+    "INFRASTRUCTURE_CHANGE",
   ];
   const statuses = [
-    'AI_FLAGGED',
-    'UNDER_REVIEW',
-    'MITIGATION_REQUIRED',
-    'EVIDENCE_SUBMITTED',
-    'AGENCY_PENDING',
-    'VERIFIED',
-    'CLOSED',
-    'AI_FLAGGED',
+    "AI_FLAGGED",
+    "UNDER_REVIEW",
+    "MITIGATION_REQUIRED",
+    "EVIDENCE_SUBMITTED",
+    "AGENCY_PENDING",
+    "VERIFIED",
+    "CLOSED",
+    "AI_FLAGGED",
   ];
   const baseLat = -1.2921;
   const baseLon = 36.782;
 
   return types.map((changeType, index) => {
-    const lat = baseLat - Math.floor(index / 4) * 0.002 + (index % 4 - 1.5) * 0.0015;
+    const lat =
+      baseLat - Math.floor(index / 4) * 0.002 + ((index % 4) - 1.5) * 0.0015;
     const lon = baseLon + (index % 4) * 0.002 - Math.floor(index / 4) * 0.001;
     const confidence = 0.62 + (index % 5) * 0.07;
     const d = 0.0002;
@@ -79,9 +90,9 @@ function seedCases() {
 
     return {
       id,
-      case_number: `KV-${String(10127 + index).padStart(5, '0')}`,
+      case_number: `KV-${String(10127 + index).padStart(5, "0")}`,
       detection_id: `det_mock_${index}`,
-      title: `Potential ${changeType.replace(/_/g, ' ').toLowerCase()} near ${lat.toFixed(4)}, ${lon.toFixed(4)}`,
+      title: `Potential ${changeType.replace(/_/g, " ").toLowerCase()} near ${lat.toFixed(4)}, ${lon.toFixed(4)}`,
       change_type: changeType,
       status: statuses[index],
       confidence,
@@ -90,7 +101,7 @@ function seedCases() {
       centroid_lat: lat,
       centroid_lon: lon,
       geometry: {
-        type: 'Polygon',
+        type: "Polygon",
         coordinates: [
           [
             [lon - d, lat - d],
@@ -103,21 +114,25 @@ function seedCases() {
       },
       evidence: {
         explanation:
-          'Spectral differencing indicates physical surface change between baseline and recent composites.',
+          "Spectral differencing indicates physical surface change between baseline and recent composites.",
         spectral_change: true,
       },
       parcel_ref: `KL-${1200 + index}`,
-      assigned_developer_id: index % 2 === 0 ? 'dev_kilimani_001' : 'dev_kilimani_002',
-      mitigation_requirements: index >= 2 ? ['Infrastructure assessment required', 'NCWSC verification'] : [],
+      assigned_developer_id:
+        index % 2 === 0 ? "dev_kilimani_001" : "dev_kilimani_002",
+      mitigation_requirements:
+        index >= 2
+          ? ["Infrastructure assessment required", "NCWSC verification"]
+          : [],
       audit_events: [
         {
           id: uuidv4(),
-          action: 'CASE_CREATED',
-          actor_role: 'system',
-          actor_id: 'kili-shadows',
-          actor_name: 'Kili-Shadows',
+          action: "CASE_CREATED",
+          actor_role: "system",
+          actor_id: "kili-shadows",
+          actor_name: "Kili-Shadows",
           timestamp: now,
-          details: 'Detection promoted to development case',
+          details: "Detection promoted to development case",
         },
       ],
       evidence_items: [],
@@ -131,16 +146,16 @@ function readStore() {
   ensureDirs();
   if (!fs.existsSync(STORE_PATH)) {
     const seeded = { cases: seedCases(), version: 1 };
-    fs.writeFileSync(STORE_PATH, JSON.stringify(seeded, null, 2), 'utf8');
+    fs.writeFileSync(STORE_PATH, JSON.stringify(seeded, null, 2), "utf8");
     return seeded;
   }
-  const raw = fs.readFileSync(STORE_PATH, 'utf8');
+  const raw = fs.readFileSync(STORE_PATH, "utf8");
   return JSON.parse(raw);
 }
 
 function writeStore(store) {
   ensureDirs();
-  fs.writeFileSync(STORE_PATH, JSON.stringify(store, null, 2), 'utf8');
+  fs.writeFileSync(STORE_PATH, JSON.stringify(store, null, 2), "utf8");
 }
 
 function mapAuditEvent(e) {
@@ -199,12 +214,18 @@ class CaseStore {
     let rows = [...store.cases];
 
     if (filters.status) rows = rows.filter((c) => c.status === filters.status);
-    if (filters.change_type) rows = rows.filter((c) => c.change_type === filters.change_type);
+    if (filters.change_type)
+      rows = rows.filter((c) => c.change_type === filters.change_type);
     if (filters.assigned_developer_id) {
-      rows = rows.filter((c) => c.assigned_developer_id === filters.assigned_developer_id);
+      rows = rows.filter(
+        (c) => c.assigned_developer_id === filters.assigned_developer_id,
+      );
     }
     if (filters.agency_queue) {
-      rows = rows.filter((c) => c.status === 'AGENCY_PENDING' || c.status === 'EVIDENCE_SUBMITTED');
+      rows = rows.filter(
+        (c) =>
+          c.status === "AGENCY_PENDING" || c.status === "EVIDENCE_SUBMITTED",
+      );
     }
     if (filters.search) {
       const q = filters.search.toLowerCase();
@@ -231,9 +252,12 @@ class CaseStore {
   }
 
   updateStatus(id, status, auditEntry) {
-    if (!STATUSES.includes(status)) throw new Error(`Invalid status: ${status}`);
+    if (!STATUSES.includes(status))
+      throw new Error(`Invalid status: ${status}`);
     const store = readStore();
-    const idx = store.cases.findIndex((c) => c.id === id || c.case_number === id);
+    const idx = store.cases.findIndex(
+      (c) => c.id === id || c.case_number === id,
+    );
     if (idx === -1) return null;
 
     store.cases[idx].status = status;
@@ -248,14 +272,16 @@ class CaseStore {
     const requirements = payload.requirements || payload;
     const assignedDeveloperId = payload.assignedDeveloperId;
     const store = readStore();
-    const idx = store.cases.findIndex((c) => c.id === id || c.case_number === id);
+    const idx = store.cases.findIndex(
+      (c) => c.id === id || c.case_number === id,
+    );
     if (idx === -1) return null;
 
     store.cases[idx].mitigation_requirements = requirements;
     if (assignedDeveloperId) {
       store.cases[idx].assigned_developer_id = assignedDeveloperId;
     }
-    store.cases[idx].status = 'MITIGATION_REQUIRED';
+    store.cases[idx].status = "MITIGATION_REQUIRED";
     store.cases[idx].updated_at = new Date().toISOString();
     store.cases[idx].audit_events.unshift(auditEntry);
     writeStore(store);
@@ -264,14 +290,16 @@ class CaseStore {
 
   addEvidence(id, item, auditEntry) {
     const store = readStore();
-    const idx = store.cases.findIndex((c) => c.id === id || c.case_number === id);
+    const idx = store.cases.findIndex(
+      (c) => c.id === id || c.case_number === id,
+    );
     if (idx === -1) return null;
 
     store.cases[idx].evidence_items = store.cases[idx].evidence_items || [];
     store.cases[idx].evidence_items.unshift(item);
     item.metadata = item.metadata || {};
-    if (store.cases[idx].status === 'MITIGATION_REQUIRED') {
-      store.cases[idx].status = 'EVIDENCE_SUBMITTED';
+    if (store.cases[idx].status === "MITIGATION_REQUIRED") {
+      store.cases[idx].status = "EVIDENCE_SUBMITTED";
     }
     store.cases[idx].updated_at = new Date().toISOString();
     store.cases[idx].audit_events.unshift(auditEntry);
@@ -281,15 +309,19 @@ class CaseStore {
 
   verify(id, decision, auditEntry) {
     const store = readStore();
-    const idx = store.cases.findIndex((c) => c.id === id || c.case_number === id);
+    const idx = store.cases.findIndex(
+      (c) => c.id === id || c.case_number === id,
+    );
     if (idx === -1) return null;
 
-    store.cases[idx].status = decision === 'approved' ? 'VERIFIED' : 'REJECTED';
-    store.cases[idx].evidence_items = (store.cases[idx].evidence_items || []).map((item) => ({
+    store.cases[idx].status = decision === "approved" ? "VERIFIED" : "REJECTED";
+    store.cases[idx].evidence_items = (
+      store.cases[idx].evidence_items || []
+    ).map((item) => ({
       ...item,
-      status: decision === 'approved' ? 'verified' : 'rejected',
+      status: decision === "approved" ? "verified" : "rejected",
       verification: {
-        status: decision === 'approved' ? 'verified' : 'rejected',
+        status: decision === "approved" ? "verified" : "rejected",
         verifiedAt: auditEntry.timestamp,
         verifiedBy: auditEntry.actor_name,
       },
@@ -310,18 +342,18 @@ class CaseStore {
 
     const row = {
       id,
-      case_number: `KV-${String(num).padStart(5, '0')}`,
+      case_number: `KV-${String(num).padStart(5, "0")}`,
       detection_id: null,
-      title: `Pre-development check: ${input.changeType.replace(/_/g, ' ').toLowerCase()} near ${lat.toFixed(4)}, ${lon.toFixed(4)}`,
+      title: `Pre-development check: ${input.changeType.replace(/_/g, " ").toLowerCase()} near ${lat.toFixed(4)}, ${lon.toFixed(4)}`,
       change_type: input.changeType,
-      status: 'UNDER_REVIEW',
+      status: "UNDER_REVIEW",
       confidence: assessment.confidence,
       risk: assessment.risk,
       area_m2: assessment.areaM2,
       centroid_lat: lat,
       centroid_lon: lon,
       geometry: {
-        type: 'Polygon',
+        type: "Polygon",
         coordinates: [
           [
             [lon - d, lat - d],
@@ -343,12 +375,12 @@ class CaseStore {
         assessedAt: now,
       },
       parcel_ref: null,
-      assigned_developer_id: user.role === 'developer' ? user.id : user.id,
+      assigned_developer_id: user.role === "developer" ? user.id : user.id,
       mitigation_requirements: [],
       audit_events: [
         {
           id: uuidv4(),
-          action: 'PRE_DEVELOPMENT_SUBMITTED',
+          action: "PRE_DEVELOPMENT_SUBMITTED",
           actor_role: user.role,
           actor_id: user.id,
           actor_name: user.name,
@@ -371,14 +403,19 @@ class CaseStore {
     const cases = store.cases;
     return {
       total: cases.length,
-      ai_flagged: cases.filter((c) => c.status === 'AI_FLAGGED').length,
-      under_review: cases.filter((c) => c.status === 'UNDER_REVIEW').length,
-      mitigation_required: cases.filter((c) => c.status === 'MITIGATION_REQUIRED').length,
-      pending_verification: cases.filter(
-        (c) => c.status === 'EVIDENCE_SUBMITTED' || c.status === 'AGENCY_PENDING',
+      ai_flagged: cases.filter((c) => c.status === "AI_FLAGGED").length,
+      under_review: cases.filter((c) => c.status === "UNDER_REVIEW").length,
+      mitigation_required: cases.filter(
+        (c) => c.status === "MITIGATION_REQUIRED",
       ).length,
-      high_risk: cases.filter((c) => c.risk?.overall === 'HIGH').length,
-      closed: cases.filter((c) => c.status === 'CLOSED' || c.status === 'VERIFIED').length,
+      pending_verification: cases.filter(
+        (c) =>
+          c.status === "EVIDENCE_SUBMITTED" || c.status === "AGENCY_PENDING",
+      ).length,
+      high_risk: cases.filter((c) => c.risk?.overall === "HIGH").length,
+      closed: cases.filter(
+        (c) => c.status === "CLOSED" || c.status === "VERIFIED",
+      ).length,
     };
   }
 

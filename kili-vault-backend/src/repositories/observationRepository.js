@@ -1,19 +1,22 @@
-'use strict';
+"use strict";
 
-const fs = require('fs');
-const path = require('path');
-const { v4: uuidv4 } = require('uuid');
-const db = require('./db');
-const caseRepository = require('./caseRepository');
-const logger = require('../utils/logger');
+const fs = require("fs");
+const path = require("path");
+const { v4: uuidv4 } = require("uuid");
+const db = require("./db");
+const caseRepository = require("./caseRepository");
+const logger = require("../utils/logger");
 
-const FILE_PATH = path.resolve(__dirname, '../../data/community_observations.json');
+const FILE_PATH = path.resolve(
+  __dirname,
+  "../../data/community_observations.json",
+);
 
 function readFileStore() {
   if (!fs.existsSync(FILE_PATH)) {
     return { observations: [] };
   }
-  return JSON.parse(fs.readFileSync(FILE_PATH, 'utf8'));
+  return JSON.parse(fs.readFileSync(FILE_PATH, "utf8"));
 }
 
 function writeFileStore(data) {
@@ -44,7 +47,7 @@ class ObservationRepository {
       lat: data.lat,
       lon: data.lon,
       description: data.description,
-      status: 'PENDING_REVIEW',
+      status: "PENDING_REVIEW",
       submitted_by_id: data.submittedById,
       submitted_by_name: data.submittedByName,
       case_id: null,
@@ -52,7 +55,7 @@ class ObservationRepository {
       created_at: new Date().toISOString(),
     };
 
-    if (mode === 'postgres') {
+    if (mode === "postgres") {
       try {
         const res = await db.query(
           `INSERT INTO community_observations
@@ -77,8 +80,8 @@ class ObservationRepository {
         );
         return mapRow(res.rows[0]);
       } catch (err) {
-        if (err.message?.includes('community_observations')) {
-          logger.warn('[observations] Table missing — run npm run db:setup');
+        if (err.message?.includes("community_observations")) {
+          logger.warn("[observations] Table missing — run npm run db:setup");
         }
         throw err;
       }
@@ -93,7 +96,7 @@ class ObservationRepository {
   async findPending(limit = 50) {
     const mode = await caseRepository.detectStorageMode();
 
-    if (mode === 'postgres') {
+    if (mode === "postgres") {
       const res = await db.query(
         `SELECT * FROM community_observations
          WHERE status = 'PENDING_REVIEW'
@@ -106,7 +109,7 @@ class ObservationRepository {
 
     const store = readFileStore();
     return store.observations
-      .filter((o) => o.status === 'PENDING_REVIEW')
+      .filter((o) => o.status === "PENDING_REVIEW")
       .slice(0, limit)
       .map(mapRow);
   }
@@ -114,7 +117,7 @@ class ObservationRepository {
   async findBySubmitter(submittedById, limit = 50) {
     const mode = await caseRepository.detectStorageMode();
 
-    if (mode === 'postgres') {
+    if (mode === "postgres") {
       const res = await db.query(
         `SELECT * FROM community_observations
          WHERE submitted_by_id = $1
@@ -135,7 +138,7 @@ class ObservationRepository {
   async countPending() {
     const mode = await caseRepository.detectStorageMode();
 
-    if (mode === 'postgres') {
+    if (mode === "postgres") {
       const res = await db.query(
         `SELECT COUNT(*)::int AS n FROM community_observations WHERE status = 'PENDING_REVIEW'`,
       );
@@ -143,7 +146,8 @@ class ObservationRepository {
     }
 
     const store = readFileStore();
-    return store.observations.filter((o) => o.status === 'PENDING_REVIEW').length;
+    return store.observations.filter((o) => o.status === "PENDING_REVIEW")
+      .length;
   }
 }
 

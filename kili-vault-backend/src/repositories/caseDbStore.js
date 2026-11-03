@@ -1,21 +1,21 @@
-'use strict';
+"use strict";
 
-const path = require('path');
-const fs = require('fs');
-const db = require('./db');
-const logger = require('../utils/logger');
+const path = require("path");
+const fs = require("fs");
+const db = require("./db");
+const logger = require("../utils/logger");
 
-const EVIDENCE_DIR = path.resolve(__dirname, '../../data/evidence');
+const EVIDENCE_DIR = path.resolve(__dirname, "../../data/evidence");
 
 const STATUSES = [
-  'AI_FLAGGED',
-  'UNDER_REVIEW',
-  'MITIGATION_REQUIRED',
-  'EVIDENCE_SUBMITTED',
-  'AGENCY_PENDING',
-  'VERIFIED',
-  'REJECTED',
-  'CLOSED',
+  "AI_FLAGGED",
+  "UNDER_REVIEW",
+  "MITIGATION_REQUIRED",
+  "EVIDENCE_SUBMITTED",
+  "AGENCY_PENDING",
+  "VERIFIED",
+  "REJECTED",
+  "CLOSED",
 ];
 
 function mapAuditEvent(row) {
@@ -111,7 +111,10 @@ function buildWhere(filters, params) {
     i++;
   }
 
-  return { where: conditions.length ? `WHERE ${conditions.join(' AND ')}` : '', nextIndex: i };
+  return {
+    where: conditions.length ? `WHERE ${conditions.join(" AND ")}` : "",
+    nextIndex: i,
+  };
 }
 
 class CaseDbStore {
@@ -171,17 +174,18 @@ class CaseDbStore {
   }
 
   async updateStatus(id, status, auditEntry) {
-    if (!STATUSES.includes(status)) throw new Error(`Invalid status: ${status}`);
+    if (!STATUSES.includes(status))
+      throw new Error(`Invalid status: ${status}`);
 
     const client = await db.getClient();
     try {
-      await client.query('BEGIN');
+      await client.query("BEGIN");
       const existing = await client.query(
-        'SELECT id FROM development_cases WHERE id = $1 OR case_number = $1',
+        "SELECT id FROM development_cases WHERE id = $1 OR case_number = $1",
         [id],
       );
       if (!existing.rows.length) {
-        await client.query('ROLLBACK');
+        await client.query("ROLLBACK");
         return null;
       }
       const caseId = existing.rows[0].id;
@@ -204,10 +208,10 @@ class CaseDbStore {
           auditEntry.timestamp || new Date().toISOString(),
         ],
       );
-      await client.query('COMMIT');
+      await client.query("COMMIT");
       return this.findById(caseId);
     } catch (err) {
-      await client.query('ROLLBACK');
+      await client.query("ROLLBACK");
       throw err;
     } finally {
       client.release();
@@ -219,13 +223,13 @@ class CaseDbStore {
     const assignedDeveloperId = payload.assignedDeveloperId || null;
     const client = await db.getClient();
     try {
-      await client.query('BEGIN');
+      await client.query("BEGIN");
       const existing = await client.query(
-        'SELECT id FROM development_cases WHERE id = $1 OR case_number = $1',
+        "SELECT id FROM development_cases WHERE id = $1 OR case_number = $1",
         [id],
       );
       if (!existing.rows.length) {
-        await client.query('ROLLBACK');
+        await client.query("ROLLBACK");
         return null;
       }
       const caseId = existing.rows[0].id;
@@ -253,10 +257,10 @@ class CaseDbStore {
           auditEntry.timestamp || new Date().toISOString(),
         ],
       );
-      await client.query('COMMIT');
+      await client.query("COMMIT");
       return this.findById(caseId);
     } catch (err) {
-      await client.query('ROLLBACK');
+      await client.query("ROLLBACK");
       throw err;
     } finally {
       client.release();
@@ -266,18 +270,20 @@ class CaseDbStore {
   async addEvidence(id, item, auditEntry) {
     const client = await db.getClient();
     try {
-      await client.query('BEGIN');
+      await client.query("BEGIN");
       const existing = await client.query(
-        'SELECT id, status FROM development_cases WHERE id = $1 OR case_number = $1',
+        "SELECT id, status FROM development_cases WHERE id = $1 OR case_number = $1",
         [id],
       );
       if (!existing.rows.length) {
-        await client.query('ROLLBACK');
+        await client.query("ROLLBACK");
         return null;
       }
       const caseId = existing.rows[0].id;
       const newStatus =
-        existing.rows[0].status === 'MITIGATION_REQUIRED' ? 'EVIDENCE_SUBMITTED' : existing.rows[0].status;
+        existing.rows[0].status === "MITIGATION_REQUIRED"
+          ? "EVIDENCE_SUBMITTED"
+          : existing.rows[0].status;
 
       await client.query(
         `INSERT INTO case_evidence_items (id, case_id, type, file_name, storage_path, uploaded_by, status, created_at, metadata)
@@ -289,7 +295,7 @@ class CaseDbStore {
           item.fileName,
           item.url,
           item.uploadedBy,
-          item.status || 'submitted',
+          item.status || "submitted",
           item.uploadedAt || new Date().toISOString(),
           JSON.stringify(item.metadata || {}),
         ],
@@ -312,10 +318,10 @@ class CaseDbStore {
           auditEntry.timestamp || new Date().toISOString(),
         ],
       );
-      await client.query('COMMIT');
+      await client.query("COMMIT");
       return this.findById(caseId);
     } catch (err) {
-      await client.query('ROLLBACK');
+      await client.query("ROLLBACK");
       throw err;
     } finally {
       client.release();
@@ -323,7 +329,7 @@ class CaseDbStore {
   }
 
   async verify(id, decision, auditEntry) {
-    const status = decision === 'approved' ? 'VERIFIED' : 'REJECTED';
+    const status = decision === "approved" ? "VERIFIED" : "REJECTED";
     const updated = await this.updateStatus(id, status, auditEntry);
     if (updated) {
       await db.query(
@@ -332,10 +338,10 @@ class CaseDbStore {
              metadata = metadata || $2::jsonb
          WHERE case_id = $3`,
         [
-          decision === 'approved' ? 'verified' : 'rejected',
+          decision === "approved" ? "verified" : "rejected",
           JSON.stringify({
             verification: {
-              status: decision === 'approved' ? 'verified' : 'rejected',
+              status: decision === "approved" ? "verified" : "rejected",
               verifiedAt: auditEntry.timestamp || new Date().toISOString(),
               verifiedBy: auditEntry.actor_name || null,
             },
@@ -364,7 +370,8 @@ class CaseDbStore {
   }
 
   getEvidenceDir(caseId) {
-    if (!fs.existsSync(EVIDENCE_DIR)) fs.mkdirSync(EVIDENCE_DIR, { recursive: true });
+    if (!fs.existsSync(EVIDENCE_DIR))
+      fs.mkdirSync(EVIDENCE_DIR, { recursive: true });
     const dir = path.join(EVIDENCE_DIR, caseId);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     return dir;
