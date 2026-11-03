@@ -1,111 +1,179 @@
-"use strict";
+'use strict';
 
-const cases = require("../repositories/caseRepository");
-const { AppError } = require("../middleware/errorHandler");
+const caseService = require('../services/caseService');
+const caseRepository = require('../repositories/caseRepository');
+const detectionPromotionService = require('../services/detectionPromotionService');
+const path = require('path');
 
-function actor(req) {
-  return {
-    role: req.get("X-User-Role") || "system",
-    id: req.get("X-User-Id") || "anonymous",
-    name: req.get("X-User-Name") || "System",
-  };
-}
-
-async function list(req, res, next) {
+async function listCases(req, res, next) {
   try {
-    const result = await cases.findAll(req.query);
+    const result = await caseService.listCases(req.query, req.user);
     res.json({
       success: true,
       data: result.data,
-      pagination: {
-        total: result.total,
-        limit: result.limit,
-        offset: result.offset,
-      },
+      pagination: { total: result.total, limit: result.limit, offset: result.offset },
     });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 }
-async function get(req, res, next) {
+
+async function getCase(req, res, next) {
   try {
-    const result = await cases.findById(req.params.id);
-    if (!result) return next(new AppError("NOT_FOUND", "Case not found", 404));
-    res.json({ success: true, data: result });
-  } catch (error) {
-    next(error);
+    const data = await caseService.getCaseById(req.params.id, req.user);
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
   }
 }
-async function geojson(req, res, next) {
+
+async function getGeoJSON(req, res, next) {
   try {
-    res.json(await cases.getGeoJson(req.query));
-  } catch (error) {
-    next(error);
+    const data = await caseService.getGeoJSON(req.query, req.user);
+    res.json(data);
+  } catch (err) {
+    next(err);
   }
 }
-async function stats(req, res, next) {
+
+async function getStats(req, res, next) {
   try {
-    res.json({ success: true, data: await cases.getStats() });
-  } catch (error) {
-    next(error);
+    const data = await caseService.getStats(req.user);
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
   }
 }
+
 async function updateStatus(req, res, next) {
   try {
-    const result = await cases.updateStatus(req.params.id, req.body.status, {
-      ...actor(req),
-      details: req.body.note,
-    });
-    if (!result) return next(new AppError("NOT_FOUND", "Case not found", 404));
-    res.json({ success: true, data: result });
-  } catch (error) {
-    next(error);
+    const { status, note } = req.body;
+    const data = await caseService.updateStatus(req.params.id, status, req.user, note);
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
   }
 }
-async function mitigation(req, res, next) {
+
+async function addMitigation(req, res, next) {
   try {
-    const result = await cases.updateMitigation(
+    const { requirements, assigned_developer_id, assignedDeveloperId } = req.body;
+    const data = await caseService.addMitigation(
       req.params.id,
-      req.body.requirements,
-      actor(req),
+      {
+        requirements,
+        assignedDeveloperId: assignedDeveloperId || assigned_developer_id,
+      },
+      req.user,
     );
-    if (!result) return next(new AppError("NOT_FOUND", "Case not found", 404));
-    res.json({ success: true, data: result });
-  } catch (error) {
-    next(error);
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
   }
 }
+
+async function uploadEvidence(req, res, next) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        error: { code: 'VALIDATION_ERROR', message: 'File is required' },
+      });
+    }
+    const caseItem = await caseService.getCaseById(req.params.id, req.user);
+    const url = `/api/v1/cases/${caseItem.id}/evidence/${req.file.filename}`;
+    const data = await caseService.addEvidence(
+      caseItem.id,
+      {
+        fileName: req.file.originalname,
+        url,
+        type: req.file.mimetype?.startsWith('image/') ? 'photo' : 'document',
+      },
+      req.user,
+    );
+    res.status(201).json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function serveEvidence(req, res, next) {
+  try {
+    const filePath = path.join(
+      caseRepository.getEvidenceDir(req.params.id),
+      req.params.filename,
+    );
+    res.sendFile(filePath, (err) => {
+      if (err) next(err);
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function verify(req, res, next) {
   try {
-    const result = await cases.verify(req.params.id, req.body.decision, {
-      ...actor(req),
-      details: req.body.note,
-    });
-    if (!result) return next(new AppError("NOT_FOUND", "Case not found", 404));
-    res.json({ success: true, data: result });
-  } catch (error) {
-    next(error);
+    const { decision, note } = req.body;
+    const data = await caseService.verify(req.params.id, decision, req.user, note);
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
   }
 }
-async function evidence(req, res, next) {
+
+async function promoteDetections(req, res, next) {
   try {
-    if (!req.file)
-      return next(new AppError("VALIDATION_ERROR", "A file is required", 400));
-    const result = await cases.addEvidence(req.params.id, req.file, actor(req));
-    if (!result) return next(new AppError("NOT_FOUND", "Case not found", 404));
+    if (req.user.role !== 'planner') {
+      return res.status(403).json({
+        error: { code: 'FORBIDDEN', message: 'Only planners can promote detections to cases' },
+      });
+    }
+    const result = await detectionPromotionService.promoteDetections(req.body, req.user);
     res.json({ success: true, data: result });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function unpromotedDetectionCount(req, res, next) {
+  try {
+    const min = req.query.min_confidence ? Number(req.query.min_confidence) : 0.75;
+    const count = await detectionPromotionService.countUnpromoted(min);
+    res.json({ success: true, data: { unpromoted: count, min_confidence: min } });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function submitObservation(req, res, next) {
+  try {
+    const data = await caseService.submitObservation(req.body, req.user);
+    res.status(201).json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function listObservations(req, res, next) {
+  try {
+    const data = await caseService.listObservations(req.user, Number(req.query.limit) || 50);
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
   }
 }
 
 module.exports = {
-  list,
-  get,
-  geojson,
-  stats,
+  listCases,
+  getCase,
+  getGeoJSON,
+  getStats,
   updateStatus,
-  mitigation,
+  addMitigation,
+  uploadEvidence,
+  serveEvidence,
   verify,
-  evidence,
+  submitObservation,
+  listObservations,
+  promoteDetections,
+  unpromotedDetectionCount,
 };

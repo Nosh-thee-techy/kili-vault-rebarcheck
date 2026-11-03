@@ -1,97 +1,122 @@
-"use strict";
+'use strict';
 
-const db = require("./db");
+const fs = require('fs');
+const path = require('path');
+const { v4: uuidv4 } = require('uuid');
+const db = require('./db');
+const caseRepository = require('./caseRepository');
+const logger = require('../utils/logger');
 
-function mapObservation(row) {
+const FILE_PATH = path.resolve(__dirname, '../../data/community_observations.json');
+
+function readFileStore() {
+  if (!fs.existsSync(FILE_PATH)) {
+    return { observations: [] };
+  }
+  return JSON.parse(fs.readFileSync(FILE_PATH, 'utf8'));
+}
+
+function writeFileStore(data) {
+  fs.mkdirSync(path.dirname(FILE_PATH), { recursive: true });
+  fs.writeFileSync(FILE_PATH, JSON.stringify(data, null, 2));
+}
+
+function mapRow(row) {
   return {
     id: row.id,
-    latitude: Number(row.latitude),
-    longitude: Number(row.longitude),
+    lat: Number(row.lat),
+    lon: Number(row.lon),
     description: row.description,
-    observationType: row.observation_type,
-    submittedBy: row.submitted_by,
-    submitterName: row.submitter_name,
     status: row.status,
-    photoUrl: row.photo_url,
-    reviewNotes: row.review_notes,
-    reviewedBy: row.reviewed_by,
-    reviewedAt: row.reviewed_at,
-    linkedDetectionId: row.linked_detection_id,
-    linkedCaseId: row.linked_case_id,
+    submittedById: row.submitted_by_id,
+    submittedByName: row.submitted_by_name,
+    caseId: row.case_id,
     createdAt: row.created_at,
-    updatedAt: row.updated_at,
   };
 }
 
-const SELECT = `
-  SELECT id, latitude, longitude, description, observation_type,
-    submitted_by, submitter_name, status, photo_url, review_notes,
-    reviewed_by, reviewed_at, linked_detection_id, linked_case_id,
-    created_at, updated_at
-  FROM community_observations
-`;
-
 class ObservationRepository {
-  async create(data, actor) {
-    const result = await db.query(
-      `INSERT INTO community_observations
-        (latitude, longitude, geometry, description, observation_type, submitted_by, submitter_name, photo_url)
-       VALUES ($1, $2, ST_SetSRID(ST_MakePoint($2, $1), 4326), $3, $4, $5, $6, $7)
-       RETURNING id, latitude, longitude, description, observation_type, submitted_by,
-         submitter_name, status, photo_url, review_notes, reviewed_by, reviewed_at,
-         linked_detection_id, linked_case_id, created_at, updated_at`,
-      [
-        data.latitude,
-        data.longitude,
-        data.description,
-        data.observation_type || null,
-        actor.id,
-        actor.name,
-        data.photo_url || null,
-      ],
-    );
-    return mapObservation(result.rows[0]);
-  }
-
-  async findAll({ status, limit = 50, offset = 0 } = {}) {
-    const params = [];
-    let where = "";
-    if (status) {
-      params.push(status);
-      where = "WHERE status = $1";
-    }
-    const count = await db.query(
-      `SELECT COUNT(*)::int AS total FROM community_observations ${where}`,
-      params,
-    );
-    const rows = await db.query(
-      `${SELECT} ${where} ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
-      [...params, limit, offset],
-    );
-    return {
-      data: rows.rows.map(mapObservation),
-      total: count.rows[0].total,
-      limit,
-      offset,
+  async create(data) {
+    const mode = await caseRepository.detectStorageMode();
+    const record = {
+      id: uuidv4(),
+      lat: data.lat,
+      lon: data.lon,
+      description: data.description,
+      status: 'PENDING_REVIEW',
+      submitted_by_id: data.submittedById,
+      submitted_by_name: data.submittedByName,
+      case_id: null,
+      created_at: new Date().toISOString(),
     };
+
+    if (mode === 'postgres') {
+      try {
+        const res = await db.query(
+          `INSERT INTO community_observations
+             (id, lat, lon, description, status, submitted_by_id, submitted_by_name, case_id, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+           RETURNING *`,
+          [
+            record.id,
+            record.lat,
+            record.lon,
+            record.description,
+            record.status,
+            record.submitted_by_id,
+            record.submitted_by_name,
+            record.case_id,
+            record.created_at,
+          ],
+        );
+        return mapRow(res.rows[0]);
+      } catch (err) {
+        if (err.message?.includes('community_observations')) {
+          logger.warn('[observations] Table missing — run npm run db:setup');
+        }
+        throw err;
+      }
+    }
+
+    const store = readFileStore();
+    store.observations.unshift(record);
+    writeFileStore(store);
+    return mapRow(record);
   }
 
-  async findById(id) {
-    const result = await db.query(`${SELECT} WHERE id = $1`, [id]);
-    return result.rows[0] ? mapObservation(result.rows[0]) : null;
+  async findPending(limit = 50) {
+    const mode = await caseRepository.detectStorageMode();
+
+    if (mode === 'postgres') {
+      const res = await db.query(
+        `SELECT * FROM community_observations
+         WHERE status = 'PENDING_REVIEW'
+         ORDER BY created_at DESC
+         LIMIT $1`,
+        [limit],
+      );
+      return res.rows.map(mapRow);
+    }
+
+    const store = readFileStore();
+    return store.observations
+      .filter((o) => o.status === 'PENDING_REVIEW')
+      .slice(0, limit)
+      .map(mapRow);
   }
 
-  async review(id, data, actor) {
-    const result = await db.query(
-      `UPDATE community_observations
-       SET status = $2, review_notes = $3, reviewed_by = $4, reviewed_at = CURRENT_TIMESTAMP
-       WHERE id = $1
-       RETURNING id, latitude, longitude, description, observation_type, submitted_by,
-         submitter_name, status, photo_url, review_notes, reviewed_by, reviewed_at,
-         linked_detection_id, linked_case_id, created_at, updated_at`,
-      [id, data.status, data.review_notes || null, actor.id],
-    );
-    return result.rows[0] ? mapObservation(result.rows[0]) : null;
+  async countPending() {
+    const mode = await caseRepository.detectStorageMode();
+
+    if (mode === 'postgres') {
+      const res = await db.query(
+        `SELECT COUNT(*)::int AS n FROM community_observations WHERE status = 'PENDING_REVIEW'`,
+      );
+      return res.rows[0].n;
+    }
+
+    const store = readFileStore();
+    return store.observations.filter((o) => o.status === 'PENDING_REVIEW').length;
   }
 }
 
