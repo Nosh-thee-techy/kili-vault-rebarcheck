@@ -31,6 +31,24 @@ export const PRESENTER_STEPS: PresenterStep[] = [
     actionHint: 'Click "Open case review" on the spotlight card',
   },
   {
+    id: 'planner-map-workspace',
+    title: 'Explore planning context',
+    instruction:
+      'Open the Planner map. Search or click a parcel to inspect live land use, buildings, roads, rivers, buffer sensitivity, and available planning actions.',
+    path: '/planner/map',
+    requiredRole: 'planner',
+    actionHint: 'Select a parcel and open Planning context',
+  },
+  {
+    id: 'developer-simulator',
+    title: 'Test a development scenario',
+    instruction:
+      'Use the existing parcel context to open the Development Impact Simulator. Compare existing, proposed, and mitigated conditions with transparent zoning-guide prompts.',
+    path: '/developer/simulator',
+    requiredRole: 'developer',
+    actionHint: 'Select a parcel, enter a proposal, and review the advisor',
+  },
+  {
     id: 'planner-review',
     title: 'Human review',
     instruction:
@@ -74,6 +92,15 @@ export const PRESENTER_STEPS: PresenterStep[] = [
     path: '/planner/cases/:caseId',
     requiredRole: 'planner',
     actionHint: 'Actions → Closed · Review audit timeline',
+  },
+  {
+    id: 'property-record',
+    title: 'Reuse the closed-case record',
+    instruction:
+      'Open the closed case details to show the Property Development Record: lifecycle, observed change, verification, evidence, provenance, and authorized downstream-use context.',
+    path: '/planner/cases/:caseId',
+    requiredRole: 'planner',
+    actionHint: 'Open Property Development Record in the closed case',
   },
 ];
 

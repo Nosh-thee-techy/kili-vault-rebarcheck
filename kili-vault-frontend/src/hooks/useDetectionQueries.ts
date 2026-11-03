@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  getDetections,
   getDetectionStats,
   getDetectionsGeoJSON,
   getUnpromotedDetectionCount,
@@ -17,6 +18,18 @@ export function useDetectionStatsQuery() {
   return useQuery({
     queryKey: detectionKeys.stats(),
     queryFn: () => getDetectionStats().then((r) => r.data),
+  });
+}
+
+export function useDetectionsQuery(page: number, pageSize = 10, minConfidence = 0.5) {
+  return useQuery({
+    queryKey: detectionKeys.list({ page, pageSize, minConfidence }),
+    queryFn: () => getDetections({
+      limit: pageSize,
+      offset: page * pageSize,
+      min_confidence: minConfidence,
+    }),
+    placeholderData: (previous) => previous,
   });
 }
 
