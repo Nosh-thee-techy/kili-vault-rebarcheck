@@ -4,7 +4,6 @@ import { Maximize2, Radar } from "lucide-react";
 import { CaseListItem } from "@/components/cases/CaseListItem";
 import { CommandKpiStrip } from "@/components/dashboard/CommandKpiStrip";
 import { CommunityObservationsCard } from "@/components/dashboard/CommunityObservationsCard";
-import { DetectionTriageList } from "@/components/dashboard/DetectionTriageList";
 import { PromoteDetectionsBanner } from "@/components/dashboard/PromoteDetectionsBanner";
 import { PageHero } from "@/components/dashboard/PageHero";
 import { SpotlightCaseCard } from "@/components/dashboard/SpotlightCaseCard";
@@ -77,7 +76,6 @@ export function PlannerDashboardPage() {
       />
 
       <PromoteDetectionsBanner />
-      <DetectionTriageList />
       <CommunityObservationsCard />
 
       {!statsLoading && (

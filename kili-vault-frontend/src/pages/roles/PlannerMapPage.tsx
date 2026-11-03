@@ -2,6 +2,7 @@ import { lazy, Suspense, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
 import { CaseListItem } from "@/components/cases/CaseListItem";
+import { DetectionTriageList } from "@/components/dashboard/DetectionTriageList";
 import { MapLayerPanel } from "@/components/map/MapLayerPanel";
 import { PlannerFeaturePanel } from "@/components/map/PlannerFeaturePanel";
 import type { PlannerMapSelection } from "@/components/map/KilimaniMap";
@@ -137,6 +138,8 @@ export function PlannerMapPage() {
           />
         </section>
       )}
+
+      <DetectionTriageList />
     </div>
   );
 }
