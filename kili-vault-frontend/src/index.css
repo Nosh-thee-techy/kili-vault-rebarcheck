@@ -1,10 +1,10 @@
-@import 'tailwindcss';
-@import '@arcgis/core/assets/esri/themes/light/main.css';
+@import "tailwindcss";
+@import "@arcgis/core/assets/esri/themes/light/main.css";
 
 @theme {
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-body: 'Montserrat', system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-body: "Montserrat", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
   --color-forest: #2a4d38;
   --color-forest-light: #3d6b50;
@@ -96,6 +96,16 @@ h4 {
   box-shadow: var(--shadow-soft);
 }
 
+.esri-ui-bottom-right .esri-attribution {
+  left: auto;
+  right: 0;
+  width: max-content;
+  max-width: min(60vw, 34rem);
+  background: transparent;
+  box-shadow: none;
+  font-size: 10px;
+}
+
 @keyframes shimmer {
   0% {
     background-position: -200% 0;
@@ -161,8 +171,16 @@ h4 {
 
 .login-panel-glow {
   background:
-    radial-gradient(ellipse 80% 60% at 10% 0%, rgb(196 120 90 / 0.22), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 90% 100%, rgb(255 255 255 / 0.06), transparent 50%);
+    radial-gradient(
+      ellipse 80% 60% at 10% 0%,
+      rgb(196 120 90 / 0.22),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 70% 50% at 90% 100%,
+      rgb(255 255 255 / 0.06),
+      transparent 50%
+    );
 }
 
 .login-page-grid main {
@@ -251,8 +269,16 @@ html.dark .esri-view {
 /* Intro splash */
 .intro-splash-glow {
   background:
-    radial-gradient(ellipse 90% 70% at 50% 0%, rgb(196 120 90 / 0.18), transparent 55%),
-    radial-gradient(ellipse 60% 50% at 100% 100%, rgb(255 255 255 / 0.05), transparent 50%);
+    radial-gradient(
+      ellipse 90% 70% at 50% 0%,
+      rgb(196 120 90 / 0.18),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 100% 100%,
+      rgb(255 255 255 / 0.05),
+      transparent 50%
+    );
 }
 
 @keyframes intro-scene-in {

@@ -1,16 +1,4 @@
 import { Link } from "react-router-dom";
-import {
-  ArrowRight,
-  Building2,
-  ExternalLink,
-  FileText,
-  MapPin,
-  Radar,
-  Ruler,
-  X,
-} from "lucide-react";
-import { Button } from "@/components/ui/Button";
-import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
 import { formatArea, formatChangeType } from "@/lib/format";
 import type { DevelopmentCase } from "@/types";
 import type {
@@ -104,42 +92,25 @@ export function PlannerFeaturePanel({
   const context = "context" in selection ? selection.context : undefined;
 
   return (
-    <aside
-      className="pointer-events-auto absolute bottom-4 left-4 z-30 max-h-[calc(100%-2rem)] w-[min(25rem,calc(100%-2rem))] overflow-y-auto rounded-2xl border border-sand bg-off-white/96 p-4 shadow-lift backdrop-blur-md"
-      aria-label="Selected feature intelligence"
+    <calcite-panel
+      heading={isParcel ? "Planning context" : selection.layerTitle}
+      description={isParcel ? selection.layerTitle : undefined}
+      className="pointer-events-auto absolute bottom-4 left-4 z-30 max-h-[calc(100%-2rem)] w-[min(26rem,calc(100%-2rem))] overflow-y-auto"
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-sage">
-            Planning context
-          </p>
-          <h2 className="mt-1 flex items-center gap-2 font-display text-xl font-bold text-charcoal">
-            {isDetection ? (
-              <Radar className="h-5 w-5 text-clay" />
-            ) : isBuilding ? (
-              <Building2 className="h-5 w-5 text-clay" />
-            ) : (
-              <MapPin className="h-5 w-5 text-clay" />
-            )}
-            {selection.layerTitle}
-          </h2>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded-lg p-1 text-charcoal-muted hover:bg-mist/60 hover:text-charcoal"
-          aria-label="Clear selected feature"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
+      <calcite-button
+        slot="header-actions-end"
+        appearance="transparent"
+        icon-start="x"
+        label="Clear selected feature"
+        onClick={onClose}
+      />
 
       {isDetection ? (
         <section className="mt-4 border-t border-sand pt-3">
-          <div className="rounded-lg bg-clay/10 px-3 py-2 text-xs leading-relaxed text-clay-dark">
+          <calcite-notice open scale="s" kind="warning">
             Candidate change requiring human verification. This spatial
             relationship is not a legal determination.
-          </div>
+          </calcite-notice>
           <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
             <div>
               <dt className="text-charcoal-muted">Detection ID</dt>
@@ -164,30 +135,24 @@ export function PlannerFeaturePanel({
             <Link
               to={`/planner/cases?search=${encodeURIComponent(selection.detectionId)}`}
             >
-              <Button
-                variant="primary"
-                size="sm"
-                className="w-full justify-between"
-              >
-                Create or open case <ArrowRight className="h-3.5 w-3.5" />
-              </Button>
+              <calcite-button appearance="solid" scale="s" className="w-full">
+                Create or open case
+              </calcite-button>
             </Link>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="w-full justify-between"
+            <calcite-button
+              appearance="outline"
+              scale="s"
+              className="w-full"
               onClick={() => downloadBrief(selection)}
             >
-              Prepare LPLDP evidence brief <FileText className="h-3.5 w-3.5" />
-            </Button>
+              Prepare LPLDP evidence brief
+            </calcite-button>
           </div>
         </section>
       ) : (
-        <section className="mt-4 border-t border-sand pt-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-charcoal-muted">
-            Property
-          </h3>
-          <dl className="mt-2 grid grid-cols-2 gap-2 text-xs">
+        <section className="border-t border-sand px-4 py-3">
+          <h3 className="text-sm font-semibold text-charcoal">Property</h3>
+          <dl className="grid grid-cols-2 gap-3 text-sm">
             {(isParcel || isBuilding) && (
               <>
                 <div>
@@ -234,15 +199,11 @@ export function PlannerFeaturePanel({
         </section>
       )}
 
-      <section className="mt-4 border-t border-sand pt-3">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-charcoal-muted">
-          Spatial context
-        </h3>
-        <dl className="mt-2 grid gap-2 text-xs">
+      <section className="border-t border-sand px-4 py-3">
+        <h3 className="text-sm font-semibold text-charcoal">Spatial context</h3>
+        <dl className="mt-3 grid gap-3 text-sm">
           <div className="flex items-center justify-between gap-3">
-            <dt className="flex items-center gap-1.5 text-charcoal-muted">
-              <Ruler className="h-3.5 w-3.5" /> Nearest road
-            </dt>
+            <dt className="text-charcoal-muted">Nearest road</dt>
             <dd className="font-semibold text-charcoal">
               {distance(context?.roadDistanceM)}
             </dd>
@@ -265,78 +226,62 @@ export function PlannerFeaturePanel({
           </div>
         </dl>
         {context?.riverBufferOverlap && (
-          <p className="mt-2 rounded-lg bg-clay/10 px-3 py-2 text-xs leading-relaxed text-clay-dark">
+          <calcite-notice open scale="s" kind="warning" className="mt-3">
             Planning review required. This is a spatial relationship, not a
             legal determination.
-          </p>
+          </calcite-notice>
         )}
       </section>
 
       {isParcel && (
-        <section className="mt-4 border-t border-sand pt-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-charcoal-muted">
+        <section className="border-t border-sand px-4 py-3">
+          <h3 className="text-sm font-semibold text-charcoal">
             Planning actions
           </h3>
-          <div className="mt-2 grid gap-2">
+          <div className="mt-3 grid gap-2">
             <Link
               to={`/developer/simulator?parcel=${encodeURIComponent(String(parcelNumber ?? ""))}`}
             >
-              <Button
-                variant="primary"
-                size="sm"
-                className="w-full justify-between"
-              >
-                Run development scenario <ArrowRight className="h-3.5 w-3.5" />
-              </Button>
+              <calcite-button appearance="solid" scale="s" className="w-full">
+                Run development scenario
+              </calcite-button>
             </Link>
             <Link
               to={`/planner/cases?search=${encodeURIComponent(String(parcelNumber ?? ""))}`}
             >
-              <Button
-                variant="secondary"
-                size="sm"
-                className="w-full justify-between"
-              >
-                Review parcel cases <ExternalLink className="h-3.5 w-3.5" />
-              </Button>
+              <calcite-button appearance="outline" scale="s" className="w-full">
+                Review parcel cases
+              </calcite-button>
             </Link>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="w-full justify-between"
+            <calcite-button
+              appearance="outline"
+              scale="s"
+              className="w-full"
               onClick={() => downloadBrief(selection)}
             >
-              Prepare LPLDP evidence brief <FileText className="h-3.5 w-3.5" />
-            </Button>
+              Prepare LPLDP evidence brief
+            </calcite-button>
           </div>
         </section>
       )}
 
       {relatedCases.length > 0 && (
-        <section className="mt-4 border-t border-sand pt-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-charcoal-muted">
+        <section className="border-t border-sand px-4 py-3">
+          <h3 className="mb-3 text-sm font-semibold text-charcoal">
             Existing development cases
           </h3>
-          <ul className="mt-2 space-y-2">
+          <calcite-list label="Existing development cases">
             {relatedCases.map((item) => (
-              <li key={item.id} className="rounded-lg border border-sand p-2">
-                <Link
-                  to={`/planner/cases/${item.id}`}
-                  className="flex items-center justify-between gap-2"
-                >
-                  <span>
-                    <span className="block text-xs font-semibold text-charcoal">
-                      {item.caseNumber}
-                    </span>
-                    <span className="block text-[11px] text-charcoal-muted">
-                      {formatChangeType(item.changeType)}
-                    </span>
-                  </span>
-                  <CaseStatusBadge status={item.status} />
-                </Link>
-              </li>
+              <calcite-list-item
+                key={item.id}
+                label={item.caseNumber}
+                description={`${formatChangeType(item.changeType)} · ${item.status.replace(/_/g, " ")}`}
+                onClick={() => {
+                  window.location.assign(`/planner/cases/${item.id}`);
+                }}
+              />
             ))}
-          </ul>
+          </calcite-list>
         </section>
       )}
       {isParcel && relatedCases.length === 0 && (
@@ -370,6 +315,6 @@ export function PlannerFeaturePanel({
       <p className="mt-3 text-[10px] text-charcoal-muted">
         Source: {selection.layerTitle} ArcGIS FeatureServer
       </p>
-    </aside>
+    </calcite-panel>
   );
 }

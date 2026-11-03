@@ -10,7 +10,10 @@ import SimpleLineSymbol from "@arcgis/core/symbols/SimpleLineSymbol";
 import * as geometryEngine from "@arcgis/core/geometry/geometryEngine";
 import type FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 import UniqueValueRenderer from "@arcgis/core/renderers/UniqueValueRenderer";
-import { Home, X } from "lucide-react";
+import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
+import Expand from "@arcgis/core/widgets/Expand";
+import Home from "@arcgis/core/widgets/Home";
+import LayerList from "@arcgis/core/widgets/LayerList";
 import { KILIMANI_WARD_EXTENT, MAP_LAYERS } from "@/config/mapLayers";
 import { createMapFeatureLayer } from "@/lib/mapFeatureLayer";
 import { analyzeSiteProximity, type SiteProximity } from "@/lib/siteProximity";
@@ -69,6 +72,7 @@ interface KilimaniMapProps {
   cases: DevelopmentCase[];
   detectionsGeoJSON?: GeoJSON.FeatureCollection;
   selectedCaseId?: string | null;
+  selectedDetectionId?: string | null;
   layerVisibility: Record<string, boolean>;
   showCases: boolean;
   showDetections?: boolean;
@@ -241,6 +245,7 @@ export function KilimaniMap({
   cases,
   detectionsGeoJSON,
   selectedCaseId,
+  selectedDetectionId,
   layerVisibility,
   showCases,
   showDetections = true,
@@ -305,16 +310,7 @@ export function KilimaniMap({
       title: "Kili-Shadows Detections",
       visible: showDetections,
       renderer: buildDetectionRenderer(),
-      popupTemplate: {
-        title: "Detection {id}",
-        content: `
-          <div style="font-family: Montserrat, sans-serif; font-size: 13px; line-height: 1.5;">
-            <p><strong>Change:</strong> {change_type}</p>
-            <p><strong>Confidence:</strong> {confidence}</p>
-            <p><em>Candidate — not yet a workflow case</em></p>
-          </div>
-        `,
-      },
+      popupEnabled: false,
     });
     map.add(detectionsLayer);
 
@@ -325,16 +321,7 @@ export function KilimaniMap({
       title: "Kili-Shadows Cases",
       visible: showCases,
       renderer: buildCaseRenderer(colorByStatus),
-      popupTemplate: {
-        title: "{caseNumber}",
-        content: `
-          <div style="font-family: Montserrat, sans-serif; font-size: 13px; line-height: 1.5;">
-            <p><strong>Status:</strong> {status}</p>
-            <p><strong>Change:</strong> {changeType}</p>
-            <p><strong>Confidence:</strong> {confidence}</p>
-          </div>
-        `,
-      },
+      popupEnabled: false,
     });
     map.add(casesLayer);
 
@@ -357,6 +344,27 @@ export function KilimaniMap({
     featureLayersRef.current = featureLayers;
     casesLayerRef.current = casesLayer;
     detectionsLayerRef.current = detectionsLayer;
+
+    const basemapGallery = new BasemapGallery({ view });
+    const basemapExpand = new Expand({
+      view,
+      content: basemapGallery,
+      group: "top-right",
+      expandTooltip: "Basemaps",
+      collapseTooltip: "Close basemaps",
+    });
+    const homeWidget = new Home({ view });
+    view.ui.add(homeWidget, "bottom-left");
+    const layerList = new LayerList({ view });
+    const layerExpand = new Expand({
+      view,
+      content: layerList,
+      group: "top-right",
+      expandTooltip: "Layers",
+      collapseTooltip: "Close layers",
+    });
+    view.ui.add(basemapExpand, "top-right", 0);
+    view.ui.add(layerExpand, "top-right", 1);
 
     view
       .when(() => {
@@ -439,13 +447,18 @@ export function KilimaniMap({
           return;
         }
 
-        const featureHit = response.results.find(
+        const featureHits = response.results.filter(
           (result: __esri.ViewHit) =>
             result.type === "graphic" &&
             Object.values(featureLayers).includes(
               (result as __esri.GraphicHit).graphic.layer as FeatureLayer,
             ),
-        ) as __esri.GraphicHit | undefined;
+        ) as __esri.GraphicHit[];
+        const featureHit =
+          featureHits.find(
+            (result) =>
+              (result.graphic.layer as FeatureLayer).id === "parcels-landuse",
+          ) ?? featureHits[0];
 
         if (featureHit?.graphic?.geometry) {
           const layer = featureHit.graphic.layer as FeatureLayer;
@@ -458,7 +471,7 @@ export function KilimaniMap({
           const kind: PlannerFeatureKind =
             layerId === "parcels-landuse"
               ? "parcel"
-              : layerId === "buildings" || layerId === "buildings-parcel-join"
+              : layerId === "buildings"
                 ? "building"
                 : layerId === "landuse"
                   ? "landuse"
@@ -505,6 +518,11 @@ export function KilimaniMap({
     return () => {
       destroyed = true;
       clickHandle.remove();
+      homeWidget.destroy();
+      basemapExpand.destroy();
+      basemapGallery.destroy();
+      layerExpand.destroy();
+      layerList.destroy();
       highlightHandleRef.current?.remove();
       highlightHandleRef.current = null;
       view.destroy();
@@ -532,9 +550,8 @@ export function KilimaniMap({
     const value = searchTerm.trim().replace(/'/g, "''");
     const searchConfigs = MAP_LAYERS.filter(
       (config) =>
-        config.searchFields?.length &&
-        (config.id === "parcels-landuse" ||
-          config.id === "buildings-parcel-join"),
+        (config.searchFields?.length && config.id === "parcels-landuse") ||
+        config.id === "buildings",
     );
     let cancelled = false;
     (async () => {
@@ -722,6 +739,53 @@ export function KilimaniMap({
       .catch(() => undefined);
   }, [selectedCaseId, cases]);
 
+  useEffect(() => {
+    const view = viewRef.current;
+    const layer = detectionsLayerRef.current;
+    if (!view || !layer || !selectedDetectionId) return;
+
+    let cancelled = false;
+    const escapedId = selectedDetectionId.replace(/'/g, "''");
+    layer
+      .queryFeatures({
+        where: `id = '${escapedId}'`,
+        returnGeometry: true,
+        outFields: ["*"],
+      })
+      .then(async (result: __esri.FeatureSet) => {
+        if (cancelled || result.features.length === 0) return;
+        const feature = result.features[0];
+        if (!feature.geometry) return;
+        const attrs = (feature.attributes ?? {}) as Record<string, unknown>;
+        const layerView = await view.whenLayerView(layer);
+        if (cancelled) return;
+        highlightHandleRef.current?.remove();
+        highlightHandleRef.current = layerView.highlight(feature);
+        setSelection({
+          kind: "detection",
+          id: selectedDetectionId,
+          changeType: String(attrs.change_type ?? "UNKNOWN"),
+          confidence: Number(attrs.confidence ?? 0),
+        });
+        onFeatureSelectRef.current?.({
+          kind: "detection",
+          layerId: "detections",
+          layerTitle: "Observed spatial change",
+          geometry: feature.geometry,
+          attributes: attrs,
+          detectionId: selectedDetectionId,
+          changeType: String(attrs.change_type ?? "UNKNOWN"),
+          confidence: Number(attrs.confidence ?? 0),
+        });
+        view.goTo({ target: feature, zoom: 18 }).catch(() => undefined);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedDetectionId]);
+
   const clearSelection = () => {
     highlightHandleRef.current?.remove();
     highlightHandleRef.current = null;
@@ -746,7 +810,7 @@ export function KilimaniMap({
 
   return (
     <div
-      className={`relative h-full min-h-[360px] overflow-hidden rounded-2xl border border-sand ${className ?? ""}`}
+      className={`relative h-full min-h-[360px] overflow-hidden ${className ?? ""}`}
     >
       <div ref={containerRef} className="absolute inset-0 h-full w-full" />
       {mapStatus === "ready" && (
@@ -757,51 +821,37 @@ export function KilimaniMap({
               setSearchMessage(null);
               setSearchTerm(searchValue);
             }}
-            className="pointer-events-auto absolute left-4 top-4 z-20 flex w-[min(22rem,calc(100%-2rem))] gap-2"
+            className="pointer-events-auto absolute left-4 top-4 z-20 flex w-[min(28rem,calc(100%-2rem))] gap-2"
           >
-            <input
+            <calcite-input
               value={searchValue}
-              onChange={(event) => setSearchValue(event.target.value)}
-              placeholder="Search parcel, LR number, or building ID"
+              onInput={(event) =>
+                setSearchValue((event.target as HTMLInputElement).value)
+              }
+              placeholder="Search parcel or building"
               aria-label="Search parcel or building"
-              className="min-w-0 flex-1 rounded-xl border border-sand bg-off-white/95 px-3 py-2 text-xs text-charcoal shadow-soft backdrop-blur-md"
+              icon-start="search"
+              scale="s"
+              className="min-w-0 flex-1"
             />
-            <button
+            <calcite-button
               type="submit"
-              className="rounded-xl bg-forest px-3 py-2 text-xs font-semibold text-off-white shadow-soft hover:bg-forest-dark"
-            >
-              Search
-            </button>
+              appearance="outline"
+              scale="s"
+              icon-start="search"
+              label="Search parcel or building"
+            ></calcite-button>
           </form>
           {searchMessage && (
-            <p className="pointer-events-none absolute left-4 top-16 z-20 rounded-lg border border-clay/30 bg-off-white/95 px-3 py-2 text-xs font-semibold text-clay-dark shadow-soft">
-              {searchMessage}
-            </p>
-          )}
-          <div className="pointer-events-auto absolute right-4 top-4 z-20 flex gap-2">
-            <button
-              type="button"
-              onClick={() =>
-                viewRef.current
-                  ?.goTo(KILIMANI_WARD_EXTENT)
-                  .catch(() => undefined)
-              }
-              className="inline-flex items-center gap-1.5 rounded-xl border border-sand bg-off-white/95 px-3 py-2 text-xs font-semibold text-charcoal shadow-soft backdrop-blur-md hover:border-forest"
-              aria-label="Zoom to Kilimani"
+            <calcite-notice
+              open
+              scale="s"
+              className="pointer-events-none absolute left-4 top-16 z-20"
+              kind="danger"
             >
-              <Home className="h-3.5 w-3.5 text-forest" /> Kilimani
-            </button>
-            {(selection || proximity) && (
-              <button
-                type="button"
-                onClick={clearSelection}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-sand bg-off-white/95 px-3 py-2 text-xs font-semibold text-charcoal shadow-soft backdrop-blur-md hover:border-clay"
-                aria-label="Clear map selection"
-              >
-                <X className="h-3.5 w-3.5" /> Clear
-              </button>
-            )}
-          </div>
+              {searchMessage}
+            </calcite-notice>
+          )}
         </>
       )}
       {mapStatus === "loading" && (
@@ -818,12 +868,6 @@ export function KilimaniMap({
             proximity={proximity}
             onClose={clearSelection}
           />
-        </div>
-      )}
-
-      {!selection && mapStatus === "ready" && (
-        <div className="pointer-events-none absolute bottom-4 left-4 z-10 rounded-full border border-off-white/60 bg-off-white/90 px-3 py-1.5 text-xs font-semibold text-charcoal-muted shadow-soft backdrop-blur-md sm:bottom-6 sm:left-6">
-          Tap a site to preview
         </div>
       )}
     </div>

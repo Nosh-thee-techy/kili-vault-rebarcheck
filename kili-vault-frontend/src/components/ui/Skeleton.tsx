@@ -1,7 +1,9 @@
-import { cn } from '@/lib/cn';
+import { cn } from "@/lib/cn";
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn('skeleton-shimmer rounded-xl', className)} aria-hidden />;
+  return (
+    <div className={cn("skeleton-shimmer rounded-xl", className)} aria-hidden />
+  );
 }
 
 export function StatCardSkeleton() {
@@ -39,17 +41,8 @@ export function CaseListSkeleton({ count = 5 }: { count?: number }) {
 
 export function MapSkeleton() {
   return (
-    <div className="relative h-full min-h-[320px] overflow-hidden rounded-2xl border border-sand bg-sand/40">
-      <div className="absolute inset-0 map-loading-pulse bg-gradient-to-br from-mist/40 via-sand/20 to-forest/5" />
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-forest/10">
-          <div className="h-7 w-7 rounded-lg border-2 border-forest/30 border-t-forest animate-spin" />
-        </div>
-        <div>
-          <p className="font-display text-lg font-semibold text-forest">Loading Kilimani map</p>
-          <p className="mt-1 text-sm text-charcoal-muted">Fetching ward boundaries and layers…</p>
-        </div>
-      </div>
+    <div className="relative flex h-full min-h-[320px] items-center justify-center bg-[var(--calcite-color-surface-1,#ffffff)]">
+      <calcite-loader label="Loading map" scale="m" />
     </div>
   );
 }

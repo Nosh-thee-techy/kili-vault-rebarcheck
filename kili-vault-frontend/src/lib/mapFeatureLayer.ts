@@ -13,28 +13,30 @@ export function createMapFeatureLayer(
     url: `${config.url}/${config.layerId}`,
     title: config.title,
     visible: visible ?? config.defaultVisible,
-    opacity: config.geometryType === "polygon" ? 0.6 : 0.92,
+    opacity:
+      config.id === "parcels-landuse"
+        ? 1
+        : config.geometryType === "polygon"
+          ? 0.6
+          : 0.92,
     popupEnabled: false,
     outFields: ["*"],
   });
 
   if (config.id === "landuse") {
     const landUseColors: Record<string, string> = {
-      Residential: "#D9C7A7",
-      Commercial: "#C4785A",
-      "Mixed CI": "#B89B73",
-      "Mixed RC": "#A8795D",
-      Institutional: "#8FA88A",
-      Educational: "#6F8FA8",
-      "Open Space": "#AFC8A4",
-      Recreational: "#7FAF9A",
-      Water: "#84B6C9",
-      Forest: "#547A5B",
-      Agricultural: "#B5B77A",
-      Industrial: "#92949B",
-      Transportation: "#A7A09A",
-      "Social Facility": "#B18A9A",
-      Res_Slum: "#C59B83",
+      Residential: "#D7C29E",
+      Industrial: "#C500FF",
+      Educational: "#FFAA00",
+      Recreation: "#A3FF73",
+      Recreational: "#A3FF73",
+      "Public purpose": "#FFFF00",
+      Commercial: "#FF0000",
+      "Public utilities": "#0070FF",
+      Transportation: "#CCCCCC",
+      Conservation: "#FFFFBE",
+      Agricultural: "#FFFFE6",
+      Other: "#8A8A8A",
     };
     layer.renderer = new UniqueValueRenderer({
       field: "LANDUSE",
@@ -47,22 +49,19 @@ export function createMapFeatureLayer(
         }),
       })),
       defaultSymbol: new SimpleFillSymbol({
-        color: "rgba(120, 120, 120, 0.12)",
-        outline: new SimpleLineSymbol({ color: "#77777788", width: 0.6 }),
+        color: "#8A8A8A99",
+        outline: new SimpleLineSymbol({ color: "#666666", width: 0.8 }),
       }),
     });
   } else if (config.id === "parcels-landuse") {
     layer.renderer = {
       type: "simple",
       symbol: new SimpleFillSymbol({
-        color: "rgba(255, 255, 255, 0.02)",
-        outline: new SimpleLineSymbol({ color: "#8E8174", width: 0.8 }),
+        color: [0, 0, 0, 0],
+        outline: new SimpleLineSymbol({ color: "#303030", width: 1.1 }),
       }),
     };
-  } else if (
-    config.id === "buildings" ||
-    config.id === "buildings-parcel-join"
-  ) {
+  } else if (config.id === "buildings") {
     layer.renderer = {
       type: "simple",
       symbol: new SimpleFillSymbol({

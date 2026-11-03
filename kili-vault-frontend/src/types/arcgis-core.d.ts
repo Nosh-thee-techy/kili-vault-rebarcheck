@@ -98,6 +98,46 @@ declare module "@arcgis/core/views/SceneView" {
   export default SceneView;
 }
 
+declare module "@arcgis/core/widgets/BasemapGallery" {
+  class BasemapGallery {
+    [key: string]: any;
+    constructor(options?: any);
+  }
+  export default BasemapGallery;
+}
+
+declare module "@arcgis/core/widgets/Expand" {
+  class Expand {
+    [key: string]: any;
+    constructor(options?: any);
+  }
+  export default Expand;
+}
+
+declare module "@arcgis/core/widgets/Zoom" {
+  class Zoom {
+    [key: string]: any;
+    constructor(options?: any);
+  }
+  export default Zoom;
+}
+
+declare module "@arcgis/core/widgets/Home" {
+  class Home {
+    [key: string]: any;
+    constructor(options?: any);
+  }
+  export default Home;
+}
+
+declare module "@arcgis/core/widgets/LayerList" {
+  class LayerList {
+    [key: string]: any;
+    constructor(options?: any);
+  }
+  export default LayerList;
+}
+
 declare module "@arcgis/core/geometry/Point" {
   class Point {
     [key: string]: any;

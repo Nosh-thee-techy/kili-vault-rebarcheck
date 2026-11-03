@@ -1,10 +1,16 @@
-import { useState } from 'react';
-import { Play } from 'lucide-react';
-import { usePresenter } from '@/context/PresenterContext';
-import { Button } from '@/components/ui/Button';
-import { cn } from '@/lib/cn';
+import { useState } from "react";
+import { Play } from "lucide-react";
+import { usePresenter } from "@/context/PresenterContext";
+import { Button } from "@/components/ui/Button";
+import { cn } from "@/lib/cn";
 
-export function GuidedDemoButton({ compact = false }: { compact?: boolean }) {
+export function GuidedDemoButton({
+  compact = false,
+  className,
+}: {
+  compact?: boolean;
+  className?: string;
+}) {
   const { start, isActive } = usePresenter();
   const [loading, setLoading] = useState(false);
 
@@ -22,15 +28,15 @@ export function GuidedDemoButton({ compact = false }: { compact?: boolean }) {
   return (
     <Button
       variant="primary"
-      size={compact ? 'icon' : 'sm'}
-      className={cn(!compact && 'w-full gap-2')}
+      size={compact ? "icon" : "sm"}
+      className={cn(!compact && "w-full gap-2", className)}
       isLoading={loading}
       onClick={() => void handleClick()}
       title="Start guided demo"
       aria-label="Start guided demo"
     >
       <Play className="h-4 w-4" />
-      {!compact && 'Guided demo'}
+      {!compact && "Guided demo"}
     </Button>
   );
 }
