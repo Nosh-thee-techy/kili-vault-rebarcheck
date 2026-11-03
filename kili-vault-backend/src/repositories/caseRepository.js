@@ -31,7 +31,13 @@ function mapCase(row) {
     changeType: row.change_type,
     status: row.status,
     confidence: Number(row.confidence),
-    risk: row.risk || { planning: 0, infrastructure: 0, environmental: 0, community: 0, overall: "LOW" },
+    risk: row.risk || {
+      planning: 0,
+      infrastructure: 0,
+      environmental: 0,
+      community: 0,
+      overall: "LOW",
+    },
     areaM2: Number(row.area_m2),
     centroidLat: Number(row.centroid_lat),
     centroidLon: Number(row.centroid_lon),
@@ -49,24 +55,46 @@ function mapCase(row) {
 
 class CaseRepository {
   async findAll(filters = {}) {
-    const { status, change_type: changeType, search, limit = 50, offset = 0 } = filters;
+    const {
+      status,
+      change_type: changeType,
+      search,
+      limit = 50,
+      offset = 0,
+    } = filters;
     const conditions = [];
     const params = [];
     let index = 1;
-    if (status) { conditions.push(`c.status = $${index++}`); params.push(status); }
-    if (changeType) { conditions.push(`c.change_type = $${index++}`); params.push(changeType); }
+    if (status) {
+      conditions.push(`c.status = $${index++}`);
+      params.push(status);
+    }
+    if (changeType) {
+      conditions.push(`c.change_type = $${index++}`);
+      params.push(changeType);
+    }
     if (search) {
-      conditions.push(`(c.title ILIKE $${index} OR c.case_number ILIKE $${index})`);
+      conditions.push(
+        `(c.title ILIKE $${index} OR c.case_number ILIKE $${index})`,
+      );
       params.push(`%${search}%`);
       index += 1;
     }
     const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
-    const count = await db.query(`SELECT COUNT(*) AS total FROM development_cases c ${where}`, params);
+    const count = await db.query(
+      `SELECT COUNT(*) AS total FROM development_cases c ${where}`,
+      params,
+    );
     const rows = await db.query(
       `${CASE_SELECT} ${where} ORDER BY c.updated_at DESC, c.created_at DESC LIMIT $${index} OFFSET $${index + 1}`,
       [...params, limit, offset],
     );
-    return { data: rows.rows.map(mapCase), total: Number(count.rows[0].total), limit, offset };
+    return {
+      data: rows.rows.map(mapCase),
+      total: Number(count.rows[0].total),
+      limit,
+      offset,
+    };
   }
 
   async findById(id) {
@@ -75,15 +103,27 @@ class CaseRepository {
   }
 
   async getGeoJson(filters = {}) {
-    const result = await this.findAll({ ...filters, limit: Math.min(filters.limit || 200, 200) });
+    const result = await this.findAll({
+      ...filters,
+      limit: Math.min(filters.limit || 200, 200),
+    });
     return {
       type: "FeatureCollection",
-      features: result.data.filter((item) => item.geometry).map((item) => ({
-        type: "Feature",
-        id: item.id,
-        geometry: item.geometry,
-        properties: { id: item.id, caseNumber: item.caseNumber, title: item.title, status: item.status, changeType: item.changeType, confidence: item.confidence },
-      })),
+      features: result.data
+        .filter((item) => item.geometry)
+        .map((item) => ({
+          type: "Feature",
+          id: item.id,
+          geometry: item.geometry,
+          properties: {
+            id: item.id,
+            caseNumber: item.caseNumber,
+            title: item.title,
+            status: item.status,
+            changeType: item.changeType,
+            confidence: item.confidence,
+          },
+        })),
     };
   }
 
@@ -105,15 +145,30 @@ class CaseRepository {
     const client = await db.getClient();
     try {
       await client.query("BEGIN");
-      const updated = await client.query("UPDATE development_cases SET status = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING id", [id, status]);
+      const updated = await client.query(
+        "UPDATE development_cases SET status = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING id",
+        [id, status],
+      );
       if (!updated.rowCount) return null;
       await client.query(
         `INSERT INTO case_audit_events (case_id, action, actor_role, actor_id, actor_name, details) VALUES ($1, $2, $3, $4, $5, $6)`,
-        [id, "STATUS_UPDATED", audit.role, audit.id, audit.name, audit.details || `Status changed to ${status}`],
+        [
+          id,
+          "STATUS_UPDATED",
+          audit.role,
+          audit.id,
+          audit.name,
+          audit.details || `Status changed to ${status}`,
+        ],
       );
       await client.query("COMMIT");
       return this.findById(id);
-    } catch (error) { await client.query("ROLLBACK"); throw error; } finally { client.release(); }
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   async updateMitigation(id, requirements, audit) {
@@ -127,11 +182,23 @@ class CaseRepository {
       if (!updated.rowCount) return null;
       await client.query(
         `INSERT INTO case_audit_events (case_id, action, actor_role, actor_id, actor_name, details) VALUES ($1, $2, $3, $4, $5, $6)`,
-        [id, "MITIGATION_ADDED", audit.role, audit.id, audit.name, requirements.join("; ")],
+        [
+          id,
+          "MITIGATION_ADDED",
+          audit.role,
+          audit.id,
+          audit.name,
+          requirements.join("; "),
+        ],
       );
       await client.query("COMMIT");
       return this.findById(id);
-    } catch (error) { await client.query("ROLLBACK"); throw error; } finally { client.release(); }
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   async verify(id, decision, audit) {
@@ -145,13 +212,30 @@ class CaseRepository {
   async addEvidence(id, file, audit) {
     const result = await db.query(
       `INSERT INTO case_evidence_items (case_id, type, file_name, storage_path, uploaded_by, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-      [id, file.mimetype || "file", file.originalname, file.storagePath || "", audit.id, "SUBMITTED"],
+      [
+        id,
+        file.mimetype || "file",
+        file.originalname,
+        file.storagePath || "",
+        audit.id,
+        "SUBMITTED",
+      ],
     );
     if (!result.rowCount) return null;
-    await db.query("UPDATE development_cases SET status = 'EVIDENCE_SUBMITTED', updated_at = CURRENT_TIMESTAMP WHERE id = $1", [id]);
+    await db.query(
+      "UPDATE development_cases SET status = 'EVIDENCE_SUBMITTED', updated_at = CURRENT_TIMESTAMP WHERE id = $1",
+      [id],
+    );
     await db.query(
       `INSERT INTO case_audit_events (case_id, action, actor_role, actor_id, actor_name, details) VALUES ($1, $2, $3, $4, $5, $6)`,
-      [id, "EVIDENCE_UPLOADED", audit.role, audit.id, audit.name, file.originalname],
+      [
+        id,
+        "EVIDENCE_UPLOADED",
+        audit.role,
+        audit.id,
+        audit.name,
+        file.originalname,
+      ],
     );
     return this.findById(id);
   }
