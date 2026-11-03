@@ -31,19 +31,29 @@ test("community observation API supports submission, listing, and review", async
     assert.equal(compatibility.status, 201);
     createdIds.push(compatibility.body.data.id);
 
-    const listed = await request(app).get("/api/v1/observations?status=SUBMITTED&limit=10");
+    const listed = await request(app).get(
+      "/api/v1/observations?status=SUBMITTED&limit=10",
+    );
     assert.equal(listed.status, 200);
-    assert.ok(listed.body.data.some((item) => item.id === created.body.data.id));
+    assert.ok(
+      listed.body.data.some((item) => item.id === created.body.data.id),
+    );
 
     const reviewed = await request(app)
       .patch(`/api/v1/observations/${created.body.data.id}/review`)
       .set("X-User-Id", "planner-test")
-      .send({ status: "ACCEPTED", review_notes: "Reviewed in integration test." });
+      .send({
+        status: "ACCEPTED",
+        review_notes: "Reviewed in integration test.",
+      });
     assert.equal(reviewed.status, 200);
     assert.equal(reviewed.body.data.status, "ACCEPTED");
   } finally {
     if (createdIds.length) {
-      await db.query("DELETE FROM community_observations WHERE id = ANY($1::uuid[])", [createdIds]);
+      await db.query(
+        "DELETE FROM community_observations WHERE id = ANY($1::uuid[])",
+        [createdIds],
+      );
     }
   }
 });

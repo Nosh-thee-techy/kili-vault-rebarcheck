@@ -40,8 +40,15 @@ class ObservationRepository {
        RETURNING id, latitude, longitude, description, observation_type, submitted_by,
          submitter_name, status, photo_url, review_notes, reviewed_by, reviewed_at,
          linked_detection_id, linked_case_id, created_at, updated_at`,
-      [data.latitude, data.longitude, data.description, data.observation_type || null,
-        actor.id, actor.name, data.photo_url || null],
+      [
+        data.latitude,
+        data.longitude,
+        data.description,
+        data.observation_type || null,
+        actor.id,
+        actor.name,
+        data.photo_url || null,
+      ],
     );
     return mapObservation(result.rows[0]);
   }
@@ -53,12 +60,20 @@ class ObservationRepository {
       params.push(status);
       where = "WHERE status = $1";
     }
-    const count = await db.query(`SELECT COUNT(*)::int AS total FROM community_observations ${where}`, params);
+    const count = await db.query(
+      `SELECT COUNT(*)::int AS total FROM community_observations ${where}`,
+      params,
+    );
     const rows = await db.query(
       `${SELECT} ${where} ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
       [...params, limit, offset],
     );
-    return { data: rows.rows.map(mapObservation), total: count.rows[0].total, limit, offset };
+    return {
+      data: rows.rows.map(mapObservation),
+      total: count.rows[0].total,
+      limit,
+      offset,
+    };
   }
 
   async findById(id) {
