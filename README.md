@@ -24,11 +24,11 @@ The evidence brief is deliberately descriptive rather than determinative. It rec
 
 Use **Guided demo** from the planner shell to walk through:
 
-1. Planner command center and priority case
-2. Parcel planning context
-3. Observed spatial change and the evidence chain
+1. Planner command center
+2. Parcel intelligence and spatial context
+3. Observed spatial change and the factual evidence brief
 4. Development scenario comparison
-5. Human review and mitigation
+5. Case record, human review, and mitigation
 6. Developer evidence upload
 7. Agency verification
 8. Closure and Property Development Record reuse

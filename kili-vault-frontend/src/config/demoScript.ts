@@ -22,28 +22,19 @@ export const PRESENTER_STEPS: PresenterStep[] = [
     actionHint: "Scan the map and priority spotlight card",
   },
   {
-    id: "planner-open-case",
-    title: "Open priority case",
-    instruction:
-      "Open the spotlight case — satellite evidence with confidence score, risk breakdown, and audit trail.",
-    path: "/planner/cases/:caseId",
-    requiredRole: "planner",
-    actionHint: 'Click "Open case review" on the spotlight card',
-  },
-  {
     id: "planner-map-workspace",
-    title: "Explore planning context",
+    title: "Inspect parcel intelligence",
     instruction:
-      "Open the Planner map. Search or click a parcel to inspect live land use, buildings, roads, rivers, buffer sensitivity, and available planning actions.",
+      "Open the Planner map first. Search or click a parcel to inspect live land use, buildings, roads, rivers, buffer sensitivity, related cases, and planning actions.",
     path: "/planner/map",
     requiredRole: "planner",
     actionHint: "Select a parcel and open Planning context",
   },
   {
     id: "planner-evidence-chain",
-    title: "Trace the evidence chain",
+    title: "Capture observed change",
     instruction:
-      "Select an observed spatial change to see its detection ID, confidence, verification status, case route, and one-click factual LPLDP evidence brief.",
+      "Select a dashed observed change to see its detection ID and confidence, route it to a case, and generate a factual LPLDP spatial evidence brief for human review.",
     path: "/planner/map",
     requiredRole: "planner",
     actionHint: "Click a dashed detection, then prepare the evidence brief",
@@ -56,6 +47,15 @@ export const PRESENTER_STEPS: PresenterStep[] = [
     path: "/developer/simulator",
     requiredRole: "developer",
     actionHint: "Select a parcel, enter a proposal, and review the advisor",
+  },
+  {
+    id: "planner-open-case",
+    title: "Open the case record",
+    instruction:
+      "Open the spotlight case after inspecting its spatial context. Review satellite evidence, confidence, risk breakdown, and the audit trail.",
+    path: "/planner/cases/:caseId",
+    requiredRole: "planner",
+    actionHint: 'Open "case review" for the spotlight detection',
   },
   {
     id: "planner-review",
