@@ -3,7 +3,9 @@ import {
   ArrowRight,
   Building2,
   ExternalLink,
+  FileText,
   MapPin,
+  Radar,
   Ruler,
   X,
 } from "lucide-react";
@@ -11,7 +13,14 @@ import { Button } from "@/components/ui/Button";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
 import { formatArea, formatChangeType } from "@/lib/format";
 import type { DevelopmentCase } from "@/types";
-import type { PlannerFeatureSelection } from "@/components/map/KilimaniMap";
+import type {
+  PlannerDetectionSelection,
+  PlannerFeatureSelection,
+} from "@/components/map/KilimaniMap";
+
+type PlannerPanelSelection =
+  | PlannerFeatureSelection
+  | PlannerDetectionSelection;
 
 function attr(attributes: Record<string, unknown>, key: string) {
   const value = attributes[key];
@@ -33,12 +42,43 @@ function fieldLabel(key: string) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function downloadBrief(selection: PlannerPanelSelection) {
+  const isDetection = selection.kind === "detection";
+  const parcel = selection.attributes.parcel_num ?? selection.attributes.lr_number;
+  const subject = String(parcel ?? (isDetection ? selection.detectionId : "brief"));
+  const lines = [
+    "KILI-VAULT SPATIAL EVIDENCE BRIEF",
+    "",
+    `Subject: ${subject}`,
+    `Observed change: ${isDetection ? selection.changeType.replace(/_/g, " ") : "Parcel context review"}`,
+    isDetection ? `Confidence: ${Math.round(selection.confidence * 100)}%` : `Land use: ${attr(selection.attributes, "LANDUSE")}`,
+    `Parcel / LR reference: ${String(parcel ?? "Not available in current dataset")}`,
+    "",
+    "Evidence scope",
+    "- GIS parcel, building, road, river, and river-buffer context",
+    isDetection ? "- Candidate satellite change requiring human verification" : "- Existing land-use and development context",
+    "",
+    "Limitations",
+    "This is a factual spatial evidence brief, not an automatic compliance or legality verdict.",
+    "Verify source imagery, field evidence, and planning records before a decision.",
+    "",
+    `Generated from: ${selection.layerTitle}`,
+    `Generated: ${new Date().toISOString()}`,
+  ];
+  const url = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/plain" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `kili-vault-spatial-evidence-${subject.replace(/[^a-z0-9_-]/gi, "-")}.txt`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 export function PlannerFeaturePanel({
   selection,
   cases,
   onClose,
 }: {
-  selection: PlannerFeatureSelection | null;
+  selection: PlannerPanelSelection | null;
   cases: DevelopmentCase[];
   onClose: () => void;
 }) {
@@ -51,6 +91,8 @@ export function PlannerFeaturePanel({
       : [];
   const isParcel = selection.kind === "parcel";
   const isBuilding = selection.kind === "building";
+  const isDetection = selection.kind === "detection";
+  const context = "context" in selection ? selection.context : undefined;
 
   return (
     <aside
@@ -63,7 +105,9 @@ export function PlannerFeaturePanel({
             Planning context
           </p>
           <h2 className="mt-1 flex items-center gap-2 font-display text-xl font-bold text-charcoal">
-            {isBuilding ? (
+            {isDetection ? (
+              <Radar className="h-5 w-5 text-clay" />
+            ) : isBuilding ? (
               <Building2 className="h-5 w-5 text-clay" />
             ) : (
               <MapPin className="h-5 w-5 text-clay" />
@@ -81,6 +125,37 @@ export function PlannerFeaturePanel({
         </button>
       </div>
 
+      {isDetection ? (
+        <section className="mt-4 border-t border-sand pt-3">
+          <div className="rounded-lg bg-clay/10 px-3 py-2 text-xs leading-relaxed text-clay-dark">
+            Candidate change requiring human verification. This spatial relationship is not a legal determination.
+          </div>
+          <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <dt className="text-charcoal-muted">Detection ID</dt>
+              <dd className="font-semibold text-charcoal">{selection.detectionId}</dd>
+            </div>
+            <div>
+              <dt className="text-charcoal-muted">Confidence</dt>
+              <dd className="font-semibold text-charcoal">{Math.round(selection.confidence * 100)}%</dd>
+            </div>
+            <div className="col-span-2">
+              <dt className="text-charcoal-muted">Change</dt>
+              <dd className="font-semibold text-charcoal">{selection.changeType.replace(/_/g, " ")}</dd>
+            </div>
+          </dl>
+          <div className="mt-3 grid gap-2">
+            <Link to={`/planner/cases?search=${encodeURIComponent(selection.detectionId)}`}>
+              <Button variant="primary" size="sm" className="w-full justify-between">
+                Create or open case <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
+            <Button variant="secondary" size="sm" className="w-full justify-between" onClick={() => downloadBrief(selection)}>
+              Prepare LPLDP evidence brief <FileText className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </section>
+      ) : (
       <section className="mt-4 border-t border-sand pt-3">
         <h3 className="text-xs font-bold uppercase tracking-wider text-charcoal-muted">
           Property
@@ -130,6 +205,7 @@ export function PlannerFeaturePanel({
           )}
         </dl>
       </section>
+      )}
 
       <section className="mt-4 border-t border-sand pt-3">
         <h3 className="text-xs font-bold uppercase tracking-wider text-charcoal-muted">
@@ -141,27 +217,27 @@ export function PlannerFeaturePanel({
               <Ruler className="h-3.5 w-3.5" /> Nearest road
             </dt>
             <dd className="font-semibold text-charcoal">
-              {distance(selection.context?.roadDistanceM)}
+              {distance(context?.roadDistanceM)}
             </dd>
           </div>
           <div className="flex items-center justify-between gap-3">
             <dt className="text-charcoal-muted">Nearest river</dt>
             <dd className="font-semibold text-charcoal">
-              {distance(selection.context?.riverDistanceM)}
+              {distance(context?.riverDistanceM)}
             </dd>
           </div>
           <div className="flex items-center justify-between gap-3">
             <dt className="text-charcoal-muted">15 m river buffer</dt>
             <dd className="font-semibold text-charcoal">
-              {selection.context?.riverBufferOverlap == null
+              {context?.riverBufferOverlap == null
                 ? "Not assessed"
-                : selection.context.riverBufferOverlap
+                : context.riverBufferOverlap
                   ? "Spatial relationship detected"
                   : "No overlap observed"}
             </dd>
           </div>
         </dl>
-        {selection.context?.riverBufferOverlap && (
+        {context?.riverBufferOverlap && (
           <p className="mt-2 rounded-lg bg-clay/10 px-3 py-2 text-xs leading-relaxed text-clay-dark">
             Planning review required. This is a spatial relationship, not a
             legal determination.
@@ -197,6 +273,14 @@ export function PlannerFeaturePanel({
                 Review parcel cases <ExternalLink className="h-3.5 w-3.5" />
               </Button>
             </Link>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="w-full justify-between"
+              onClick={() => downloadBrief(selection)}
+            >
+              Prepare LPLDP evidence brief <FileText className="h-3.5 w-3.5" />
+            </Button>
           </div>
         </section>
       )}

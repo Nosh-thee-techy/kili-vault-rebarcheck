@@ -148,9 +148,13 @@ export async function verifyCase(
 export async function uploadEvidence(
   id: string,
   file: File,
+  metadata: Record<string, string | number | null | undefined> = {},
 ): Promise<{ success: boolean; data: DevelopmentCase }> {
   const form = new FormData();
   form.append("file", file);
+  Object.entries(metadata).forEach(([key, value]) => {
+    if (value != null) form.append(key, String(value));
+  });
   const response = await fetch(
     `${API_BASE}/api/v1/cases/${encodeURIComponent(id)}/evidence`,
     {

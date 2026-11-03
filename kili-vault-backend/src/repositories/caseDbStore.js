@@ -39,6 +39,7 @@ function mapEvidenceItem(row) {
     uploadedBy: row.uploaded_by,
     uploadedAt: row.created_at,
     status: row.status,
+    metadata: row.metadata || {},
   };
 }
 
@@ -75,8 +76,8 @@ async function loadRelated(caseId) {
       [caseId],
     ),
     db.query(
-      `SELECT id, type, file_name, storage_path, uploaded_by, status, created_at
-       FROM case_evidence_items WHERE case_id = $1 ORDER BY created_at DESC`,
+      `SELECT id, type, file_name, storage_path, uploaded_by, status, metadata, created_at
+      FROM case_evidence_items WHERE case_id = $1 ORDER BY created_at DESC`,
       [caseId],
     ),
   ]);
@@ -279,8 +280,8 @@ class CaseDbStore {
         existing.rows[0].status === 'MITIGATION_REQUIRED' ? 'EVIDENCE_SUBMITTED' : existing.rows[0].status;
 
       await client.query(
-        `INSERT INTO case_evidence_items (id, case_id, type, file_name, storage_path, uploaded_by, status, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        `INSERT INTO case_evidence_items (id, case_id, type, file_name, storage_path, uploaded_by, status, created_at, metadata)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb)`,
         [
           item.id,
           caseId,
@@ -290,6 +291,7 @@ class CaseDbStore {
           item.uploadedBy,
           item.status || 'submitted',
           item.uploadedAt || new Date().toISOString(),
+          JSON.stringify(item.metadata || {}),
         ],
       );
       await client.query(
@@ -322,7 +324,28 @@ class CaseDbStore {
 
   async verify(id, decision, auditEntry) {
     const status = decision === 'approved' ? 'VERIFIED' : 'REJECTED';
-    return this.updateStatus(id, status, auditEntry);
+    const updated = await this.updateStatus(id, status, auditEntry);
+    if (updated) {
+      await db.query(
+        `UPDATE case_evidence_items
+         SET status = $1,
+             metadata = metadata || $2::jsonb
+         WHERE case_id = $3`,
+        [
+          decision === 'approved' ? 'verified' : 'rejected',
+          JSON.stringify({
+            verification: {
+              status: decision === 'approved' ? 'verified' : 'rejected',
+              verifiedAt: auditEntry.timestamp || new Date().toISOString(),
+              verifiedBy: auditEntry.actor_name || null,
+            },
+          }),
+          updated.id,
+        ],
+      );
+      return this.findById(updated.id);
+    }
+    return updated;
   }
 
   async getStats() {

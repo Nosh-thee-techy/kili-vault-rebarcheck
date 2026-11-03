@@ -89,6 +89,26 @@ export function CaseEvidencePanel({ caseItem }: { caseItem: DevelopmentCase }) {
           <p className="text-sm leading-relaxed text-charcoal">{caseItem.evidence.explanation}</p>
         </div>
       )}
+
+      {(caseItem.evidenceItems?.length ?? 0) > 0 && (
+        <div className="mt-4 border-t border-sand pt-4">
+          <h3 className="text-sm font-semibold text-charcoal">Evidence provenance</h3>
+          <ul className="mt-2 space-y-2 text-xs text-charcoal-muted">
+            {caseItem.evidenceItems!.map((item) => {
+              const metadata = item.metadata;
+              const hasLocation = metadata?.latitude != null && metadata.longitude != null;
+              return (
+                <li key={item.id} className="rounded-xl border border-sand bg-mist/20 p-3">
+                  <div className="flex flex-wrap justify-between gap-2"><span className="font-semibold text-charcoal">{item.fileName}</span><span className="capitalize">{item.status}</span></div>
+                  <p className="mt-1">{hasLocation ? `Geotag: ${metadata.latitude!.toFixed(5)}, ${metadata.longitude!.toFixed(5)}${metadata.accuracyM != null ? ` ±${Math.round(metadata.accuracyM)} m` : ''}` : 'No device geotag recorded.'}</p>
+                  {metadata?.parcelRef && <p>Parcel reference: {metadata.parcelRef}</p>}
+                  {metadata?.detectionId && <p>Detection reference: {metadata.detectionId}</p>}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

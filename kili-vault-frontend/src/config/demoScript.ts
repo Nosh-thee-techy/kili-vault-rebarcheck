@@ -40,6 +40,15 @@ export const PRESENTER_STEPS: PresenterStep[] = [
     actionHint: "Select a parcel and open Planning context",
   },
   {
+    id: "planner-evidence-chain",
+    title: "Trace the evidence chain",
+    instruction:
+      "Select an observed spatial change to see its detection ID, confidence, verification status, case route, and one-click factual LPLDP evidence brief.",
+    path: "/planner/map",
+    requiredRole: "planner",
+    actionHint: "Click a dashed detection, then prepare the evidence brief",
+  },
+  {
     id: "developer-simulator",
     title: "Test a development scenario",
     instruction:

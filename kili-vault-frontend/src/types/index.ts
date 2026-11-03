@@ -45,6 +45,16 @@ export interface EvidenceItem {
   uploadedBy: string;
   uploadedAt: string;
   status: string;
+  metadata?: {
+    source?: string;
+    latitude?: number | null;
+    longitude?: number | null;
+    accuracyM?: number | null;
+    capturedAt?: string | null;
+    parcelRef?: string | null;
+    detectionId?: string | null;
+    verification?: Record<string, unknown>;
+  };
 }
 
 export interface PreDevFlag {

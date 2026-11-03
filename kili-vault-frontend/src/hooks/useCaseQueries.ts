@@ -122,8 +122,8 @@ export function useAddMitigation() {
 export function useUploadEvidence() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, file }: { id: string; file: File }) =>
-      uploadEvidence(id, file),
+    mutationFn: ({ id, file, metadata }: { id: string; file: File; metadata?: Record<string, string | number | null | undefined> }) =>
+      uploadEvidence(id, file, metadata),
     onSettled: (_d, _e, { id }) => {
       qc.invalidateQueries({ queryKey: caseKeys.detail(id) });
     },

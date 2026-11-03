@@ -27,6 +27,7 @@ export function CaseNextStepPanel({ caseItem }: { caseItem: DevelopmentCase }) {
   const [verifyNote, setVerifyNote] = useState('');
   const [showMitigationForm, setShowMitigationForm] = useState(false);
   const [minimized, setMinimized] = useState(false);
+  const [locationStatus, setLocationStatus] = useState<string | null>(null);
 
   if (!user) return null;
 
@@ -53,7 +54,28 @@ export function CaseNextStepPanel({ caseItem }: { caseItem: DevelopmentCase }) {
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) uploadEvidence.mutate({ id: caseItem.id, file });
+    if (!file) return;
+    const upload = (metadata: Record<string, string | number | null>) => {
+      uploadEvidence.mutate({ id: caseItem.id, file, metadata });
+    };
+    const fallback = () => upload({ source: 'user-upload', capturedAt: new Date().toISOString(), parcelRef: caseItem.parcelRef ?? null, detectionId: caseItem.detectionId ?? null });
+    if (!navigator.geolocation) {
+      setLocationStatus('Device location unavailable; uploaded without a geotag.');
+      fallback();
+      return;
+    }
+    setLocationStatus('Requesting device location...');
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocationStatus(`Geotag captured within ${Math.round(position.coords.accuracy)} m.`);
+        upload({ source: 'browser-geolocation', latitude: position.coords.latitude, longitude: position.coords.longitude, accuracy: position.coords.accuracy, capturedAt: new Date().toISOString(), parcelRef: caseItem.parcelRef ?? null, detectionId: caseItem.detectionId ?? null });
+      },
+      () => {
+        setLocationStatus('Location permission unavailable; uploaded without a geotag.');
+        fallback();
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
+    );
   };
 
   const showPlannerMitigation =
@@ -189,6 +211,7 @@ export function CaseNextStepPanel({ caseItem }: { caseItem: DevelopmentCase }) {
           {uploadEvidence.isPending && (
             <p className="mt-2 text-xs text-charcoal-muted">Uploading…</p>
           )}
+          {locationStatus && <p className="mt-2 text-xs leading-relaxed text-charcoal-muted">Evidence provenance: {locationStatus} Location is supporting evidence and requires human verification.</p>}
         </div>
       )}
 

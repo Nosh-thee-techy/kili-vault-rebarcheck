@@ -164,6 +164,7 @@ function mapEvidenceItem(e) {
     uploadedBy: e.uploadedBy || e.uploaded_by,
     uploadedAt: e.uploadedAt || e.uploaded_at,
     status: e.status,
+    metadata: e.metadata || {},
   };
 }
 
@@ -268,6 +269,7 @@ class CaseStore {
 
     store.cases[idx].evidence_items = store.cases[idx].evidence_items || [];
     store.cases[idx].evidence_items.unshift(item);
+    item.metadata = item.metadata || {};
     if (store.cases[idx].status === 'MITIGATION_REQUIRED') {
       store.cases[idx].status = 'EVIDENCE_SUBMITTED';
     }
@@ -283,6 +285,15 @@ class CaseStore {
     if (idx === -1) return null;
 
     store.cases[idx].status = decision === 'approved' ? 'VERIFIED' : 'REJECTED';
+    store.cases[idx].evidence_items = (store.cases[idx].evidence_items || []).map((item) => ({
+      ...item,
+      status: decision === 'approved' ? 'verified' : 'rejected',
+      verification: {
+        status: decision === 'approved' ? 'verified' : 'rejected',
+        verifiedAt: auditEntry.timestamp,
+        verifiedBy: auditEntry.actor_name,
+      },
+    }));
     store.cases[idx].updated_at = new Date().toISOString();
     store.cases[idx].audit_events.unshift(auditEntry);
     writeStore(store);

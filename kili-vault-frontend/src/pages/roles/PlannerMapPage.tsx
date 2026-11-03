@@ -4,7 +4,7 @@ import { ExternalLink } from "lucide-react";
 import { CaseListItem } from "@/components/cases/CaseListItem";
 import { MapLayerPanel } from "@/components/map/MapLayerPanel";
 import { PlannerFeaturePanel } from "@/components/map/PlannerFeaturePanel";
-import type { PlannerFeatureSelection } from "@/components/map/KilimaniMap";
+import type { PlannerMapSelection } from "@/components/map/KilimaniMap";
 import { Button } from "@/components/ui/Button";
 import { MapSkeleton } from "@/components/ui/Skeleton";
 import { MAP_LAYERS } from "@/config/mapLayers";
@@ -36,7 +36,7 @@ export function PlannerMapPage() {
   const [showCases, setShowCases] = useState(true);
   const [showDetections, setShowDetections] = useState(true);
   const [featureSelection, setFeatureSelection] =
-    useState<PlannerFeatureSelection | null>(null);
+    useState<PlannerMapSelection | null>(null);
   const [clearSelectionToken, setClearSelectionToken] = useState(0);
 
   const selectedCase = useMemo(

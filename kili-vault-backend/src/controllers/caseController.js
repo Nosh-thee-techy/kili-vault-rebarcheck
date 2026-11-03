@@ -111,6 +111,7 @@ async function uploadEvidence(req, res, next) {
         fileName: req.file.originalname,
         url,
         type: req.file.mimetype?.startsWith("image/") ? "photo" : "document",
+        metadata: parseEvidenceMetadata(req.body),
       },
       req.user,
     );
@@ -118,6 +119,21 @@ async function uploadEvidence(req, res, next) {
   } catch (err) {
     next(err);
   }
+}
+
+function parseEvidenceMetadata(body = {}) {
+  const latitude = Number(body.latitude);
+  const longitude = Number(body.longitude);
+  const accuracy = Number(body.accuracy);
+  return {
+    source: body.source || "user-upload",
+    latitude: Number.isFinite(latitude) ? latitude : null,
+    longitude: Number.isFinite(longitude) ? longitude : null,
+    accuracyM: Number.isFinite(accuracy) ? accuracy : null,
+    capturedAt: body.capturedAt || null,
+    parcelRef: body.parcelRef || null,
+    detectionId: body.detectionId || null,
+  };
 }
 
 async function serveEvidence(req, res, next) {

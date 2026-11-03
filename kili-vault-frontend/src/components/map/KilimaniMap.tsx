@@ -50,6 +50,21 @@ export interface PlannerFeatureSelection {
   };
 }
 
+export interface PlannerDetectionSelection {
+  kind: "detection";
+  layerId: string;
+  layerTitle: string;
+  geometry: __esri.Geometry;
+  attributes: Record<string, unknown>;
+  detectionId: string;
+  changeType: string;
+  confidence: number;
+}
+
+export type PlannerMapSelection =
+  | PlannerFeatureSelection
+  | PlannerDetectionSelection;
+
 interface KilimaniMapProps {
   cases: DevelopmentCase[];
   detectionsGeoJSON?: GeoJSON.FeatureCollection;
@@ -60,7 +75,7 @@ interface KilimaniMapProps {
   colorByStatus?: boolean;
   onCaseSelect?: (caseId: string) => void;
   caseLinkPrefix?: string;
-  onFeatureSelect?: (selection: PlannerFeatureSelection | null) => void;
+  onFeatureSelect?: (selection: PlannerMapSelection | null) => void;
   clearSelectionToken?: number;
   className?: string;
 }
@@ -408,7 +423,16 @@ export function KilimaniMap({
             changeType: String(attrs.change_type ?? "UNKNOWN"),
             confidence: Number(attrs.confidence ?? 0),
           });
-          onFeatureSelectRef.current?.(null);
+          onFeatureSelectRef.current?.({
+            kind: "detection",
+            layerId: "detections",
+            layerTitle: "Observed spatial change",
+            geometry: detectionHit.graphic.geometry,
+            attributes: attrs as Record<string, unknown>,
+            detectionId: String(attrs.id ?? "Unknown"),
+            changeType: String(attrs.change_type ?? "UNKNOWN"),
+            confidence: Number(attrs.confidence ?? 0),
+          });
           view
             .goTo({ target: detectionHit.graphic, zoom: 18 })
             .catch(() => undefined);

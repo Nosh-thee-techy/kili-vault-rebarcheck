@@ -42,7 +42,10 @@ CREATE TABLE IF NOT EXISTS case_evidence_items (
     uploaded_by VARCHAR(128),
     status VARCHAR(32) NOT NULL DEFAULT 'submitted',
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb
 );
+
+ALTER TABLE case_evidence_items ADD COLUMN IF NOT EXISTS metadata JSONB NOT NULL DEFAULT '{}'::jsonb;
 
 CREATE INDEX IF NOT EXISTS idx_cases_status ON development_cases(status);
 CREATE INDEX IF NOT EXISTS idx_cases_geom ON development_cases USING GIST(geometry);

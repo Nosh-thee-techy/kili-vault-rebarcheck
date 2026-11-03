@@ -22,6 +22,7 @@ export function CaseWorkflowActions({ caseItem }: { caseItem: DevelopmentCase })
   const [mitigationText, setMitigationText] = useState('Infrastructure assessment required');
   const [assignedDeveloperId, setAssignedDeveloperId] = useState(DEFAULT_DEVELOPER_ID);
   const [verifyNote, setVerifyNote] = useState('');
+  const [locationStatus, setLocationStatus] = useState<string | null>(null);
 
   if (!user) return null;
 
@@ -41,7 +42,35 @@ export function CaseWorkflowActions({ caseItem }: { caseItem: DevelopmentCase })
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) uploadEvidence.mutate({ id: caseItem.id, file });
+    if (!file) return;
+    const upload = (metadata: Record<string, string | number | null>) => {
+      uploadEvidence.mutate({ id: caseItem.id, file, metadata });
+    };
+    if (!navigator.geolocation) {
+      setLocationStatus('Location unavailable; uploading without a device geotag.');
+      upload({ source: 'user-upload', capturedAt: new Date().toISOString(), parcelRef: caseItem.parcelRef ?? null, detectionId: caseItem.detectionId ?? null });
+      return;
+    }
+    setLocationStatus('Requesting device location...');
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocationStatus(`Geotag captured within ${Math.round(position.coords.accuracy)} m.`);
+        upload({
+          source: 'browser-geolocation',
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          capturedAt: new Date().toISOString(),
+          parcelRef: caseItem.parcelRef ?? null,
+          detectionId: caseItem.detectionId ?? null,
+        });
+      },
+      () => {
+        setLocationStatus('Location permission was unavailable; uploading without a device geotag.');
+        upload({ source: 'user-upload', capturedAt: new Date().toISOString(), parcelRef: caseItem.parcelRef ?? null, detectionId: caseItem.detectionId ?? null });
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
+    );
   };
 
   return (
@@ -108,6 +137,11 @@ export function CaseWorkflowActions({ caseItem }: { caseItem: DevelopmentCase })
           />
           {uploadEvidence.isPending && (
             <p className="text-xs text-charcoal-muted">Uploading…</p>
+          )}
+          {locationStatus && (
+            <p className="text-xs leading-relaxed text-charcoal-muted">
+              Evidence provenance: {locationStatus} The location is supporting evidence and requires human verification.
+            </p>
           )}
         </div>
       )}

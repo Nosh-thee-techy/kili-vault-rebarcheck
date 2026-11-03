@@ -180,6 +180,7 @@ class CaseService {
       uploadedBy: user.name,
       uploadedAt: new Date().toISOString(),
       status: 'submitted',
+      metadata: fileMeta.metadata || {},
     };
     const auditEntry = {
       id: uuidv4(),
@@ -188,7 +189,9 @@ class CaseService {
       actor_id: user.id,
       actor_name: user.name,
       timestamp: new Date().toISOString(),
-      details: fileMeta.fileName,
+      details: fileMeta.metadata?.latitude != null
+        ? `${fileMeta.fileName} · geotag ${fileMeta.metadata.latitude}, ${fileMeta.metadata.longitude}`
+        : fileMeta.fileName,
     };
     return caseRepository.addEvidence(existing.id, item, auditEntry);
   }
