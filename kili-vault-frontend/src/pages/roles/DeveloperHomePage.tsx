@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { CheckCircle2, CircleDashed, ClipboardCheck } from 'lucide-react';
+import { ArrowRight, CheckCircle2, CircleDashed, Sparkles } from 'lucide-react';
 import { CaseListItem } from '@/components/cases/CaseListItem';
 import { DeveloperActionCard } from '@/components/dashboard/DeveloperActionCard';
 import { PageHero } from '@/components/dashboard/PageHero';
@@ -18,19 +18,29 @@ export function DeveloperHomePage() {
 
   return (
     <div className="space-y-8 animate-fade-up">
+      <Link
+        to="/developer/check"
+        className="block rounded-2xl border border-forest/25 bg-gradient-to-br from-forest/10 via-off-white to-clay/5 p-5 shadow-soft transition-shadow hover:shadow-lift"
+      >
+        <div className="flex items-start gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-forest/15 text-forest">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-bold uppercase tracking-wider text-forest">Before you build</p>
+            <h2 className="mt-1 font-display text-xl font-bold text-charcoal">Check a plot first</h2>
+            <p className="mt-1 text-sm text-charcoal-muted">
+              Pin your site, answer 4 quick questions, get a risk readout — before satellite flags you.
+            </p>
+          </div>
+          <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-forest" />
+        </div>
+      </Link>
+
       <PageHero
-        eyebrow="Compliance workspace"
+        eyebrow="After detection"
         title="My development cases"
-        description="Plain-language view of what you owe, what you've submitted, and where verification stands — no GIS jargon required."
-        action={
-          <Link
-            to="/developer/check"
-            className="inline-flex h-11 items-center gap-2 rounded-xl border-2 border-forest/20 bg-off-white px-5 text-sm font-semibold text-forest transition-colors hover:border-forest/40 hover:bg-sand/50"
-          >
-            <ClipboardCheck className="h-4 w-4" />
-            Check a plot
-          </Link>
-        }
+        description="Cases assigned to you after the ward flags a change — upload proof and track verification."
       />
 
       <div className="grid gap-3 sm:grid-cols-3">

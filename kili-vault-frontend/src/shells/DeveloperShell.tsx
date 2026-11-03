@@ -11,7 +11,7 @@ export function DeveloperShell() {
     <RoleShell
       navItems={nav}
       mobileNavItems={nav}
-      subtitle="Developer · Compliance responses"
+      subtitle="Developer · Check & comply"
     />
   );
 }

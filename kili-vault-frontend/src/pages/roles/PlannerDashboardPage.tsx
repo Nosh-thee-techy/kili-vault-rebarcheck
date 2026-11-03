@@ -11,29 +11,17 @@ import { WorkflowPipeline } from '@/components/dashboard/WorkflowPipeline';
 import { Button } from '@/components/ui/Button';
 import { MapSkeleton, CaseListSkeleton } from '@/components/ui/Skeleton';
 import { MAP_LAYERS } from '@/config/mapLayers';
+import { usePresenter } from '@/context/PresenterContext';
 import { useCasesQuery, useNormalizedCaseStats } from '@/hooks/useCaseQueries';
 import { useDetectionStatsQuery, useDetectionsGeoJSONQuery } from '@/hooks/useDetectionQueries';
-import type { DevelopmentCase } from '@/types';
+import { pickDemoSpotlightCase } from '@/lib/demoSpotlightCase';
 
 const KilimaniMap = lazy(() =>
   import('@/components/map/KilimaniMap').then((m) => ({ default: m.KilimaniMap })),
 );
 
-function pickSpotlight(cases: DevelopmentCase[]): DevelopmentCase | undefined {
-  const candidates = cases.filter(
-    (c) => c.status === 'AI_FLAGGED' || c.status === 'UNDER_REVIEW' || c.risk.overall === 'HIGH',
-  );
-  return (
-    candidates.sort((a, b) => {
-      const riskScore = { HIGH: 3, MEDIUM: 2, LOW: 1 };
-      return (
-        riskScore[b.risk.overall] - riskScore[a.risk.overall] || b.confidence - a.confidence
-      );
-    })[0] ?? cases[0]
-  );
-}
-
 export function PlannerDashboardPage() {
+  const { isActive, spotlightCaseId } = usePresenter();
   const { data, isLoading } = useCasesQuery({ limit: 50 });
   const { stats, isLoading: statsLoading } = useNormalizedCaseStats();
   const { data: detectionStats } = useDetectionStatsQuery();
@@ -42,7 +30,13 @@ export function PlannerDashboardPage() {
   const reviewQueue = cases.filter(
     (c) => c.status === 'AI_FLAGGED' || c.status === 'UNDER_REVIEW',
   );
-  const spotlight = useMemo(() => pickSpotlight(cases), [cases]);
+  const spotlight = useMemo(() => {
+    if (isActive && spotlightCaseId) {
+      const matched = cases.find((c) => c.id === spotlightCaseId);
+      if (matched) return matched;
+    }
+    return pickDemoSpotlightCase(cases);
+  }, [cases, isActive, spotlightCaseId]);
 
   const [layerVisibility] = useState(() =>
     Object.fromEntries(MAP_LAYERS.map((l) => [l.id, l.defaultVisible])),

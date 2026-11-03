@@ -16,7 +16,24 @@ export interface MapLayerConfig {
   group: MapLayerGroup;
   geometryType: 'polygon' | 'polyline';
   description: string;
+  lineColor?: string;
+  /** CSS color or rgba(), e.g. `rgba(76, 129, 205, 0.28)` */
+  fillColor?: string;
+  outlineColor?: string;
+  lineWidth?: number;
 }
+
+/** Layers shown on 3D site / pre-dev maps for infrastructure context */
+export const SITE_INFRA_LAYER_IDS = [
+  'buildings',
+  'roads',
+  'sewer-areas',
+  'power-lines',
+  'rivers',
+  'river-buffer',
+] as const;
+
+export type SiteInfraLayerId = (typeof SITE_INFRA_LAYER_IDS)[number];
 
 export const MAP_LAYERS: MapLayerConfig[] = [
   {
@@ -87,7 +104,33 @@ export const MAP_LAYERS: MapLayerConfig[] = [
     defaultVisible: true,
     group: 'infrastructure',
     geometryType: 'polyline',
-    description: 'Road centre-lines for proximity and impact assessment.',
+    lineColor: '#4A4A4F',
+    lineWidth: 2,
+    description: 'Road centre-lines — use with proximity ring to judge frontage and setbacks.',
+  },
+  {
+    id: 'sewer-areas',
+    title: 'Sewered Areas',
+    url: `${ARCGIS_HOST}/Sewered_Areas/FeatureServer`,
+    layerId: 0,
+    defaultVisible: true,
+    group: 'infrastructure',
+    geometryType: 'polygon',
+    fillColor: 'rgba(76, 129, 205, 0.28)',
+    outlineColor: '#4C81CD',
+    description: 'NCWSC sewered catchments — plots inside may tie to existing trunk lines.',
+  },
+  {
+    id: 'power-lines',
+    title: '11 kV Power Lines',
+    url: `${ARCGIS_HOST}/11kv_powerlines/FeatureServer`,
+    layerId: 0,
+    defaultVisible: true,
+    group: 'infrastructure',
+    geometryType: 'polyline',
+    lineColor: '#A553B7',
+    lineWidth: 2.5,
+    description: 'KPLC 11 kV feeders — clearance and wayleave checks near high-voltage routes.',
   },
   {
     id: 'rivers',

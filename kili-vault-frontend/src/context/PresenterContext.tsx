@@ -2,6 +2,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -15,21 +16,13 @@ import {
   type PresenterStep,
 } from '@/config/demoScript';
 import { getCases, setApiAuthUser } from '@/lib/api';
-import type { DevelopmentCase, UserRole } from '@/types';
+import { isDemoEligibleCase, pickDemoSpotlightCase } from '@/lib/demoSpotlightCase';
+import type { UserRole } from '@/types';
 
 const ACTIVE_KEY = 'kili-vault-presenter-active';
 const STEP_KEY = 'kili-vault-presenter-step';
 const CASE_KEY = 'kili-vault-presenter-case';
 const MINIMIZED_KEY = 'kili-vault-presenter-minimized';
-
-function pickSpotlightCase(cases: DevelopmentCase[]): DevelopmentCase | undefined {
-  const candidates = cases.filter(
-    (c) => c.status === 'AI_FLAGGED' || c.status === 'UNDER_REVIEW' || c.risk.overall === 'HIGH',
-  );
-  return (
-    candidates.sort((a, b) => b.confidence - a.confidence)[0] ?? cases[0]
-  );
-}
 
 interface PresenterContextValue {
   isActive: boolean;
@@ -38,7 +31,7 @@ interface PresenterContextValue {
   step: PresenterStep | null;
   totalSteps: number;
   spotlightCaseId: string | null;
-  setSpotlightCaseId: (id: string) => void;
+  setSpotlightCaseId: (id: string | null) => void;
   start: (caseId?: string) => Promise<void>;
   next: () => void;
   prev: () => void;
@@ -66,10 +59,25 @@ export function PresenterProvider({ children }: { children: ReactNode }) {
     () => sessionStorage.getItem(MINIMIZED_KEY) === '1',
   );
 
-  const setSpotlightCaseId = useCallback((id: string) => {
-    sessionStorage.setItem(CASE_KEY, id);
+  const setSpotlightCaseId = useCallback((id: string | null) => {
+    if (id) {
+      sessionStorage.setItem(CASE_KEY, id);
+    } else {
+      sessionStorage.removeItem(CASE_KEY);
+    }
     setSpotlightCaseIdState(id);
   }, []);
+
+  const refreshSpotlightCase = useCallback(async () => {
+    const res = await getCases({ limit: 50 });
+    const picked = pickDemoSpotlightCase(res.data);
+    if (picked) {
+      setSpotlightCaseId(picked.id);
+      return picked.id;
+    }
+    setSpotlightCaseId(null);
+    return null;
+  }, [setSpotlightCaseId]);
 
   const ensureRole = useCallback(
     (role: UserRole) => {
@@ -111,26 +119,48 @@ export function PresenterProvider({ children }: { children: ReactNode }) {
       login('planner');
       setApiAuthUser(DEMO_USERS.planner);
 
-      let resolvedId = caseId ?? spotlightCaseId ?? undefined;
+      let resolvedId: string | null = caseId ?? null;
       if (!resolvedId) {
         try {
-          const res = await getCases({ limit: 30 });
-          resolvedId = pickSpotlightCase(res.data)?.id;
+          resolvedId = await refreshSpotlightCase();
         } catch {
           // cases API unavailable — guide still works on /planner
         }
+      } else {
+        setSpotlightCaseId(resolvedId);
       }
-      if (resolvedId) setSpotlightCaseId(resolvedId);
 
       setIsActive(true);
       setIsMinimized(false);
       sessionStorage.setItem(MINIMIZED_KEY, '0');
       setStepIndex(0);
       persist(true, 0);
-      applyStep(0, resolvedId ?? null);
+      applyStep(0, resolvedId);
     },
-    [applyStep, login, persist, setSpotlightCaseId, spotlightCaseId],
+    [applyStep, login, persist, refreshSpotlightCase, setSpotlightCaseId],
   );
+
+  useEffect(() => {
+    if (!isActive || !spotlightCaseId) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await getCases({ limit: 50 });
+        if (cancelled) return;
+        const current = res.data.find((c) => c.id === spotlightCaseId);
+        if (!current || !isDemoEligibleCase(current)) {
+          await refreshSpotlightCase();
+        }
+      } catch {
+        // keep existing spotlight if API unavailable
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isActive, spotlightCaseId, refreshSpotlightCase]);
 
   const goToStep = useCallback(
     (index: number) => {
@@ -156,8 +186,9 @@ export function PresenterProvider({ children }: { children: ReactNode }) {
     setIsActive(false);
     setIsMinimized(false);
     sessionStorage.setItem(MINIMIZED_KEY, '0');
+    setSpotlightCaseId(null);
     persist(false, 0);
-  }, [persist]);
+  }, [persist, setSpotlightCaseId]);
 
   const toggleMinimized = useCallback(() => {
     setIsMinimized((prev) => {

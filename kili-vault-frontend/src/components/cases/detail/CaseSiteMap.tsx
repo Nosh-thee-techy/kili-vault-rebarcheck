@@ -1,17 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Map from '@arcgis/core/Map';
 import SceneView from '@arcgis/core/views/SceneView';
-import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import GeoJSONLayer from '@arcgis/core/layers/GeoJSONLayer';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import { Maximize2, Minimize2 } from 'lucide-react';
-import { MAP_LAYERS } from '@/config/mapLayers';
+import { MAP_LAYERS, SITE_INFRA_LAYER_IDS, type SiteInfraLayerId } from '@/config/mapLayers';
+import { createMapFeatureLayer } from '@/lib/mapFeatureLayer';
+import type FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import { MapSkeleton } from '@/components/ui/Skeleton';
 import { cn } from '@/lib/cn';
 import type { DevelopmentCase } from '@/types';
 
-const SITE_LAYERS = ['buildings', 'roads', 'rivers', 'river-buffer'] as const;
+const SITE_LAYERS = SITE_INFRA_LAYER_IDS;
 
 function caseFootprintGeoJSON(caseItem: DevelopmentCase): GeoJSON.FeatureCollection {
   if (!caseItem.geometry) {
@@ -44,9 +45,11 @@ export function CaseSiteMap({
   const [ready, setReady] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mode3d, setMode3d] = useState(true);
-  const [layerVisibility, setLayerVisibility] = useState<Record<string, boolean>>({
+  const [layerVisibility, setLayerVisibility] = useState<Record<SiteInfraLayerId, boolean>>({
     buildings: true,
     roads: true,
+    'sewer-areas': true,
+    'power-lines': true,
     rivers: false,
     'river-buffer': true,
   });
@@ -63,19 +66,12 @@ export function CaseSiteMap({
     });
 
     const featureLayers: Record<string, FeatureLayer> = {};
-    MAP_LAYERS.filter((l) => SITE_LAYERS.includes(l.id as (typeof SITE_LAYERS)[number])).forEach(
-      (config) => {
-        const layer = new FeatureLayer({
-          id: config.id,
-          url: `${config.url}/${config.layerId}`,
-          title: config.title,
-          visible: layerVisibility[config.id] ?? true,
-          opacity: config.geometryType === 'polygon' ? 0.65 : 0.9,
-        });
-        featureLayers[config.id] = layer;
-        map.add(layer);
-      },
-    );
+    MAP_LAYERS.filter((l) => SITE_LAYERS.includes(l.id as SiteInfraLayerId)).forEach((config) => {
+      const id = config.id as SiteInfraLayerId;
+      const layer = createMapFeatureLayer(config, layerVisibility[id] ?? true);
+      featureLayers[id] = layer;
+      map.add(layer);
+    });
     featureLayersRef.current = featureLayers;
 
     const footprintUrl = URL.createObjectURL(
@@ -315,7 +311,9 @@ export function CaseSiteMap({
                 : 'bottom-3 left-3 bg-off-white/90 text-charcoal-muted',
             )}
           >
-            {mode3d ? 'Tilt view · buildings, roads & riparian buffers' : 'Top-down view'}
+            {mode3d
+              ? 'Tilt view · buildings, roads, sewers & power'
+              : 'Top-down view'}
           </p>
 
           {isFullscreen && (
