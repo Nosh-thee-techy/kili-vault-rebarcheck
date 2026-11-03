@@ -31,15 +31,15 @@ app.use(
 // 2. CORS Configuration
 app.use(
   cors({
-    origin: config.CORS_ORIGIN === "*" ? true : config.CORS_ORIGIN.split(","),
-    methods: ["GET", "POST", "PATCH", "OPTIONS"],
+    origin: config.CORS_ORIGIN === '*' ? true : config.CORS_ORIGIN.split(','),
+    methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
     allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "X-Request-ID",
-      "X-User-Role",
-      "X-User-Id",
-      "X-User-Name",
+      'Content-Type',
+      'Authorization',
+      'X-Request-ID',
+      'X-User-Role',
+      'X-User-Id',
+      'X-User-Name',
     ],
     credentials: true,
   }),
@@ -103,6 +103,19 @@ const getEngineInfo = (req, res) => {
         geojson: "/api/v1/detections/geojson",
         stats: "/api/v1/detections/stats",
         get: "/api/v1/detections/:id",
+      },
+      cases: {
+        list: '/api/v1/cases',
+        geojson: '/api/v1/cases/geojson',
+        stats: '/api/v1/cases/stats',
+        get: '/api/v1/cases/:id',
+        update_status: 'PATCH /api/v1/cases/:id/status',
+        mitigation: 'POST /api/v1/cases/:id/mitigation',
+        evidence: 'POST /api/v1/cases/:id/evidence',
+        verify: 'POST /api/v1/cases/:id/verify',
+        observations: 'GET/POST /api/v1/cases/observations',
+        promote_detections: 'POST /api/v1/cases/promote-detections',
+        unpromoted_detections: 'GET /api/v1/cases/unpromoted-detections',
       },
       processing: {
         runs: "/api/v1/processing/runs",

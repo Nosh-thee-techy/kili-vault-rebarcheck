@@ -8,8 +8,9 @@ const path = require("path");
 const dotenv = require("dotenv");
 const { z } = require("zod");
 
-// Load environment variables from .env if present
+// Load .env then .env.local (local overrides; never commit either)
 dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, "../../.env.local"), override: true });
 
 // Define configuration validation schema
 const configSchema = z.object({

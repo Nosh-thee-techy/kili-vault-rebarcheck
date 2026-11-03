@@ -2,21 +2,24 @@
  * Kili-Vault: Earth Observation & Model Training Backend Server
  * High-performance Express API for Sentinel-2 detection & automated training.
  */
-import app from "./src/app.js";
-import db from "./src/repositories/db.js";
-import logger from "./src/utils/logger.js";
+import app from './src/app.js';
+import db from './src/repositories/db.js';
+import caseRepository from './src/repositories/caseRepository.js';
+import logger from './src/utils/logger.js';
 
 async function startServer() {
+  const storage = await caseRepository.getStorageInfo();
+  logger.info('[startup] Case storage mode', { mode: storage.mode });
   const PORT = Number(process.env.PORT || 3000);
-  const HOST = process.env.HOST || "0.0.0.0";
+  const HOST = process.env.HOST || '0.0.0.0';
 
   const server = app.listen(PORT, HOST, () => {
     logger.info(
       `Kili-Vault Earth Observation & Model Training engine running on http://${HOST}:${PORT}`,
       {
-        env: process.env.NODE_ENV || "development",
-        aoi: "Kilimani Ward, Nairobi",
-        api_base: "/api/v1",
+        env: process.env.NODE_ENV || 'development',
+        aoi: 'Kilimani Ward, Nairobi',
+        api_base: '/api/v1',
       },
     );
     console.log(
@@ -59,12 +62,12 @@ async function startServer() {
     setTimeout(() => process.exit(1), 10000).unref();
   };
 
-  process.on("SIGTERM", () => handleShutdown("SIGTERM"));
-  process.on("SIGINT", () => handleShutdown("SIGINT"));
+  process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+  process.on('SIGINT', () => handleShutdown('SIGINT'));
 }
 
 startServer().catch((err) => {
-  logger.error("Failed to boot Kili-Vault server", {
+  logger.error('Failed to boot Kili-Vault server', {
     error: err.message,
     stack: err.stack,
   });

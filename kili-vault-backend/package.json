@@ -12,7 +12,15 @@
     "train": "python3 -u scripts/train_models.py",
     "verify": "python3 -u scripts/verify_models.py",
     "pipeline:auto": "python3 -u scripts/run_automated_pipeline.py",
-    "pipeline:live": "python -u scripts/run_pipeline.py"
+    "pipeline:live": "python -u scripts/run_pipeline.py",
+    "db:setup": "node scripts/setup_database.js",
+    "db:migrate-cases": "node scripts/setup_database.js --force-migrate",
+    "stack:check": "node scripts/check_stack.js",
+    "gee:verify": "python scripts/verify_gee.py",
+    "gee:run": "python -m gee.main --output output/detections.geojson --summary output/processing_summary.json",
+    "gee:ingest": "node scripts/ingest_detections.js",
+    "cases:promote": "node scripts/promote_detections.js",
+    "pipeline:full": "npm run gee:run && npm run gee:ingest && npm run cases:promote -- --min-confidence=0.75 --limit=25"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -26,6 +34,7 @@
     "multer": "^2.0.2",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
+    "multer": "^2.4.0",
     "pg": "^8.23.0",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
