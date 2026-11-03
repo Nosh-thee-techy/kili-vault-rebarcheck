@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS case_evidence_items (
     storage_path TEXT NOT NULL,
     uploaded_by VARCHAR(128),
     status VARCHAR(32) NOT NULL DEFAULT 'submitted',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     metadata JSONB NOT NULL DEFAULT '{}'::jsonb
 );
 
