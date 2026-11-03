@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 820" width="1120" height="820" role="img" aria-labelledby="title desc">
+  <title id="title">Kili-Vault layered architecture</title>
+  <desc id="desc">Experience, application, data, and observation layers.</desc>
+  <rect width="1120" height="820" fill="#F6F3EC"/>
+  <text x="40" y="46" fill="#14302C" font-family="Segoe UI, sans-serif" font-size="22" font-weight="700">Layered architecture</text>
+  <text x="40" y="72" fill="#4A625C" font-family="Segoe UI, sans-serif" font-size="14">What runs where, from the browser down to satellite processing.</text>
+
+  <g font-family="Segoe UI, sans-serif">
+    <rect x="40" y="100" width="1040" height="150" rx="16" fill="#FFFFFF" stroke="#1F4E4A" stroke-width="1.5"/>
+    <text x="64" y="132" fill="#1F4E4A" font-size="12" font-weight="700" letter-spacing="1.2">EXPERIENCE</text>
+    <text x="64" y="158" fill="#14302C" font-size="16" font-weight="700">React, TypeScript, Vite, Calcite, ArcGIS Maps SDK</text>
+    <text x="64" y="186" fill="#4A625C" font-size="14">Planner, developer, agency, and community portals. Shared case detail.</text>
+    <text x="64" y="212" fill="#4A625C" font-size="14">Map reads ArcGIS FeatureServers directly. Cases and detections come from the API.</text>
+
+    <rect x="40" y="270" width="1040" height="170" rx="16" fill="#14302C"/>
+    <text x="64" y="302" fill="#E4C36A" font-size="12" font-weight="700" letter-spacing="1.2">APPLICATION</text>
+    <text x="64" y="330" fill="#F6F3EC" font-size="16" font-weight="700">Express API  �  /api/v1</text>
+    <text x="64" y="360" fill="#C9DDD8" font-size="14">Detections, processing runs, models, cases, evidence, observations,</text>
+    <text x="64" y="384" fill="#C9DDD8" font-size="14">pre-development checks, verification, and the property record.</text>
+    <text x="64" y="412" fill="#E4C36A" font-size="13">Role checks on every case route. Audit event on every transition.</text>
+
+    <rect x="40" y="460" width="500" height="160" rx="16" fill="#FFFFFF" stroke="#1F4E4A" stroke-width="1.5"/>
+    <text x="64" y="492" fill="#1F4E4A" font-size="12" font-weight="700" letter-spacing="1.2">SYSTEM OF RECORD</text>
+    <text x="64" y="522" fill="#14302C" font-size="16" font-weight="700">PostgreSQL + PostGIS</text>
+    <text x="64" y="552" fill="#4A625C" font-size="14">Detections, runs, cases, audit, observations.</text>
+    <text x="64" y="576" fill="#4A625C" font-size="14">Geometries stored as EPSG:4326.</text>
+
+    <rect x="560" y="460" width="520" height="160" rx="16" fill="#FFFFFF" stroke="#1F4E4A" stroke-width="1.5"/>
+    <text x="584" y="492" fill="#1F4E4A" font-size="12" font-weight="700" letter-spacing="1.2">FILES AND REFERENCE LAYERS</text>
+    <text x="584" y="522" fill="#14302C" font-size="16" font-weight="700">Evidence files  �  ArcGIS services</text>
+    <text x="584" y="552" fill="#4A625C" font-size="14">Uploads stored on disk, linked from the case.</text>
+    <text x="584" y="576" fill="#4A625C" font-size="14">Parcels and infrastructure stay in ArcGIS.</text>
+
+    <rect x="40" y="640" width="1040" height="140" rx="16" fill="#E7F0EE" stroke="#1F4E4A" stroke-width="1.5"/>
+    <text x="64" y="674" fill="#1F4E4A" font-size="12" font-weight="700" letter-spacing="1.2">OBSERVATION PIPELINE</text>
+    <text x="64" y="704" fill="#14302C" font-size="16" font-weight="700">Python  �  Earth Engine  �  spectral baseline + Prithvi-EO + persistence</text>
+    <text x="64" y="734" fill="#4A625C" font-size="14">Produces GeoJSON. An idempotent ingest writes new polygons into PostGIS.</text>
+    <text x="64" y="758" fill="#4A625C" font-size="14">A detection is a candidate change. A planner promotes it into a case.</text>
+  </g>
+</svg>

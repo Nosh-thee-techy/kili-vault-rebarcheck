@@ -74,9 +74,14 @@ The 3D massing view is intentionally deferred. The current demo prioritizes the 
 
 - `kili-vault-frontend/` - React, TypeScript, Vite, and ArcGIS planner interface
 - `kili-vault-backend/` - Node API, case workflow, evidence handling, and Python pipeline integration
-- `docs/` - project-level development notes
+- `docs/` - product guide and system architecture
 - `featurelayers.md` - ArcGIS feature-layer inventory
 - `kilimani_zoning_guidelines-v2.md` - zoning reference used by planning tools
+
+## Documentation
+
+- [What we built](docs/WHAT_WE_BUILT.md) — the four portals, the case workflow, the map, and what is still unfinished
+- [System architecture](docs/SYSTEM_ARCHITECTURE.md) — layers, data stores, detection pipeline, and request paths
 
 ## Local development
 

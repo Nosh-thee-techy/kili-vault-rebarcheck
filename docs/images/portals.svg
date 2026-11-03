@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 460" width="1120" height="460" role="img" aria-labelledby="title desc">
+  <title id="title">Kili-Vault portals</title>
+  <desc id="desc">The four signed-in workspaces and the shared case screen.</desc>
+  <rect width="1120" height="460" fill="#F6F3EC"/>
+  <text x="32" y="42" fill="#14302C" font-family="Segoe UI, sans-serif" font-size="20" font-weight="700">Four portals, one case record</text>
+  <text x="32" y="68" fill="#4A625C" font-family="Segoe UI, sans-serif" font-size="14">Login chooses the workspace. The case page is shared.</text>
+  <g font-family="Segoe UI, sans-serif">
+    <rect x="32" y="100" width="250" height="230" rx="14" fill="#14302C"/>
+    <text x="52" y="134" fill="#E4C36A" font-size="12" font-weight="700">PLANNER</text>
+    <text x="52" y="164" fill="#F6F3EC" font-size="16" font-weight="700">Command center</text>
+    <text x="52" y="196" fill="#C9DDD8" font-size="13">/planner</text>
+    <text x="52" y="220" fill="#C9DDD8" font-size="13">/planner/map</text>
+    <text x="52" y="244" fill="#C9DDD8" font-size="13">/planner/cases</text>
+    <text x="52" y="292" fill="#F6F3EC" font-size="12">Ward map, queue, closure</text>
+
+    <rect x="300" y="100" width="250" height="230" rx="14" fill="#FFFFFF" stroke="#1F4E4A" stroke-width="1.5"/>
+    <text x="320" y="134" fill="#1F4E4A" font-size="12" font-weight="700">DEVELOPER</text>
+    <text x="320" y="164" fill="#14302C" font-size="16" font-weight="700">Check and comply</text>
+    <text x="320" y="196" fill="#4A625C" font-size="13">/developer</text>
+    <text x="320" y="220" fill="#4A625C" font-size="13">/developer/check</text>
+    <text x="320" y="244" fill="#4A625C" font-size="13">/developer/simulator</text>
+    <text x="320" y="292" fill="#14302C" font-size="12">Plot check, scenarios, uploads</text>
+
+    <rect x="568" y="100" width="250" height="230" rx="14" fill="#FFFFFF" stroke="#1F4E4A" stroke-width="1.5"/>
+    <text x="588" y="134" fill="#1F4E4A" font-size="12" font-weight="700">AGENCY</text>
+    <text x="588" y="164" fill="#14302C" font-size="16" font-weight="700">Verification</text>
+    <text x="588" y="196" fill="#4A625C" font-size="13">/agency</text>
+    <text x="588" y="244" fill="#4A625C" font-size="13">Queue of pending cases</text>
+    <text x="588" y="292" fill="#14302C" font-size="12">Verify or reject with notes</text>
+
+    <rect x="836" y="100" width="250" height="230" rx="14" fill="#FFFFFF" stroke="#1F4E4A" stroke-width="1.5"/>
+    <text x="856" y="134" fill="#1F4E4A" font-size="12" font-weight="700">COMMUNITY</text>
+    <text x="856" y="164" fill="#14302C" font-size="16" font-weight="700">Report and track</text>
+    <text x="856" y="196" fill="#4A625C" font-size="13">/community</text>
+    <text x="856" y="220" fill="#4A625C" font-size="13">/community/report</text>
+    <text x="856" y="244" fill="#4A625C" font-size="13">/community/map</text>
+    <text x="856" y="292" fill="#14302C" font-size="12">Observations, not detections</text>
+  </g>
+  <rect x="32" y="352" width="1054" height="72" rx="14" fill="#E4C36A"/>
+  <text x="560" y="384" text-anchor="middle" fill="#14302C" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">Shared case detail</text>
+  <text x="560" y="406" text-anchor="middle" fill="#3E3420" font-family="Segoe UI, sans-serif" font-size="13">Site map, evidence, audit, next step, and the property record once the case is closed.</text>
+</svg>
