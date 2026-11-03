@@ -414,7 +414,7 @@ export function KilimaniMap({
             (result as __esri.GraphicHit).graphic.layer === detectionsLayer,
         ) as __esri.GraphicHit | undefined;
 
-        if (detectionHit?.graphic) {
+        if (detectionHit?.graphic?.geometry) {
           const attrs = detectionHit.graphic.attributes;
           await highlightGraphic(detectionsLayer, detectionHit.graphic);
           setSelection({
