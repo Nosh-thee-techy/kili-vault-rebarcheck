@@ -4,7 +4,6 @@ import SceneView from '@arcgis/core/views/SceneView';
 import GeoJSONLayer from '@arcgis/core/layers/GeoJSONLayer';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
-import { Maximize2, Minimize2 } from 'lucide-react';
 import { MAP_LAYERS, SITE_INFRA_LAYER_IDS, type SiteInfraLayerId } from '@/config/mapLayers';
 import { createMapFeatureLayer } from '@/lib/mapFeatureLayer';
 import type FeatureLayer from '@arcgis/core/layers/FeatureLayer';
@@ -175,27 +174,23 @@ export function CaseSiteMap({
   }, [isFullscreen, ready, compact]);
 
   const viewModeToggle = (
-    <div className="flex rounded-xl border border-sand bg-off-white p-0.5">
-      <button
-        type="button"
+    <div className="flex items-center gap-1">
+      <calcite-button
+        appearance={mode3d ? 'outline' : 'solid'}
+        scale="s"
+        aria-pressed={!mode3d}
         onClick={() => setMode3d(false)}
-        className={cn(
-          'rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors',
-          !mode3d ? 'bg-charcoal text-off-white' : 'text-charcoal-muted hover:text-charcoal',
-        )}
       >
         2D
-      </button>
-      <button
-        type="button"
+      </calcite-button>
+      <calcite-button
+        appearance={mode3d ? 'solid' : 'outline'}
+        scale="s"
+        aria-pressed={mode3d}
         onClick={() => setMode3d(true)}
-        className={cn(
-          'rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors',
-          mode3d ? 'bg-charcoal text-off-white' : 'text-charcoal-muted hover:text-charcoal',
-        )}
       >
         3D
-      </button>
+      </calcite-button>
     </div>
   );
 
@@ -206,48 +201,30 @@ export function CaseSiteMap({
         if (!config) return null;
         const on = layerVisibility[id];
         return (
-          <button
+          <calcite-button
             key={id}
-            type="button"
+            appearance={on ? 'solid' : 'outline'}
+            scale="s"
+            aria-pressed={on}
             onClick={() => setLayerVisibility((prev) => ({ ...prev, [id]: !prev[id] }))}
-            className={cn(
-              'rounded-full border px-3 py-1 text-xs font-semibold transition-colors',
-              on
-                ? 'border-clay/40 bg-clay/10 text-clay-dark'
-                : 'border-sand bg-off-white text-charcoal-muted',
-            )}
           >
             {config.title}
-          </button>
+          </calcite-button>
         );
       })}
     </div>
   );
 
   const fullscreenToggle = (
-    <button
-      type="button"
+    <calcite-button
+      appearance="outline"
+      scale="s"
+      icon-start={isFullscreen ? 'minimize' : 'maximize'}
       onClick={() => setIsFullscreen((value) => !value)}
-      className={cn(
-        'inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors',
-        isFullscreen
-          ? 'border-off-white/20 bg-charcoal/80 text-off-white backdrop-blur-sm hover:bg-charcoal'
-          : 'border-sand bg-off-white text-charcoal hover:border-clay/40 hover:text-clay-dark',
-      )}
       aria-label={isFullscreen ? 'Exit full screen map' : 'Open full screen map'}
     >
-      {isFullscreen ? (
-        <>
-          <Minimize2 className="h-3.5 w-3.5" />
-          Exit
-        </>
-      ) : (
-        <>
-          <Maximize2 className="h-3.5 w-3.5" />
-          Full screen
-        </>
-      )}
-    </button>
+      {isFullscreen ? 'Exit' : 'Full screen'}
+    </calcite-button>
   );
 
   return (
@@ -289,7 +266,7 @@ export function CaseSiteMap({
           )}
 
           {isFullscreen && (
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-20 bg-gradient-to-b from-charcoal/70 to-transparent p-3 sm:p-4">
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-20 bg-charcoal/85 p-3 sm:p-4">
               <div className="pointer-events-auto flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-off-white">Site map</p>
@@ -317,7 +294,7 @@ export function CaseSiteMap({
           </p>
 
           {isFullscreen && (
-            <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-charcoal/80 via-charcoal/50 to-transparent p-3 sm:p-4">
+            <div className="absolute inset-x-0 bottom-0 z-20 bg-charcoal/85 p-3 sm:p-4">
               {layerPills}
             </div>
           )}

@@ -1,33 +1,29 @@
-import { cn } from '@/lib/cn';
 import { PROCESS_STEPS } from '@/lib/caseWorkflowGuide';
 
 export function CaseProgressStrip({ activeIndex }: { activeIndex: number }) {
   return (
-    <nav aria-label="Case progress" className="flex items-center justify-between gap-1">
-      {PROCESS_STEPS.map((label, index) => {
-        const done = index < activeIndex;
-        const current = index === activeIndex;
-        return (
-          <div key={label} className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
-            <span
-              className={cn(
-                'flex h-2.5 w-2.5 shrink-0 rounded-full transition-colors',
-                done && 'bg-sage',
-                current && 'bg-clay ring-4 ring-clay/20',
-                !done && !current && 'bg-sand',
+    <nav aria-label="Case progress">
+      <ol className="flex flex-wrap items-center gap-x-2 gap-y-2">
+        {PROCESS_STEPS.map((label, index) => {
+          const done = index < activeIndex;
+          const current = index === activeIndex;
+          return (
+            <li key={label} className="flex items-center gap-2">
+              <calcite-chip
+                kind={current ? 'brand' : 'neutral'}
+                icon={done ? 'check' : undefined}
+                scale="s"
+                aria-current={current ? 'step' : undefined}
+              >
+                {label}
+              </calcite-chip>
+              {index < PROCESS_STEPS.length - 1 && (
+                <calcite-icon icon="chevron-right" scale="s" className="text-charcoal-muted" aria-hidden="true" />
               )}
-            />
-            <span
-              className={cn(
-                'hidden truncate text-center text-[10px] font-semibold sm:block',
-                current ? 'text-clay-dark' : done ? 'text-charcoal-muted' : 'text-charcoal-muted/60',
-              )}
-            >
-              {label}
-            </span>
-          </div>
-        );
-      })}
+            </li>
+          );
+        })}
+      </ol>
     </nav>
   );
 }

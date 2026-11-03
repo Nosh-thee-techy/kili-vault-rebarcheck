@@ -1,8 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { Download, FileText, MapPinned, ShieldCheck } from "lucide-react";
 import { CaseSiteMap } from "@/components/cases/detail/CaseSiteMap";
-import { Button } from "@/components/ui/Button";
-import { EmptyState } from "@/components/ui/EmptyState";
 import { usePropertyRecordQuery } from "@/hooks/useCaseQueries";
 import type {
   DevelopmentCase,
@@ -32,19 +29,12 @@ function RecordSection({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-sand bg-off-white p-5 shadow-soft">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="font-display text-xl font-bold text-charcoal">
-          {title}
-        </h3>
-        {source && (
-          <span className="text-[11px] font-medium text-charcoal-muted">
-            Source: {source}
-          </span>
-        )}
-      </div>
-      <div className="mt-4">{children}</div>
-    </section>
+    <calcite-panel
+      heading={title}
+      description={source ? `Source: ${source}` : undefined}
+    >
+      <div className="p-4">{children}</div>
+    </calcite-panel>
   );
 }
 
@@ -112,63 +102,53 @@ export function PropertyDevelopmentRecord({
 
   if (caseItem.status !== "CLOSED") {
     return (
-      <section className="rounded-2xl border border-sand bg-mist/35 p-5">
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-sage">
-          Property Development Record
-        </p>
-        <h2 className="mt-1 font-display text-2xl font-bold text-charcoal">
-          Available after closure
-        </h2>
-        <p className="mt-2 text-sm leading-relaxed text-charcoal-muted">
-          This case is still active. Its structured property record will be
-          presented when verification and closure are complete.
-        </p>
-      </section>
+      <calcite-panel
+        heading="Property development record"
+        description="Available after case closure."
+      >
+        <div className="p-4">
+          <calcite-notice open kind="info" scale="s">
+            This case is still active. Its structured property record will be presented when verification and closure are complete.
+          </calcite-notice>
+        </div>
+      </calcite-panel>
     );
   }
 
   return (
-    <section className="space-y-4 rounded-2xl border-2 border-forest/20 bg-mist/20 p-4 md:p-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-forest">
-            Case closed
-          </p>
-          <h2 className="mt-1 font-display text-2xl font-bold text-charcoal">
-            Property Development Record
-          </h2>
-          <p className="mt-1 text-sm text-charcoal-muted">
-            A traceable summary of what was detected, reviewed, verified, and
-            supported by evidence.
-          </p>
-        </div>
-        {query.data && (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => downloadRecord(query.data)}
-          >
-            <Download className="h-4 w-4" /> Export JSON
-          </Button>
-        )}
-      </div>
+    <calcite-panel
+      heading="Property development record"
+      description="Traceable summary of the detected, reviewed, verified, and evidenced case."
+    >
+      {query.data && (
+        <calcite-button
+          slot="header-actions-end"
+          appearance="outline"
+          scale="s"
+          icon-start="download"
+          onClick={() => downloadRecord(query.data!)}
+        >
+          Export JSON
+        </calcite-button>
+      )}
+      <div className="space-y-4 p-4">
       {!expanded ? (
-        <Button variant="primary" size="md" onClick={() => setExpanded(true)}>
-          <FileText className="h-4 w-4" /> Open property record
-        </Button>
+        <calcite-button appearance="solid" scale="m" icon-start="file-text" onClick={() => setExpanded(true)}>
+          Open property record
+        </calcite-button>
       ) : query.isLoading ? (
-        <p className="text-sm text-charcoal-muted">
-          Loading the closed-case record...
-        </p>
+        <div className="flex min-h-28 items-center justify-center">
+          <calcite-loader label="Loading the closed-case record" scale="m" />
+        </div>
       ) : query.isError ? (
-        <EmptyState
-          title="Record unavailable"
-          description="The closed case could not be assembled into a property record. Please try again."
-        />
+        <calcite-notice open kind="danger">
+          The closed case could not be assembled into a property record. Please try again.
+        </calcite-notice>
       ) : query.data ? (
         <RecordBody record={query.data} caseItem={caseItem} />
       ) : null}
-    </section>
+      </div>
+    </calcite-panel>
   );
 }
 
@@ -183,19 +163,19 @@ function RecordBody({
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-xl border border-sand bg-off-white p-3">
+        <div className="border-l-2 border-sand pl-3">
           <p className="text-xs text-charcoal-muted">Case reference</p>
           <p className="mt-1 font-semibold text-charcoal">
             {record.caseNumber}
           </p>
         </div>
-        <div className="rounded-xl border border-sand bg-off-white p-3">
+        <div className="border-l-2 border-sand pl-3">
           <p className="text-xs text-charcoal-muted">Closed</p>
           <p className="mt-1 font-semibold text-charcoal">
             {date(record.closedAt)}
           </p>
         </div>
-        <div className="rounded-xl border border-sand bg-off-white p-3">
+        <div className="border-l-2 border-sand pl-3">
           <p className="text-xs text-charcoal-muted">Verification</p>
           <p className="mt-1 font-semibold text-charcoal">
             {record.verification.status}
@@ -244,7 +224,7 @@ function RecordBody({
             record.lifecycle.map((event) => (
               <li
                 key={`${event.stage}-${event.timestamp}`}
-                className="border-l-2 border-forest/40 pl-3"
+                className="border-l-2 border-charcoal-muted/40 pl-3"
               >
                 <p className="text-sm font-semibold text-charcoal">
                   {event.stage.replace(/_/g, " ")}
@@ -363,7 +343,7 @@ function RecordBody({
             />
           </div>
           <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-charcoal-muted">
-            <MapPinned className="mt-0.5 h-4 w-4 shrink-0 text-clay" />
+            <calcite-icon icon="map" scale="s" className="mt-0.5 shrink-0" />
             The map shows the case geometry with live planning context layers.
             Missing parcel proximity values are not inferred.
           </p>
@@ -371,7 +351,7 @@ function RecordBody({
         <div className="space-y-4">
           <RecordSection title="Verification" source="Case audit events">
             <p className="flex items-center gap-2 text-sm font-semibold text-charcoal">
-              <ShieldCheck className="h-4 w-4 text-forest" />{" "}
+              <calcite-icon icon="check-circle" scale="s" />
               {record.verification.status}
             </p>
             <dl className="mt-3 space-y-2 text-sm">

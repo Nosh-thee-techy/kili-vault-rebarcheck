@@ -1,4 +1,3 @@
-import { AlertCircle, ChevronDown, FileText } from 'lucide-react';
 import { formatConfidence, formatDate } from '@/lib/format';
 import type { DevelopmentCase } from '@/types';
 
@@ -42,8 +41,8 @@ export function CaseEvidencePanel({ caseItem }: { caseItem: DevelopmentCase }) {
       </dl>
 
       {isPreDevelopment && caseItem.evidence?.description && (
-        <div className="mt-4 flex gap-3 rounded-xl bg-mist/40 p-4">
-          <FileText className="mt-0.5 h-4 w-4 shrink-0 text-forest" />
+        <div className="mt-4 flex gap-3 border-l-2 border-sand bg-white p-4">
+          <calcite-icon icon="file-text" scale="s" className="mt-0.5 shrink-0 text-charcoal-muted" />
           <p className="text-sm leading-relaxed text-charcoal">{caseItem.evidence.description}</p>
         </div>
       )}
@@ -52,7 +51,7 @@ export function CaseEvidencePanel({ caseItem }: { caseItem: DevelopmentCase }) {
         <details className="group mt-4 rounded-xl border border-sand bg-mist/20">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-semibold text-charcoal [&::-webkit-details-marker]:hidden">
             <span>Kili-Shadows model scores</span>
-            <ChevronDown className="h-4 w-4 text-charcoal-muted transition-transform group-open:rotate-180" />
+            <calcite-icon icon="chevron-down" scale="s" className="text-charcoal-muted transition-transform group-open:rotate-180" />
           </summary>
           <dl className="space-y-0 border-t border-sand px-4 pb-3 pt-1">
             {linked.ndbiChange != null && (
@@ -84,8 +83,8 @@ export function CaseEvidencePanel({ caseItem }: { caseItem: DevelopmentCase }) {
       )}
 
       {caseItem.evidence?.explanation && (
-        <div className="mt-4 flex gap-3 rounded-xl bg-mist/40 p-4">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-sage" />
+        <div className="mt-4 flex gap-3 border-l-2 border-sand bg-white p-4">
+          <calcite-icon icon="information" scale="s" className="mt-0.5 shrink-0 text-charcoal-muted" />
           <p className="text-sm leading-relaxed text-charcoal">{caseItem.evidence.explanation}</p>
         </div>
       )}

@@ -12,48 +12,43 @@ export function CasesTable({
   caseLinkPrefix: string;
 }) {
   return (
-    <div className="hidden overflow-hidden rounded-2xl border border-sand bg-off-white shadow-soft md:block">
-      <table className="w-full text-left text-sm">
-        <thead className="border-b border-sand bg-sand/40 text-xs font-semibold uppercase tracking-wide text-charcoal-muted">
-          <tr>
-            <th className="px-5 py-3">Case</th>
-            <th className="px-5 py-3">Type</th>
-            <th className="px-5 py-3">Status</th>
-            <th className="px-5 py-3">Risk</th>
-            <th className="px-5 py-3">Confidence</th>
-            <th className="px-5 py-3">Updated</th>
-          </tr>
-        </thead>
-        <tbody>
-          {cases.map((c) => (
-            <tr
-              key={c.id}
-              className="border-b border-sand/60 transition-colors last:border-0 hover:bg-mist/30"
-            >
-              <td className="px-5 py-4">
+    <div className="hidden min-w-0 md:block">
+      <calcite-table caption="Development cases" bordered scale="m">
+        <calcite-table-row slot="table-header">
+          <calcite-table-header heading="Case" />
+          <calcite-table-header heading="Change type" />
+          <calcite-table-header heading="Status" />
+          <calcite-table-header heading="Risk" />
+          <calcite-table-header heading="Confidence" />
+          <calcite-table-header heading="Updated" />
+        </calcite-table-row>
+        {cases.map((caseItem) => (
+          <calcite-table-row key={caseItem.id}>
+            <calcite-table-cell>
+              <div className="min-w-44 py-1">
                 <Link
-                  to={`${caseLinkPrefix}/${c.id}`}
-                  className="font-semibold text-forest hover:text-forest-light"
+                  to={`${caseLinkPrefix}/${caseItem.id}`}
+                  className="font-semibold text-charcoal underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--calcite-color-focus)]"
                 >
-                  {c.caseNumber}
+                  {caseItem.caseNumber}
                 </Link>
-                <p className="mt-0.5 line-clamp-1 text-xs text-charcoal-muted">{c.title}</p>
-              </td>
-              <td className="px-5 py-4 text-charcoal-muted">{formatChangeType(c.changeType)}</td>
-              <td className="px-5 py-4">
-                <CaseStatusBadge status={c.status} />
-              </td>
-              <td className="px-5 py-4">
-                <RiskBadge level={c.risk.overall} />
-              </td>
-              <td className="px-5 py-4 font-mono text-xs">{formatConfidence(c.confidence)}</td>
-              <td className="px-5 py-4 text-xs text-charcoal-muted">
-                {formatRelativeDate(c.updatedAt)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                <p className="mt-0.5 max-w-[22rem] truncate text-xs text-charcoal-muted">
+                  {caseItem.title}
+                </p>
+              </div>
+            </calcite-table-cell>
+            <calcite-table-cell>{formatChangeType(caseItem.changeType)}</calcite-table-cell>
+            <calcite-table-cell>
+              <CaseStatusBadge status={caseItem.status} />
+            </calcite-table-cell>
+            <calcite-table-cell>
+              <RiskBadge level={caseItem.risk.overall} />
+            </calcite-table-cell>
+            <calcite-table-cell>{formatConfidence(caseItem.confidence)}</calcite-table-cell>
+            <calcite-table-cell>{formatRelativeDate(caseItem.updatedAt)}</calcite-table-cell>
+          </calcite-table-row>
+        ))}
+      </calcite-table>
     </div>
   );
 }
