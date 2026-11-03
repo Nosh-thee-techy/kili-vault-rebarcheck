@@ -20,6 +20,41 @@ Selecting a parcel exposes its land use, area, mapped buildings, footprint, road
 
 The evidence brief is deliberately descriptive rather than determinative. It records spatial context and limitations, and it does not label a change illegal, compliant, or approved. Evidence remains subject to human review and the existing case workflow.
 
+## MVP capabilities
+
+Kili-Vault's MVP delivers a map-first planning review workflow for Kilimani Ward:
+
+- **Planner command center** - ward overview, Kili-Shadows detection statistics, priority case spotlight, review queue, workflow summary, community observations, and full-map navigation.
+- **Full planner map** - parcels, land use, buildings, roads, infrastructure, rivers, river buffers, environmental sensitivity, development cases, observed spatial change, search, and layer controls.
+- **Parcel intelligence** - parcel or LR reference, land use, parcel area, mapped buildings, building footprint, road and river proximity, river-buffer relationship, related cases, and planning actions.
+- **Observed spatial change** - detection ID, change type, confidence, candidate-change language, human-review warning, case route, and factual LPLDP evidence brief download.
+- **AI-assisted triage** - paginated candidate detections with confidence, observed area, NDBI change, persistence, detection date, and review-before-promotion guidance. It appears below the full planner map.
+- **Development case workflow** - AI flagged, under review, mitigation required, evidence submitted, agency pending, verified or rejected, and closed states with audit history.
+- **Evidence workflow** - developer uploads, evidence metadata, pending review, mitigation responses, agency verification, and evidence timeline integration.
+- **Development simulator** - parcel selection, existing conditions, proposed and mitigated scenarios, development intensity comparison, and zoning-guide prompts.
+- **Role experiences** - planner, developer, agency, and community workflows, including community spatial observations.
+- **Backend services** - detection and GeoJSON APIs, case management, status transitions, mitigation, evidence, verification, observations, detection promotion, pre-development checks, processing runs, and model or pipeline status.
+
+The core MVP story is:
+
+```text
+Satellite detection
+  -> map context
+  -> planner review
+  -> evidence
+  -> human verification
+  -> case closure
+  -> Property Development Record
+```
+
+### Deferred from the MVP
+
+- 3D massing
+- Photo EXIF GPS extraction
+- Automatic evidence-to-geometry distance validation
+- Persisted spatial evidence briefs
+- Automatic brief inclusion in the Property Development Record
+
 ## Guided demo
 
 Use **Guided demo** from the planner shell to walk through:
