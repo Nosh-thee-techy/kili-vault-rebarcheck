@@ -7,6 +7,7 @@ import type { MapLayerConfig } from "@/config/mapLayers";
 export function createMapFeatureLayer(
   config: MapLayerConfig,
   visible?: boolean,
+  outFields: string[] = ["*"],
 ): FeatureLayer {
   const layer = new FeatureLayer({
     id: config.id,
@@ -20,7 +21,7 @@ export function createMapFeatureLayer(
           ? 0.6
           : 0.92,
     popupEnabled: false,
-    outFields: ["*"],
+    outFields,
   });
 
   if (config.id === "landuse") {

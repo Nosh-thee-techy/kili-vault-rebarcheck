@@ -20,61 +20,56 @@ export async function analyzeSiteProximity(
 ): Promise<SiteProximity> {
   const point = new Point({ longitude: lon, latitude: lat });
 
-  let roadDistanceM: number | null = null;
-  try {
-    const roads = await roadsLayer.queryFeatures({
-      geometry: point,
-      distance: ROAD_SEARCH_M,
-      units: 'meters',
-      spatialRelationship: 'intersects',
-      returnGeometry: true,
-      outFields: ['OBJECTID'],
-    });
-    for (const feature of roads.features) {
-      if (!feature.geometry) continue;
-      const distance = geometryEngine.distance(point, feature.geometry, 'meters');
-      if (roadDistanceM == null || distance < roadDistanceM) {
-        roadDistanceM = distance;
-      }
-    }
-    if (roadDistanceM != null) roadDistanceM = Math.round(roadDistanceM);
-  } catch {
-    /* layer may still be loading */
-  }
-
-  let inSeweredArea = false;
-  if (sewerLayer) {
-    try {
-      const sewered = await sewerLayer.queryFeatures({
+  const [roads, sewered, power] = await Promise.all([
+    roadsLayer
+      .queryFeatures({
         geometry: point,
-        spatialRelationship: 'intersects',
-        returnGeometry: false,
-        outFields: ['OBJECTID'],
-      });
-      inSeweredArea = sewered.features.length > 0;
-    } catch {
-      /* ignore */
-    }
-  }
-
-  let nearPowerLine = false;
-  if (powerLayer) {
-    try {
-      const power = await powerLayer.queryFeatures({
-        geometry: point,
-        distance: POWER_NEAR_M,
+        distance: ROAD_SEARCH_M,
         units: 'meters',
         spatialRelationship: 'intersects',
-        returnGeometry: false,
+        returnGeometry: true,
         outFields: ['OBJECTID'],
-      });
-      nearPowerLine = power.features.length > 0;
-    } catch {
-      /* ignore */
+      })
+      .catch(() => null),
+    sewerLayer
+      ? sewerLayer
+          .queryFeatures({
+            geometry: point,
+            spatialRelationship: 'intersects',
+            returnGeometry: false,
+            outFields: ['OBJECTID'],
+          })
+          .catch(() => null)
+      : Promise.resolve(null),
+    powerLayer
+      ? powerLayer
+          .queryFeatures({
+            geometry: point,
+            distance: POWER_NEAR_M,
+            units: 'meters',
+            spatialRelationship: 'intersects',
+            returnGeometry: false,
+            outFields: ['OBJECTID'],
+          })
+          .catch(() => null)
+      : Promise.resolve(null),
+  ]);
+
+  let roadDistanceM: number | null = null;
+  for (const feature of roads?.features ?? []) {
+    if (!feature.geometry) continue;
+    const distance = geometryEngine.distance(point, feature.geometry, 'meters');
+    if (roadDistanceM == null || distance < roadDistanceM) {
+      roadDistanceM = distance;
     }
   }
+  if (roadDistanceM != null) roadDistanceM = Math.round(roadDistanceM);
 
-  return { roadDistanceM, inSeweredArea, nearPowerLine };
+  return {
+    roadDistanceM,
+    inSeweredArea: (sewered?.features.length ?? 0) > 0,
+    nearPowerLine: (power?.features.length ?? 0) > 0,
+  };
 }
 
 export function formatRoadProximity(distanceM: number | null): string {

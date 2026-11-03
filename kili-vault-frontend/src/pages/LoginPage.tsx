@@ -46,8 +46,8 @@ export function LoginPage() {
   };
 
   return (
-    <div className="login-portal-page min-h-screen bg-[var(--calcite-color-background)] text-[var(--calcite-color-text-1)]">
-      <header className="flex h-14 items-center justify-between gap-4 border-b border-[var(--calcite-color-border-1)] px-4 sm:px-6">
+    <div className="login-portal-page flex h-dvh flex-col overflow-hidden bg-[var(--calcite-color-background)] text-[var(--calcite-color-text-1)]">
+      <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center justify-between gap-4 border-b border-[var(--calcite-color-border-1)] bg-[var(--calcite-color-background)] px-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <Logo size={32} className="rounded-sm" />
           <div className="min-w-0">
@@ -65,12 +65,12 @@ export function LoginPage() {
         </div>
       </header>
 
-      <main className="grid min-h-[calc(100vh-3.5rem)] lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
+      <main className="grid min-h-0 flex-1 grid-rows-[minmax(11.5rem,24dvh)_minmax(0,1fr)] overflow-hidden lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:grid-rows-1">
         <LoginHeroPanel />
 
-        <section className="flex min-w-0 items-center justify-center px-4 py-6 sm:px-7 sm:py-8 lg:px-8 xl:px-12">
+        <section className="flex min-h-0 min-w-0 items-center justify-center overflow-y-auto px-3 py-3 sm:px-7 sm:py-5 lg:px-8 xl:px-12">
           <div className="w-full max-w-4xl">
-            <div className="mb-5 border-b border-[var(--calcite-color-border-1)] pb-4 sm:mb-6">
+            <div className="mb-3 border-b border-[var(--calcite-color-border-1)] pb-3 sm:mb-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-[var(--calcite-color-text-2)]">
                 Workspace selection
               </p>
@@ -82,7 +82,7 @@ export function LoginPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4" aria-label="Available portals">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3" aria-label="Available portals">
               {ROLES.map(({ role, label, icon }) => {
                 const demo = DEMO_USERS[role];
                 const image = ROLE_IMAGES[role];
@@ -103,7 +103,7 @@ export function LoginPage() {
               })}
             </div>
 
-            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--calcite-color-border-1)] pt-4">
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--calcite-color-border-1)] pt-3 sm:mt-4 sm:gap-3 sm:pt-4">
               <p className="text-xs text-[var(--calcite-color-text-2)]">
                 Demo access · Select a role to continue
               </p>

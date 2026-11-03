@@ -218,13 +218,16 @@ export async function getDetections(
 
 export async function getDetectionsGeoJSON(
   query: DetectionQuery = {},
+  signal?: AbortSignal,
 ): Promise<GeoJSON.FeatureCollection> {
   const params = new URLSearchParams();
   Object.entries(query).forEach(([k, v]) => {
     if (v != null && v !== "") params.set(k, String(v));
   });
   const qs = params.toString();
-  return fetchJson(`/api/v1/detections/geojson${qs ? `?${qs}` : ""}`);
+  return fetchJson(`/api/v1/detections/geojson${qs ? `?${qs}` : ""}`, {
+    signal,
+  });
 }
 
 export async function getDetectionStats(): Promise<{ data: DetectionStats }> {

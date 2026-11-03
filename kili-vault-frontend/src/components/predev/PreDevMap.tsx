@@ -66,6 +66,7 @@ export function PreDevMap({
   const featureLayersRef = useRef<Partial<Record<SiteInfraLayerId, FeatureLayer>>>({});
   const [ready, setReady] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
+  const [pinPlaced, setPinPlaced] = useState(false);
   const [layerVisibility, setLayerVisibility] =
     useState<Record<SiteInfraLayerId, boolean>>(DEFAULT_LAYER_VISIBILITY);
   const [proximity, setProximity] = useState<SiteProximity | null>(null);
@@ -87,9 +88,11 @@ export function PreDevMap({
       SITE_INFRA_LAYER_IDS.includes(config.id as SiteInfraLayerId),
     ).forEach((config) => {
       const id = config.id as SiteInfraLayerId;
+      const outFields = ["OBJECTID", ...(id === "roads" ? ["fclass"] : [])];
       const layer = createMapFeatureLayer(
         config,
         layerVisibility[id] ?? DEFAULT_LAYER_VISIBILITY[id],
+        outFields,
       );
       featureLayers[id] = layer;
       map.add(layer);
@@ -132,6 +135,7 @@ export function PreDevMap({
     const handle = view.on('click', (event: __esri.ViewClickEvent) => {
       const geo = webMercatorUtils.webMercatorToGeographic(event.mapPoint) as Point;
       if (geo.latitude == null || geo.longitude == null) return;
+      setPinPlaced(true);
       onPinDropRef.current(geo.latitude, geo.longitude);
     });
 
@@ -217,24 +221,28 @@ export function PreDevMap({
     const roads = featureLayersRef.current.roads;
     const sewer = featureLayersRef.current['sewer-areas'];
     const power = featureLayersRef.current['power-lines'];
-    if (!showProximity || !roads) {
+    if (!pinPlaced || !showProximity || !roads) {
       setProximity(null);
       return;
     }
 
     let cancelled = false;
-    analyzeSiteProximity(lat, lon, roads, sewer, power)
-      .then((result) => {
-        if (!cancelled) setProximity(result);
-      })
-      .catch(() => {
-        if (!cancelled) setProximity(null);
-      });
+    setProximity(null);
+    const queryDelay = window.setTimeout(() => {
+      void analyzeSiteProximity(lat, lon, roads, sewer, power)
+        .then((result) => {
+          if (!cancelled) setProximity(result);
+        })
+        .catch(() => {
+          if (!cancelled) setProximity(null);
+        });
+    }, 300);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(queryDelay);
     };
-  }, [lat, lon, showProximity]);
+  }, [lat, lon, pinPlaced, showProximity]);
 
   const layerControls = (
     <div className="pointer-events-auto absolute right-3 top-14 z-20 w-60 max-w-[90%] border border-sand bg-[var(--calcite-color-background)] shadow-soft">

@@ -221,6 +221,7 @@ async function buildFeatureContext(
   const query = async (
     layer: FeatureLayer | undefined,
     target: __esri.Geometry,
+    returnGeometry = true,
   ) => {
     if (!layer) return [] as __esri.Graphic[];
     try {
@@ -228,8 +229,8 @@ async function buildFeatureContext(
         where: "1=1",
         geometry: target,
         spatialRelationship: "intersects",
-        returnGeometry: true,
-        outFields: ["*"],
+        returnGeometry,
+        outFields: ["OBJECTID"],
       });
       return result.features as __esri.Graphic[];
     } catch {
@@ -240,7 +241,7 @@ async function buildFeatureContext(
     query(layers["buildings-parcels"] ?? layers.buildings, geometry),
     query(layers.roads, searchGeometry as __esri.Geometry),
     query(layers.rivers, searchGeometry as __esri.Geometry),
-    query(layers["river-buffer"], geometry),
+    query(layers["river-buffer"], geometry, false),
   ]);
   const nearest = (features: __esri.Graphic[]) => {
     const distances = features
@@ -396,7 +397,6 @@ export function KilimaniMap({
       padding: { top: 48, right: 24, bottom: 48, left: 24 },
       constraints: {
         geometry: KILIMANI_WARD_EXTENT,
-        minScale: 500000,
       },
       popup: {
         dockEnabled: true,
@@ -477,13 +477,21 @@ export function KilimaniMap({
       highlightHandleRef.current = null;
     };
 
-    const highlightGraphic = async (
-      layer: GeoJSONLayer,
+    let clickSequence = 0;
+    const highlightForClick = async (
+      layer: FeatureLayer | GeoJSONLayer,
       graphic: __esri.Graphic,
+      sequence: number,
     ) => {
-      clearHighlight();
-      const layerView = await view.whenLayerView(layer);
-      highlightHandleRef.current = layerView.highlight(graphic);
+      try {
+        const layerView = await view.whenLayerView(layer);
+        if (destroyed || sequence !== clickSequence) return false;
+        clearHighlight();
+        highlightHandleRef.current = layerView.highlight(graphic);
+        return true;
+      } catch {
+        return false;
+      }
     };
 
     const clickHandle = view.on(
@@ -495,7 +503,13 @@ export function KilimaniMap({
         ) {
           return;
         }
-        const response = await view.hitTest(event);
+        const sequence = ++clickSequence;
+        const response = await view
+          .hitTest(event, {
+            include: [casesLayer, detectionsLayer],
+          })
+          .catch(() => null);
+        if (!response || destroyed || sequence !== clickSequence) return;
         const caseHit = response.results.find(
           (result: __esri.ViewHit) =>
             result.type === "graphic" &&
@@ -506,9 +520,14 @@ export function KilimaniMap({
           const caseId = caseHit.graphic.attributes.id as string;
           const caseItem = casesRef.current.find((item) => item.id === caseId);
           if (caseItem) {
+            const highlighted = await highlightForClick(
+              casesLayer,
+              caseHit.graphic,
+              sequence,
+            );
+            if (!highlighted) return;
             onFeatureSelectRef.current?.(null);
             setPlannerFeature(null);
-            await highlightGraphic(casesLayer, caseHit.graphic);
             setSelection({ kind: "case", caseItem });
             onCaseSelectRef.current?.(caseId);
             view
@@ -526,8 +545,13 @@ export function KilimaniMap({
 
         if (detectionHit?.graphic?.geometry) {
           const attrs = detectionHit.graphic.attributes;
+          const highlighted = await highlightForClick(
+            detectionsLayer,
+            detectionHit.graphic,
+            sequence,
+          );
+          if (!highlighted) return;
           setPlannerFeature(null);
-          await highlightGraphic(detectionsLayer, detectionHit.graphic);
           setSelection({
             kind: "detection",
             id: String(attrs.id ?? ""),
@@ -545,12 +569,16 @@ export function KilimaniMap({
             confidence: Number(attrs.confidence ?? 0),
           });
           view
-            .goTo({ target: detectionHit.graphic, zoom: 18 })
+            .goTo({ target: detectionHit.graphic, zoom: 18 }, { animate: false })
             .catch(() => undefined);
           return;
         }
 
-        const featureHits = response.results.filter(
+        const featureResponse = await view
+          .hitTest(event, { include: Object.values(featureLayers) })
+          .catch(() => null);
+        if (!featureResponse || destroyed || sequence !== clickSequence) return;
+        const featureHits = featureResponse.results.filter(
           (result: __esri.ViewHit) =>
             result.type === "graphic" &&
             Object.values(featureLayers).includes(
@@ -569,6 +597,8 @@ export function KilimaniMap({
 
         if (featureHit?.graphic?.geometry) {
           const layer = featureHit.graphic.layer as FeatureLayer;
+          const layerView = await view.whenLayerView(layer);
+          if (destroyed || sequence !== clickSequence) return;
           const layerId = String(layer.id);
           const config = mapLayers.find((item) => item.id === layerId);
           const attributes = (featureHit.graphic.attributes ?? {}) as Record<
@@ -589,12 +619,6 @@ export function KilimaniMap({
                       : layerId === "river-buffer"
                         ? "river-buffer"
                         : "boundary";
-          const context = await buildFeatureContext(
-            layerId,
-            featureHit.graphic.geometry,
-            featureLayers,
-          );
-          const layerView = await view.whenLayerView(layer);
           clearHighlight();
           highlightHandleRef.current = layerView.highlight(featureHit.graphic);
           const selected: PlannerFeatureSelection = {
@@ -603,7 +627,6 @@ export function KilimaniMap({
             layerTitle: config?.title ?? layerId,
             geometry: featureHit.graphic.geometry,
             attributes,
-            context,
           };
           setSelection(null);
           setPlannerFeature(selected);
@@ -614,9 +637,25 @@ export function KilimaniMap({
               zoom: kind === "boundary" ? 15 : 18,
             })
             .catch(() => undefined);
+          let context: PlannerFeatureSelection["context"];
+          try {
+            context = await buildFeatureContext(
+              layerId,
+              featureHit.graphic.geometry,
+              featureLayers,
+            );
+          } catch {
+            context = undefined;
+          }
+          if (context && !destroyed && sequence === clickSequence) {
+            const enrichedSelection = { ...selected, context };
+            setPlannerFeature(enrichedSelection);
+            onFeatureSelectRef.current?.(enrichedSelection);
+          }
           return;
         }
 
+        if (destroyed || sequence !== clickSequence) return;
         clearHighlight();
         setSelection(null);
         setPlannerFeature(null);
@@ -984,7 +1023,9 @@ export function KilimaniMap({
           changeType: String(attrs.change_type ?? "UNKNOWN"),
           confidence: Number(attrs.confidence ?? 0),
         });
-        await view.goTo({ target: feature.geometry, zoom: 19 });
+        void view
+          .goTo({ target: feature.geometry, zoom: 19 }, { animate: false })
+          .catch(() => undefined);
       } catch {
         // A missing or unavailable detection geometry leaves the map unchanged.
       }

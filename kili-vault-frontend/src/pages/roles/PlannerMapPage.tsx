@@ -19,7 +19,8 @@ export function PlannerMapPage() {
   const selectedCaseId = searchParams.get("case");
   const selectedDetectionId = searchParams.get("detection");
   const { data, isLoading } = useCasesQuery({ limit: 100 });
-  const { data: detectionsGeoJSON } = useDetectionsGeoJSONQuery();
+  const detectionsQuery = useDetectionsGeoJSONQuery();
+  const detectionsGeoJSON = detectionsQuery.data;
   const cases = data?.data ?? [];
 
   const [layerVisibility] = useState(() =>
@@ -67,6 +68,30 @@ export function PlannerMapPage() {
             setClearSelectionToken((value) => value + 1);
           }}
         />
+        {detectionsQuery.isLoading && (
+          <div className="pointer-events-none absolute left-4 top-16 z-40 max-w-[min(24rem,calc(100%-2rem))]">
+            <calcite-notice open kind="info" scale="s">
+              <span slot="title">Loading satellite detections</span>
+              The map remains available while candidate observations load.
+            </calcite-notice>
+          </div>
+        )}
+        {detectionsQuery.isError && (
+          <div className="absolute left-4 top-16 z-40 max-w-[min(24rem,calc(100%-2rem))]">
+            <calcite-notice open kind="warning" scale="s">
+              <span slot="title">Satellite detections unavailable</span>
+              The map remains available. Try loading candidate observations again.
+              <calcite-button
+                slot="actions-end"
+                appearance="outline"
+                scale="s"
+                onClick={() => void detectionsQuery.refetch()}
+              >
+                Retry
+              </calcite-button>
+            </calcite-notice>
+          </div>
+        )}
       </section>
       <calcite-panel heading="AI triage" className="min-h-0 overflow-hidden">
         <div className="h-full overflow-y-auto">

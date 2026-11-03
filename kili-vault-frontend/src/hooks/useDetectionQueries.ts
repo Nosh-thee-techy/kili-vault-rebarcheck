@@ -11,7 +11,7 @@ import { caseKeys, detectionKeys } from "@/lib/queryClient";
 
 const MAP_DETECTION_FILTERS: DetectionQuery = {
   min_confidence: 0.5,
-  limit: 1500,
+  limit: 200,
 };
 
 export function useDetectionStatsQuery() {
@@ -43,7 +43,9 @@ export function useDetectionsGeoJSONQuery(
 ) {
   return useQuery({
     queryKey: detectionKeys.geojson(filters as Record<string, unknown>),
-    queryFn: () => getDetectionsGeoJSON(filters),
+    queryFn: ({ signal }) => getDetectionsGeoJSON(filters, signal),
+    staleTime: 60_000,
+    retry: 0,
   });
 }
 
