@@ -50,10 +50,10 @@ Satellite detection
 ### Deferred from the MVP
 
 - 3D massing
-- Photo EXIF GPS extraction
-- Automatic evidence-to-geometry distance validation
 - Persisted spatial evidence briefs
 - Automatic brief inclusion in the Property Development Record
+
+Photo EXIF GPS (web uploads) and evidence-to-geometry distance validation are implemented for RebarCheck field evidence. WhatsApp still cannot use EXIF GPS because the Cloud API strips it — use a location pin.
 
 ## Guided demo
 
@@ -65,8 +65,9 @@ Use **Guided demo** from the planner shell to walk through:
 4. Development scenario comparison
 5. Case record, human review, and mitigation
 6. Developer evidence upload
-7. Agency verification
-8. Closure and Property Development Record reuse
+7. Field evidence from WhatsApp / RebarCheck
+8. Agency verification
+9. Closure and Property Development Record reuse
 
 The 3D massing view is intentionally deferred. The current demo prioritizes the traceable 2D parcel and evidence workflow.
 
@@ -120,4 +121,50 @@ See `kili-vault-backend/README.md` and `kili-vault-backend/docs/SETUP.md` for da
 
 ## Current implementation note
 
-The map evidence brief is currently generated in the browser as a downloadable text artifact so the guided workflow is usable without a new API contract. Persisted briefs, photo EXIF extraction, geometry-distance validation, and automatic inclusion in the Property Development Record remain the next backend-backed increment.
+The map evidence brief is currently generated in the browser as a downloadable text artifact so the guided workflow is usable without a new API contract. Persisted briefs and automatic inclusion in the Property Development Record remain the next backend-backed increment.
+
+## RebarCheck
+
+RebarCheck inspects a steel rebar cage from a top-down photo *before concrete is poured*. A foreman sends a photo (with an A4 sheet or other reference of known size) plus a location pin. The analyzer segments bars, converts pixels to millimetres, measures spacing against the engineer spec, and writes the result as **AI-analysed evidence pending human verification** on an existing development case. It is never a certification.
+
+Evidence chain:
+
+```text
+GIS parcel
+  -> development case
+  -> field evidence (WhatsApp or /rebarcheck)
+  -> RebarCheck analysis
+  -> human verification
+  -> Property Development Record
+```
+
+Trust model: results are **within tolerance**, **outside tolerance**, or **inconclusive**. Copy never says approved, compliant, safe, or certified. Every response includes: *Visual spacing check from a photo. Not an engineer's sign-off. Pending human verification.* Status stays `submitted` with `metadata.rebarCheck.aiAnalysed = true` so an agency still uses the existing `/verify` flow.
+
+### Run locally (Windows PowerShell)
+
+```powershell
+Set-Location kili-vault-backend
+python -m pip install numpy opencv-python-headless pytest
+# optional: copy .env.example to .env and set META_ / WHATSAPP_ keys
+npm run rebarcheck:demo
+npm run rebarcheck:seed
+python -m pytest rebarcheck/tests -q
+npm test
+```
+
+Web fallback (identical flow, no WhatsApp): open `/rebarcheck` after `npm run dev` in both frontend and backend. Map layer: planner map → Layers → **Rebar inspections** (green circle = within tolerance, red square = outside, grey diamond = inconclusive).
+
+Env vars (see `kili-vault-backend/.env.example`): `META_API_KEY`, `META_API_BASE_URL`, `REBARCHECK_SEGMENTER` (`meta` | `classical` | `mock`), `REBARCHECK_PYTHON`, `REBARCHECK_DEFAULT_CASE_ID`, `PUBLIC_BASE_URL`, `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET`, `WHATSAPP_GRAPH_VERSION`. Missing Meta keys fall back to the classical segmenter and a template explanation.
+
+### Tests
+
+- Python: `python -m pytest rebarcheck/tests -q`
+- Tape CSV: `python -m rebarcheck.validate --csv rebarcheck/samples/tape.csv`
+- Node: `npm test` (analyzer stubbed via `REBARCHECK_NODE_STUB` in the RebarCheck suite)
+
+### Known limitations
+
+- Top-down photos only. A tilted A4 sheet reduces confidence and warns.
+- A reference object (default A4, 297 mm) or an explicit `mmPerPixel` is required. Scale is never guessed.
+- WhatsApp strips EXIF GPS; the bot asks for a location pin. The web page reads EXIF when present and offers device geolocation.
+- Not an engineer's sign-off. Pending human verification.
