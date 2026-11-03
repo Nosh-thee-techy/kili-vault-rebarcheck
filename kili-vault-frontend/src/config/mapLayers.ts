@@ -21,6 +21,9 @@ export interface MapLayerConfig {
   fillColor?: string;
   outlineColor?: string;
   lineWidth?: number;
+  displayFields?: string[];
+  searchFields?: string[];
+  planningFields?: string[];
 }
 
 /** Layers shown on 3D site / pre-dev maps for infrastructure context */
@@ -45,6 +48,8 @@ export const MAP_LAYERS: MapLayerConfig[] = [
     group: 'boundaries',
     geometryType: 'polygon',
     description: 'Official Kilimani ward boundary — default map extent.',
+    displayFields: ['ward', 'county', 'subcounty'],
+    planningFields: ['ward', 'county', 'subcounty'],
   },
   {
     id: 'dagoretti-constituency',
@@ -55,16 +60,20 @@ export const MAP_LAYERS: MapLayerConfig[] = [
     group: 'boundaries',
     geometryType: 'polygon',
     description: 'Wider constituency context for regional orientation.',
+    displayFields: ['ward', 'county', 'subcounty'],
   },
   {
     id: 'parcels-landuse',
-    title: 'Parcels & Land Use',
+    title: 'Parcels & Property Context',
     url: `${ARCGIS_HOST}/KILIMANI_PARCELS_LANDUSE_JOIN/FeatureServer`,
     layerId: 0,
     defaultVisible: true,
     group: 'planning',
     geometryType: 'polygon',
     description: 'Parcel boundaries joined with land-use classification.',
+    displayFields: ['parcel_num', 'lr_number', 'stated_are', 'LANDUSE', 'BUILDINGS', 'BUILD_PER', 'GENERAL_DE', 'NAME'],
+    searchFields: ['parcel_num', 'lr_number', 'fr_number', 'old_parcel', 'dp_number'],
+    planningFields: ['parcel_num', 'lr_number', 'stated_are', 'LANDUSE', 'BUILDINGS', 'BUILD_PER', 'GENERAL_DE', 'NAME'],
   },
   {
     id: 'landuse',
@@ -75,6 +84,9 @@ export const MAP_LAYERS: MapLayerConfig[] = [
     group: 'planning',
     geometryType: 'polygon',
     description: 'Zoning and land-use designations across Kilimani.',
+    displayFields: ['LANDUSE', 'GENERAL_DE', 'NAME', 'ACRE', 'BUILD_PER', 'AREA_HA', 'NOTES'],
+    searchFields: ['LANDUSE', 'GENERAL_DE', 'NAME'],
+    planningFields: ['LANDUSE', 'GENERAL_DE', 'NAME', 'ACRE', 'BUILD_PER', 'AREA_HA', 'NOTES'],
   },
   {
     id: 'buildings',
@@ -85,6 +97,9 @@ export const MAP_LAYERS: MapLayerConfig[] = [
     group: 'planning',
     geometryType: 'polygon',
     description: 'Existing building footprints from survey data.',
+    displayFields: ['osm_id', 'fclass', 'name', 'type', 'Shape__Area'],
+    searchFields: ['osm_id', 'name', 'type'],
+    planningFields: ['osm_id', 'fclass', 'name', 'type', 'Shape__Area'],
   },
   {
     id: 'buildings-parcel-join',
@@ -95,6 +110,9 @@ export const MAP_LAYERS: MapLayerConfig[] = [
     group: 'planning',
     geometryType: 'polygon',
     description: 'Buildings linked to parcel and land-use attributes.',
+    displayFields: ['osm_id', 'fclass', 'name', 'type', 'parcel_num', 'lr_number', 'stated_are', 'LANDUSE', 'BUILDINGS', 'BUILD_PER', 'GENERAL_DE', 'NAME_1'],
+    searchFields: ['osm_id', 'name', 'type', 'parcel_num', 'lr_number'],
+    planningFields: ['osm_id', 'fclass', 'name', 'type', 'parcel_num', 'lr_number', 'stated_are', 'LANDUSE', 'BUILDINGS', 'BUILD_PER', 'GENERAL_DE', 'NAME_1'],
   },
   {
     id: 'roads',
@@ -107,6 +125,8 @@ export const MAP_LAYERS: MapLayerConfig[] = [
     lineColor: '#4A4A4F',
     lineWidth: 2,
     description: 'Road centre-lines — use with proximity ring to judge frontage and setbacks.',
+    displayFields: ['name', 'ref', 'fclass', 'maxspeed', 'oneway'],
+    searchFields: ['name', 'ref', 'fclass'],
   },
   {
     id: 'sewer-areas',
@@ -141,6 +161,8 @@ export const MAP_LAYERS: MapLayerConfig[] = [
     group: 'environment',
     geometryType: 'polyline',
     description: 'River courses for riparian context.',
+    displayFields: ['name', 'width', 'fclass'],
+    searchFields: ['name'],
   },
   {
     id: 'river-buffer',
@@ -151,6 +173,7 @@ export const MAP_LAYERS: MapLayerConfig[] = [
     group: 'environment',
     geometryType: 'polygon',
     description: '15-metre riparian buffer zones for setback checks.',
+    displayFields: ['Id'],
   },
 ];
 

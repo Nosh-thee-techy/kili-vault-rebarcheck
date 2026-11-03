@@ -65,6 +65,17 @@ export function MapLayerPanel({
 
       {expanded && (
         <div className="max-h-[min(50vh,420px)] space-y-4 overflow-y-auto border-t border-sand px-4 py-3">
+          <div className="rounded-xl border border-sand bg-mist/20 p-3">
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-sage">Map legend</p>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-[11px] text-charcoal-muted">
+              <span className="flex items-center gap-2"><i className="h-3 w-3 rounded-sm border border-[#8E8174] bg-white/30" /> Parcels</span>
+              <span className="flex items-center gap-2"><i className="h-3 w-3 rounded-sm border border-[#34343A] bg-[#4A4A4F]/40" /> Buildings</span>
+              <span className="flex items-center gap-2"><i className="h-0.5 w-4 bg-[#8B6A4E]" /> Roads</span>
+              <span className="flex items-center gap-2"><i className="h-0.5 w-4 bg-[#4689A4]" /> Rivers</span>
+              <span className="flex items-center gap-2"><i className="h-3 w-3 rounded-sm border border-dashed border-[#4689A4] bg-[#4689A4]/15" /> Sensitivity</span>
+              <span className="flex items-center gap-2"><i className="h-3 w-3 rounded-sm border border-[#C4785A] bg-[#C4785A]/30" /> Cases / change</span>
+            </div>
+          </div>
           {onToggleDetections && (
             <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-sand bg-mist/20 p-3 transition-colors hover:bg-mist/35">
               <input

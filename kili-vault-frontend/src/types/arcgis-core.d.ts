@@ -128,5 +128,6 @@ declare namespace __esri {
   type FeatureSet = any;
   type SymbolUnion = any;
   type Polygon = any;
+  type Geometry = any;
   type SimpleFillSymbol = any;
 }
