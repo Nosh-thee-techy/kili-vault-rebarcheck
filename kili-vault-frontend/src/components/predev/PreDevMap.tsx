@@ -90,6 +90,7 @@ export function PreDevMap({
       SITE_INFRA_LAYER_IDS.includes(config.id as SiteInfraLayerId),
     ).forEach((config) => {
       const id = config.id as SiteInfraLayerId;
+      if (id === "power-lines") return;
       const outFields = ["OBJECTID", ...(id === "roads" ? ["fclass"] : [])];
       const layer = createMapFeatureLayer(
         config,

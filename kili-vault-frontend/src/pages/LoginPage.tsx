@@ -65,7 +65,7 @@ export function LoginPage() {
         </div>
       </header>
 
-      <main className="grid min-h-0 flex-1 grid-rows-[minmax(11.5rem,24dvh)_minmax(0,1fr)] overflow-hidden lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:grid-rows-1">
+      <main className="grid min-h-0 flex-1 grid-rows-[minmax(9.5rem,22dvh)_minmax(0,1fr)] overflow-y-auto overflow-x-hidden lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:grid-rows-1 lg:overflow-hidden">
         <LoginHeroPanel />
 
         <section className="flex min-h-0 min-w-0 items-center justify-center overflow-y-auto px-3 py-3 sm:px-7 sm:py-5 lg:px-8 xl:px-12">
@@ -82,7 +82,7 @@ export function LoginPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 sm:gap-3" aria-label="Available portals">
+            <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3" aria-label="Available portals">
               {ROLES.map(({ role, label, icon }) => {
                 const demo = DEMO_USERS[role];
                 const image = ROLE_IMAGES[role];
