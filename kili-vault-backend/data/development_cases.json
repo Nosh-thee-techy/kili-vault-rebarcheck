@@ -1,0 +1,576 @@
+{
+  "cases": [
+    {
+      "id": "case_b1deb01e",
+      "case_number": "KV-10127",
+      "detection_id": "det_mock_0",
+      "title": "Potential building development near -1.2944, 36.7820",
+      "change_type": "BUILDING_DEVELOPMENT",
+      "status": "AI_FLAGGED",
+      "confidence": 0.62,
+      "risk": {
+        "planning": 70,
+        "infrastructure": 66,
+        "environmental": 52,
+        "community": 63,
+        "overall": "LOW"
+      },
+      "area_m2": 380,
+      "centroid_lat": -1.2943500000000001,
+      "centroid_lon": 36.782,
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              36.7818,
+              -1.29455
+            ],
+            [
+              36.782199999999996,
+              -1.29455
+            ],
+            [
+              36.782199999999996,
+              -1.2941500000000001
+            ],
+            [
+              36.7818,
+              -1.2941500000000001
+            ],
+            [
+              36.7818,
+              -1.29455
+            ]
+          ]
+        ]
+      },
+      "evidence": {
+        "explanation": "Spectral differencing indicates physical surface change between baseline and recent composites.",
+        "spectral_change": true
+      },
+      "parcel_ref": "KL-1200",
+      "assigned_developer_id": "dev_kilimani_001",
+      "mitigation_requirements": [],
+      "audit_events": [
+        {
+          "id": "9dc9b412-fcda-4aff-8951-77d0cfe0600b",
+          "action": "CASE_CREATED",
+          "actor_role": "system",
+          "actor_id": "kili-shadows",
+          "actor_name": "Kili-Shadows",
+          "timestamp": "2026-09-15T11:07:45.302Z",
+          "details": "Detection promoted to development case"
+        }
+      ],
+      "evidence_items": [],
+      "created_at": "2026-09-15T11:07:45.302Z",
+      "updated_at": "2026-09-15T11:07:45.305Z"
+    },
+    {
+      "id": "case_4c14d253",
+      "case_number": "KV-10128",
+      "detection_id": "det_mock_1",
+      "title": "Potential infrastructure change near -1.2929, 36.7840",
+      "change_type": "INFRASTRUCTURE_CHANGE",
+      "status": "UNDER_REVIEW",
+      "confidence": 0.69,
+      "risk": {
+        "planning": 69,
+        "infrastructure": 81,
+        "environmental": 59,
+        "community": 70,
+        "overall": "MEDIUM"
+      },
+      "area_m2": 500,
+      "centroid_lat": -1.29285,
+      "centroid_lon": 36.784,
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              36.7838,
+              -1.29305
+            ],
+            [
+              36.7842,
+              -1.29305
+            ],
+            [
+              36.7842,
+              -1.29265
+            ],
+            [
+              36.7838,
+              -1.29265
+            ],
+            [
+              36.7838,
+              -1.29305
+            ]
+          ]
+        ]
+      },
+      "evidence": {
+        "explanation": "Spectral differencing indicates physical surface change between baseline and recent composites.",
+        "spectral_change": true
+      },
+      "parcel_ref": "KL-1201",
+      "assigned_developer_id": "dev_kilimani_002",
+      "mitigation_requirements": [],
+      "audit_events": [
+        {
+          "id": "b4eb27e4-2a8b-4f27-ae40-b1cc7dd2251f",
+          "action": "CASE_CREATED",
+          "actor_role": "system",
+          "actor_id": "kili-shadows",
+          "actor_name": "Kili-Shadows",
+          "timestamp": "2026-09-13T11:07:45.305Z",
+          "details": "Detection promoted to development case"
+        }
+      ],
+      "evidence_items": [],
+      "created_at": "2026-09-13T11:07:45.305Z",
+      "updated_at": "2026-09-15T10:07:45.305Z"
+    },
+    {
+      "id": "case_d607729e",
+      "case_number": "KV-10129",
+      "detection_id": "det_mock_2",
+      "title": "Potential land clearing near -1.2913, 36.7860",
+      "change_type": "LAND_CLEARING",
+      "status": "MITIGATION_REQUIRED",
+      "confidence": 0.76,
+      "risk": {
+        "planning": 76,
+        "infrastructure": 80,
+        "environmental": 66,
+        "community": 73,
+        "overall": "MEDIUM"
+      },
+      "area_m2": 620,
+      "centroid_lat": -1.29135,
+      "centroid_lon": 36.785999999999994,
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              36.785799999999995,
+              -1.29155
+            ],
+            [
+              36.786199999999994,
+              -1.29155
+            ],
+            [
+              36.786199999999994,
+              -1.29115
+            ],
+            [
+              36.785799999999995,
+              -1.29115
+            ],
+            [
+              36.785799999999995,
+              -1.29155
+            ]
+          ]
+        ]
+      },
+      "evidence": {
+        "explanation": "Spectral differencing indicates physical surface change between baseline and recent composites.",
+        "spectral_change": true
+      },
+      "parcel_ref": "KL-1202",
+      "assigned_developer_id": "dev_kilimani_001",
+      "mitigation_requirements": [
+        "Infrastructure assessment required",
+        "NCWSC verification"
+      ],
+      "audit_events": [
+        {
+          "id": "55483de8-067a-4c8e-9929-920901bd214d",
+          "action": "CASE_CREATED",
+          "actor_role": "system",
+          "actor_id": "kili-shadows",
+          "actor_name": "Kili-Shadows",
+          "timestamp": "2026-09-11T11:07:45.305Z",
+          "details": "Detection promoted to development case"
+        }
+      ],
+      "evidence_items": [],
+      "created_at": "2026-09-11T11:07:45.305Z",
+      "updated_at": "2026-09-15T09:07:45.305Z"
+    },
+    {
+      "id": "case_b1a913a7",
+      "case_number": "KV-10130",
+      "detection_id": "det_mock_3",
+      "title": "Potential building development near -1.2898, 36.7880",
+      "change_type": "BUILDING_DEVELOPMENT",
+      "status": "EVIDENCE_SUBMITTED",
+      "confidence": 0.8300000000000001,
+      "risk": {
+        "planning": 91,
+        "infrastructure": 87,
+        "environmental": 73,
+        "community": 84,
+        "overall": "HIGH"
+      },
+      "area_m2": 740,
+      "centroid_lat": -1.28985,
+      "centroid_lon": 36.788,
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              36.7878,
+              -1.29005
+            ],
+            [
+              36.788199999999996,
+              -1.29005
+            ],
+            [
+              36.788199999999996,
+              -1.28965
+            ],
+            [
+              36.7878,
+              -1.28965
+            ],
+            [
+              36.7878,
+              -1.29005
+            ]
+          ]
+        ]
+      },
+      "evidence": {
+        "explanation": "Spectral differencing indicates physical surface change between baseline and recent composites.",
+        "spectral_change": true
+      },
+      "parcel_ref": "KL-1203",
+      "assigned_developer_id": "dev_kilimani_002",
+      "mitigation_requirements": [
+        "Infrastructure assessment required",
+        "NCWSC verification"
+      ],
+      "audit_events": [
+        {
+          "id": "6c939b85-0655-4919-9300-e2708993a61c",
+          "action": "CASE_CREATED",
+          "actor_role": "system",
+          "actor_id": "kili-shadows",
+          "actor_name": "Kili-Shadows",
+          "timestamp": "2026-09-09T11:07:45.305Z",
+          "details": "Detection promoted to development case"
+        }
+      ],
+      "evidence_items": [],
+      "created_at": "2026-09-09T11:07:45.305Z",
+      "updated_at": "2026-09-15T08:07:45.305Z"
+    },
+    {
+      "id": "case_1a4874af",
+      "case_number": "KV-10131",
+      "detection_id": "det_mock_4",
+      "title": "Potential vegetation change near -1.2964, 36.7810",
+      "change_type": "VEGETATION_CHANGE",
+      "status": "AGENCY_PENDING",
+      "confidence": 0.9,
+      "risk": {
+        "planning": 90,
+        "infrastructure": 94,
+        "environmental": 80,
+        "community": 87,
+        "overall": "MEDIUM"
+      },
+      "area_m2": 860,
+      "centroid_lat": -1.2963500000000001,
+      "centroid_lon": 36.781,
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              36.7808,
+              -1.29655
+            ],
+            [
+              36.7812,
+              -1.29655
+            ],
+            [
+              36.7812,
+              -1.2961500000000001
+            ],
+            [
+              36.7808,
+              -1.2961500000000001
+            ],
+            [
+              36.7808,
+              -1.29655
+            ]
+          ]
+        ]
+      },
+      "evidence": {
+        "explanation": "Spectral differencing indicates physical surface change between baseline and recent composites.",
+        "spectral_change": true
+      },
+      "parcel_ref": "KL-1204",
+      "assigned_developer_id": "dev_kilimani_001",
+      "mitigation_requirements": [
+        "Infrastructure assessment required",
+        "NCWSC verification"
+      ],
+      "audit_events": [
+        {
+          "id": "445c0fe0-25ef-4d7b-bf10-b8716b7b8f07",
+          "action": "CASE_CREATED",
+          "actor_role": "system",
+          "actor_id": "kili-shadows",
+          "actor_name": "Kili-Shadows",
+          "timestamp": "2026-09-07T11:07:45.305Z",
+          "details": "Detection promoted to development case"
+        }
+      ],
+      "evidence_items": [],
+      "created_at": "2026-09-07T11:07:45.305Z",
+      "updated_at": "2026-09-15T07:07:45.305Z"
+    },
+    {
+      "id": "case_092b3452",
+      "case_number": "KV-10132",
+      "detection_id": "det_mock_5",
+      "title": "Potential surface change near -1.2949, 36.7830",
+      "change_type": "SURFACE_CHANGE",
+      "status": "VERIFIED",
+      "confidence": 0.62,
+      "risk": {
+        "planning": 62,
+        "infrastructure": 66,
+        "environmental": 52,
+        "community": 59,
+        "overall": "LOW"
+      },
+      "area_m2": 980,
+      "centroid_lat": -1.29485,
+      "centroid_lon": 36.783,
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              36.7828,
+              -1.29505
+            ],
+            [
+              36.7832,
+              -1.29505
+            ],
+            [
+              36.7832,
+              -1.29465
+            ],
+            [
+              36.7828,
+              -1.29465
+            ],
+            [
+              36.7828,
+              -1.29505
+            ]
+          ]
+        ]
+      },
+      "evidence": {
+        "explanation": "Spectral differencing indicates physical surface change between baseline and recent composites.",
+        "spectral_change": true
+      },
+      "parcel_ref": "KL-1205",
+      "assigned_developer_id": "dev_kilimani_002",
+      "mitigation_requirements": [
+        "Infrastructure assessment required",
+        "NCWSC verification"
+      ],
+      "audit_events": [
+        {
+          "id": "77285a66-e45a-42e8-8e38-f5d9f2d2d410",
+          "action": "CASE_CREATED",
+          "actor_role": "system",
+          "actor_id": "kili-shadows",
+          "actor_name": "Kili-Shadows",
+          "timestamp": "2026-09-05T11:07:45.305Z",
+          "details": "Detection promoted to development case"
+        }
+      ],
+      "evidence_items": [],
+      "created_at": "2026-09-05T11:07:45.305Z",
+      "updated_at": "2026-09-15T06:07:45.306Z"
+    },
+    {
+      "id": "case_fe98e735",
+      "case_number": "KV-10133",
+      "detection_id": "det_mock_6",
+      "title": "Potential building development near -1.2933, 36.7850",
+      "change_type": "BUILDING_DEVELOPMENT",
+      "status": "CLOSED",
+      "confidence": 0.69,
+      "risk": {
+        "planning": 77,
+        "infrastructure": 73,
+        "environmental": 59,
+        "community": 70,
+        "overall": "MEDIUM"
+      },
+      "area_m2": 1100,
+      "centroid_lat": -1.29335,
+      "centroid_lon": 36.785,
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              36.7848,
+              -1.29355
+            ],
+            [
+              36.785199999999996,
+              -1.29355
+            ],
+            [
+              36.785199999999996,
+              -1.29315
+            ],
+            [
+              36.7848,
+              -1.29315
+            ],
+            [
+              36.7848,
+              -1.29355
+            ]
+          ]
+        ]
+      },
+      "evidence": {
+        "explanation": "Spectral differencing indicates physical surface change between baseline and recent composites.",
+        "spectral_change": true
+      },
+      "parcel_ref": "KL-1206",
+      "assigned_developer_id": "dev_kilimani_001",
+      "mitigation_requirements": [
+        "Infrastructure assessment required",
+        "NCWSC verification"
+      ],
+      "audit_events": [
+        {
+          "id": "e277b8ce-0405-4bea-b07f-b8d57db9b3e0",
+          "action": "CASE_CREATED",
+          "actor_role": "system",
+          "actor_id": "kili-shadows",
+          "actor_name": "Kili-Shadows",
+          "timestamp": "2026-09-03T11:07:45.306Z",
+          "details": "Detection promoted to development case"
+        }
+      ],
+      "evidence_items": [],
+      "created_at": "2026-09-03T11:07:45.306Z",
+      "updated_at": "2026-09-15T05:07:45.306Z"
+    },
+    {
+      "id": "case_66ac5a48",
+      "case_number": "KV-10134",
+      "detection_id": "det_mock_7",
+      "title": "Potential infrastructure change near -1.2918, 36.7870",
+      "change_type": "INFRASTRUCTURE_CHANGE",
+      "status": "MITIGATION_REQUIRED",
+      "confidence": 0.76,
+      "risk": {
+        "planning": 76,
+        "infrastructure": 88,
+        "environmental": 66,
+        "community": 77,
+        "overall": "MEDIUM"
+      },
+      "area_m2": 1220,
+      "centroid_lat": -1.29185,
+      "centroid_lon": 36.787,
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              36.7868,
+              -1.29205
+            ],
+            [
+              36.7872,
+              -1.29205
+            ],
+            [
+              36.7872,
+              -1.29165
+            ],
+            [
+              36.7868,
+              -1.29165
+            ],
+            [
+              36.7868,
+              -1.29205
+            ]
+          ]
+        ]
+      },
+      "evidence": {
+        "explanation": "Spectral differencing indicates physical surface change between baseline and recent composites.",
+        "spectral_change": true
+      },
+      "parcel_ref": "KL-1207",
+      "assigned_developer_id": "dev_kilimani_002",
+      "mitigation_requirements": [
+        "Infrastructure assessment required"
+      ],
+      "audit_events": [
+        {
+          "id": "1f8ec4b4-1487-4df8-a618-6ac1b7881e28",
+          "action": "MITIGATION_REQUIRED",
+          "actor_role": "planner",
+          "actor_id": "planner_001",
+          "actor_name": "Grace Wanjiku",
+          "timestamp": "2026-09-15T16:28:17.757Z",
+          "details": "Infrastructure assessment required"
+        },
+        {
+          "id": "4c65d119-f568-4e01-9ba6-e00e87e28110",
+          "action": "STATUS_CHANGED",
+          "actor_role": "planner",
+          "actor_id": "planner_001",
+          "actor_name": "Grace Wanjiku",
+          "timestamp": "2026-09-15T16:28:13.099Z",
+          "details": "AI_FLAGGED → UNDER_REVIEW"
+        },
+        {
+          "id": "b91c52ee-ae8d-4751-9327-d903fe0dcc74",
+          "action": "CASE_CREATED",
+          "actor_role": "system",
+          "actor_id": "kili-shadows",
+          "actor_name": "Kili-Shadows",
+          "timestamp": "2026-09-01T11:07:45.306Z",
+          "details": "Detection promoted to development case"
+        }
+      ],
+      "evidence_items": [],
+      "created_at": "2026-09-01T11:07:45.306Z",
+      "updated_at": "2026-09-15T16:28:17.762Z"
+    }
+  ],
+  "version": 1
+}
