@@ -10,6 +10,7 @@ import {
   useVerifyCase,
 } from '@/hooks/useCaseQueries';
 import { CASE_STATUS_LABELS } from '@/config/theme';
+import { DEFAULT_DEVELOPER_ID, DEMO_DEVELOPERS } from '@/config/demoDevelopers';
 import type { CaseStatus, DevelopmentCase } from '@/types';
 
 export function CaseWorkflowActions({ caseItem }: { caseItem: DevelopmentCase }) {
@@ -19,6 +20,7 @@ export function CaseWorkflowActions({ caseItem }: { caseItem: DevelopmentCase })
   const uploadEvidence = useUploadEvidence();
   const verifyCase = useVerifyCase();
   const [mitigationText, setMitigationText] = useState('Infrastructure assessment required');
+  const [assignedDeveloperId, setAssignedDeveloperId] = useState(DEFAULT_DEVELOPER_ID);
   const [verifyNote, setVerifyNote] = useState('');
 
   if (!user) return null;
@@ -33,6 +35,7 @@ export function CaseWorkflowActions({ caseItem }: { caseItem: DevelopmentCase })
     addMitigation.mutate({
       id: caseItem.id,
       requirements: mitigationText.split('\n').filter(Boolean),
+      assignedDeveloperId,
     });
   };
 
@@ -68,6 +71,20 @@ export function CaseWorkflowActions({ caseItem }: { caseItem: DevelopmentCase })
             value={mitigationText}
             onChange={(e) => setMitigationText(e.target.value)}
           />
+          <label className="block text-sm font-medium text-charcoal">
+            Assign developer
+            <select
+              value={assignedDeveloperId}
+              onChange={(e) => setAssignedDeveloperId(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-sand bg-off-white px-3 py-2 text-sm text-charcoal"
+            >
+              {DEMO_DEVELOPERS.map((dev) => (
+                <option key={dev.id} value={dev.id}>
+                  {dev.name}
+                </option>
+              ))}
+            </select>
+          </label>
           <Button
             variant="secondary"
             size="sm"

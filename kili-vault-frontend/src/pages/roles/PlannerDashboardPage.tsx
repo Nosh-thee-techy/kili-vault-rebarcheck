@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Maximize2, Radar } from 'lucide-react';
 import { CaseListItem } from '@/components/cases/CaseListItem';
 import { CommandKpiStrip } from '@/components/dashboard/CommandKpiStrip';
+import { CommunityObservationsCard } from '@/components/dashboard/CommunityObservationsCard';
 import { PromoteDetectionsBanner } from '@/components/dashboard/PromoteDetectionsBanner';
 import { HackathonDemoPath } from '@/components/dashboard/HackathonDemoPath';
 import { PageHero } from '@/components/dashboard/PageHero';
@@ -85,6 +86,7 @@ export function PlannerDashboardPage() {
       />
 
       <PromoteDetectionsBanner />
+      <CommunityObservationsCard />
 
       {!statsLoading && (
         <section aria-label="Workflow pipeline">

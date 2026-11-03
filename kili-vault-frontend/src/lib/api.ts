@@ -1,6 +1,7 @@
 import type {
   AuthUser,
   CaseStats,
+  CommunityObservation,
   Detection,
   DetectionStats,
   DevelopmentCase,
@@ -97,12 +98,20 @@ export async function updateCaseStatus(
 export async function addMitigation(
   id: string,
   requirements: string[],
+  assignedDeveloperId?: string,
 ): Promise<{ success: boolean; data: DevelopmentCase }> {
   return fetchJson(`/api/v1/cases/${encodeURIComponent(id)}/mitigation`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ requirements }),
+    body: JSON.stringify({ requirements, assignedDeveloperId }),
   });
+}
+
+export async function getCommunityObservations(): Promise<{
+  success: boolean;
+  data: { observations: CommunityObservation[]; pendingCount: number };
+}> {
+  return fetchJson('/api/v1/cases/observations');
 }
 
 export async function verifyCase(

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { caseKeys } from '@/lib/queryClient';
 import { MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader } from '@/components/ui/Card';
@@ -11,6 +12,7 @@ export function CommunityObservePage() {
   const [lon, setLon] = useState('36.7820');
   const [description, setDescription] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const qc = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -19,7 +21,10 @@ export function CommunityObservePage() {
         lon: parseFloat(lon),
         description,
       }),
-    onSuccess: () => setSubmitted(true),
+    onSuccess: () => {
+      setSubmitted(true);
+      qc.invalidateQueries({ queryKey: caseKeys.observations() });
+    },
   });
 
   return (

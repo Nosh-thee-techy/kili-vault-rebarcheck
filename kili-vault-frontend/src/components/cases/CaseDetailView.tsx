@@ -162,13 +162,68 @@ export function CaseDetailView({
                   <dt className="text-charcoal-muted">Parcel</dt>
                   <dd className="font-mono text-xs font-semibold">{caseItem.parcelRef ?? '—'}</dd>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between border-b border-sand pb-2">
                   <dt className="text-charcoal-muted">Coordinates</dt>
                   <dd className="font-mono text-xs">
                     {caseItem.centroidLat.toFixed(5)}, {caseItem.centroidLon.toFixed(5)}
                   </dd>
                 </div>
+                {caseItem.detectionId && (
+                  <div className="flex justify-between border-b border-sand pb-2">
+                    <dt className="text-charcoal-muted">Detection ID</dt>
+                    <dd className="font-mono text-xs">{caseItem.detectionId}</dd>
+                  </div>
+                )}
+                {caseItem.assignedDeveloperId && (
+                  <div className="flex justify-between">
+                    <dt className="text-charcoal-muted">Assigned developer</dt>
+                    <dd className="font-mono text-xs">{caseItem.assignedDeveloperId}</dd>
+                  </div>
+                )}
               </dl>
+              {caseItem.linkedDetection && (
+                <dl className="mt-4 grid gap-2 rounded-xl border border-sand bg-mist/20 p-4 text-sm">
+                  <p className="text-xs font-bold uppercase tracking-wider text-sage">
+                    Kili-Shadows model scores
+                  </p>
+                  {caseItem.linkedDetection.ndbiChange != null && (
+                    <div className="flex justify-between">
+                      <dt className="text-charcoal-muted">NDBI change</dt>
+                      <dd className="font-mono">{caseItem.linkedDetection.ndbiChange.toFixed(3)}</dd>
+                    </div>
+                  )}
+                  {caseItem.linkedDetection.ndviChange != null && (
+                    <div className="flex justify-between">
+                      <dt className="text-charcoal-muted">NDVI change</dt>
+                      <dd className="font-mono">{caseItem.linkedDetection.ndviChange.toFixed(3)}</dd>
+                    </div>
+                  )}
+                  {caseItem.linkedDetection.baselineProbability != null && (
+                    <div className="flex justify-between">
+                      <dt className="text-charcoal-muted">Baseline model</dt>
+                      <dd>{formatConfidence(caseItem.linkedDetection.baselineProbability)}</dd>
+                    </div>
+                  )}
+                  {caseItem.linkedDetection.prithviProbability != null && (
+                    <div className="flex justify-between">
+                      <dt className="text-charcoal-muted">Prithvi model</dt>
+                      <dd>{formatConfidence(caseItem.linkedDetection.prithviProbability)}</dd>
+                    </div>
+                  )}
+                  {caseItem.linkedDetection.temporalPersistence != null && (
+                    <div className="flex justify-between">
+                      <dt className="text-charcoal-muted">Persistence</dt>
+                      <dd>{formatConfidence(caseItem.linkedDetection.temporalPersistence)}</dd>
+                    </div>
+                  )}
+                  {caseItem.linkedDetection.modelVersion && (
+                    <div className="flex justify-between">
+                      <dt className="text-charcoal-muted">Model version</dt>
+                      <dd className="font-mono text-xs">{caseItem.linkedDetection.modelVersion}</dd>
+                    </div>
+                  )}
+                </dl>
+              )}
               {caseItem.evidence?.explanation && (
                 <div className="mt-4 flex gap-3 rounded-xl bg-mist/40 p-4">
                   <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-forest" />

@@ -81,8 +81,15 @@ export function useUpdateCaseStatus() {
 export function useAddMitigation() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, requirements }: { id: string; requirements: string[] }) =>
-      addMitigation(id, requirements),
+    mutationFn: ({
+      id,
+      requirements,
+      assignedDeveloperId,
+    }: {
+      id: string;
+      requirements: string[];
+      assignedDeveloperId?: string;
+    }) => addMitigation(id, requirements, assignedDeveloperId),
     onSettled: (_d, _e, { id }) => {
       qc.invalidateQueries({ queryKey: caseKeys.detail(id) });
       qc.invalidateQueries({ queryKey: caseKeys.lists() });

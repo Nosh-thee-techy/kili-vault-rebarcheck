@@ -75,6 +75,35 @@ export interface Detection {
   created_at?: string;
 }
 
+/** Detection snapshot joined when loading a case by detection_id */
+export interface LinkedDetection {
+  id: string;
+  runId?: string;
+  changeType: ChangeType;
+  confidence: number;
+  baselineProbability?: number | null;
+  prithviProbability?: number | null;
+  ndbiChange?: number | null;
+  ndviChange?: number | null;
+  temporalPersistence?: number | null;
+  areaM2?: number;
+  modelVersion?: string;
+  evidence?: DetectionEvidence;
+  createdAt?: string;
+}
+
+export interface CommunityObservation {
+  id: string;
+  lat: number;
+  lon: number;
+  description: string;
+  status: string;
+  submittedById?: string;
+  submittedByName?: string;
+  caseId?: string | null;
+  createdAt: string;
+}
+
 export interface RiskBreakdown {
   planning: number;
   infrastructure: number;
@@ -102,6 +131,7 @@ export interface DevelopmentCase {
   mitigationRequirements?: string[];
   auditEvents?: AuditEvent[];
   evidenceItems?: EvidenceItem[];
+  linkedDetection?: LinkedDetection;
   createdAt: string;
   updatedAt: string;
 }
