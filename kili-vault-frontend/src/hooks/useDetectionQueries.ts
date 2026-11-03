@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getDetections,
   getDetectionStats,
@@ -6,8 +6,8 @@ import {
   getUnpromotedDetectionCount,
   promoteDetections,
   type DetectionQuery,
-} from '@/lib/api';
-import { caseKeys, detectionKeys } from '@/lib/queryClient';
+} from "@/lib/api";
+import { caseKeys, detectionKeys } from "@/lib/queryClient";
 
 const MAP_DETECTION_FILTERS: DetectionQuery = {
   min_confidence: 0.5,
@@ -21,19 +21,26 @@ export function useDetectionStatsQuery() {
   });
 }
 
-export function useDetectionsQuery(page: number, pageSize = 10, minConfidence = 0.5) {
+export function useDetectionsQuery(
+  page: number,
+  pageSize = 10,
+  minConfidence = 0.5,
+) {
   return useQuery({
     queryKey: detectionKeys.list({ page, pageSize, minConfidence }),
-    queryFn: () => getDetections({
-      limit: pageSize,
-      offset: page * pageSize,
-      min_confidence: minConfidence,
-    }),
+    queryFn: () =>
+      getDetections({
+        limit: pageSize,
+        offset: page * pageSize,
+        min_confidence: minConfidence,
+      }),
     placeholderData: (previous) => previous,
   });
 }
 
-export function useDetectionsGeoJSONQuery(filters: DetectionQuery = MAP_DETECTION_FILTERS) {
+export function useDetectionsGeoJSONQuery(
+  filters: DetectionQuery = MAP_DETECTION_FILTERS,
+) {
   return useQuery({
     queryKey: detectionKeys.geojson(filters as Record<string, unknown>),
     queryFn: () => getDetectionsGeoJSON(filters),
@@ -43,7 +50,8 @@ export function useDetectionsGeoJSONQuery(filters: DetectionQuery = MAP_DETECTIO
 export function useUnpromotedDetectionsQuery(minConfidence = 0.75) {
   return useQuery({
     queryKey: caseKeys.unpromoted(minConfidence),
-    queryFn: () => getUnpromotedDetectionCount(minConfidence).then((r) => r.data),
+    queryFn: () =>
+      getUnpromotedDetectionCount(minConfidence).then((r) => r.data),
   });
 }
 

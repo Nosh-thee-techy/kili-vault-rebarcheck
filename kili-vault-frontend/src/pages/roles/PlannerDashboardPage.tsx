@@ -1,24 +1,29 @@
-import { lazy, Suspense, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Maximize2, Radar } from 'lucide-react';
-import { CaseListItem } from '@/components/cases/CaseListItem';
-import { CommandKpiStrip } from '@/components/dashboard/CommandKpiStrip';
-import { CommunityObservationsCard } from '@/components/dashboard/CommunityObservationsCard';
-import { DetectionTriageList } from '@/components/dashboard/DetectionTriageList';
-import { PromoteDetectionsBanner } from '@/components/dashboard/PromoteDetectionsBanner';
-import { PageHero } from '@/components/dashboard/PageHero';
-import { SpotlightCaseCard } from '@/components/dashboard/SpotlightCaseCard';
-import { WorkflowPipeline } from '@/components/dashboard/WorkflowPipeline';
-import { Button } from '@/components/ui/Button';
-import { MapSkeleton, CaseListSkeleton } from '@/components/ui/Skeleton';
-import { MAP_LAYERS } from '@/config/mapLayers';
-import { usePresenter } from '@/context/PresenterContext';
-import { useCasesQuery, useNormalizedCaseStats } from '@/hooks/useCaseQueries';
-import { useDetectionStatsQuery, useDetectionsGeoJSONQuery } from '@/hooks/useDetectionQueries';
-import { pickDemoSpotlightCase } from '@/lib/demoSpotlightCase';
+import { lazy, Suspense, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { Maximize2, Radar } from "lucide-react";
+import { CaseListItem } from "@/components/cases/CaseListItem";
+import { CommandKpiStrip } from "@/components/dashboard/CommandKpiStrip";
+import { CommunityObservationsCard } from "@/components/dashboard/CommunityObservationsCard";
+import { DetectionTriageList } from "@/components/dashboard/DetectionTriageList";
+import { PromoteDetectionsBanner } from "@/components/dashboard/PromoteDetectionsBanner";
+import { PageHero } from "@/components/dashboard/PageHero";
+import { SpotlightCaseCard } from "@/components/dashboard/SpotlightCaseCard";
+import { WorkflowPipeline } from "@/components/dashboard/WorkflowPipeline";
+import { Button } from "@/components/ui/Button";
+import { MapSkeleton, CaseListSkeleton } from "@/components/ui/Skeleton";
+import { MAP_LAYERS } from "@/config/mapLayers";
+import { usePresenter } from "@/context/PresenterContext";
+import { useCasesQuery, useNormalizedCaseStats } from "@/hooks/useCaseQueries";
+import {
+  useDetectionStatsQuery,
+  useDetectionsGeoJSONQuery,
+} from "@/hooks/useDetectionQueries";
+import { pickDemoSpotlightCase } from "@/lib/demoSpotlightCase";
 
 const KilimaniMap = lazy(() =>
-  import('@/components/map/KilimaniMap').then((m) => ({ default: m.KilimaniMap })),
+  import("@/components/map/KilimaniMap").then((m) => ({
+    default: m.KilimaniMap,
+  })),
 );
 
 export function PlannerDashboardPage() {
@@ -29,7 +34,7 @@ export function PlannerDashboardPage() {
   const { data: detectionsGeoJSON } = useDetectionsGeoJSONQuery();
   const cases = data?.data ?? [];
   const reviewQueue = cases.filter(
-    (c) => c.status === 'AI_FLAGGED' || c.status === 'UNDER_REVIEW',
+    (c) => c.status === "AI_FLAGGED" || c.status === "UNDER_REVIEW",
   );
   const spotlight = useMemo(() => {
     if (isActive && spotlightCaseId) {
@@ -107,7 +112,10 @@ export function PlannerDashboardPage() {
 
           <div className="absolute bottom-4 left-4 right-4 z-10 md:left-6 md:right-6">
             {!statsLoading && (
-              <CommandKpiStrip stats={kpiStats} className="pointer-events-auto" />
+              <CommandKpiStrip
+                stats={kpiStats}
+                className="pointer-events-auto"
+              />
             )}
           </div>
 
@@ -117,7 +125,8 @@ export function PlannerDashboardPage() {
               Sentinel-2 · Kilimani Ward
               {detectionStats?.total_detections != null && (
                 <span className="font-mono text-sage">
-                  · {detectionStats.total_detections.toLocaleString()} detections
+                  · {detectionStats.total_detections.toLocaleString()}{" "}
+                  detections
                 </span>
               )}
             </span>
@@ -128,7 +137,10 @@ export function PlannerDashboardPage() {
       <div className="grid gap-6 lg:grid-cols-5">
         <section className="lg:col-span-2">
           {spotlight && !isLoading ? (
-            <SpotlightCaseCard caseItem={spotlight} linkPrefix="/planner/cases" />
+            <SpotlightCaseCard
+              caseItem={spotlight}
+              linkPrefix="/planner/cases"
+            />
           ) : (
             <CaseListSkeleton count={1} />
           )}
@@ -136,7 +148,9 @@ export function PlannerDashboardPage() {
 
         <section className="lg:col-span-3">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-xl font-semibold text-charcoal">Review queue</h2>
+            <h2 className="font-display text-xl font-semibold text-charcoal">
+              Review queue
+            </h2>
             <Link to="/planner/cases?status=AI_FLAGGED">
               <Button variant="outline" size="sm">
                 View all flagged
@@ -148,7 +162,12 @@ export function PlannerDashboardPage() {
           ) : reviewQueue.length > 0 ? (
             <div className="space-y-3">
               {reviewQueue.slice(0, 4).map((c) => (
-                <CaseListItem key={c.id} caseItem={c} compact caseLinkPrefix="/planner/cases" />
+                <CaseListItem
+                  key={c.id}
+                  caseItem={c}
+                  compact
+                  caseLinkPrefix="/planner/cases"
+                />
               ))}
             </div>
           ) : (
