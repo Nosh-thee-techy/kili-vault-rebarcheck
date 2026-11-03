@@ -1,0 +1,39 @@
+{
+  "label": "BUILDING_DEVELOPMENT",
+  "spectral": {
+    "ndvi_before": 0.3772,
+    "ndvi_after": 0.1979,
+    "delta_ndvi": -0.1793,
+    "ndbi_before": -0.1299,
+    "ndbi_after": 0.1689,
+    "delta_ndbi": 0.2988,
+    "ndwi_before": -0.2477,
+    "ndwi_after": -0.2235
+  },
+  "spatial": {
+    "aspect_ratio": 1.94,
+    "area_m2": 2113.1,
+    "centroid": {
+      "lat": -1.280261,
+      "lon": 36.780515
+    }
+  },
+  "temporal_persistence": 0.907,
+  "bands_t1": {
+    "B2": 0.051,
+    "B3": 0.0472,
+    "B4": 0.0767,
+    "B8A": 0.1696,
+    "B11": 0.1306,
+    "B12": 0.0946
+  },
+  "bands_t2": {
+    "B2": 0.0649,
+    "B3": 0.037,
+    "B4": 0.1006,
+    "B8A": 0.1503,
+    "B11": 0.2114,
+    "B12": 0.1774
+  },
+  "chip_id": "test_building_development_004"
+}

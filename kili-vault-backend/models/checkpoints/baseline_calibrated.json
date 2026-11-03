@@ -1,0 +1,26 @@
+{
+  "model": "Model A (Spectral Change Baseline)",
+  "calibrated_parameters": {
+    "delta_ndbi_threshold": 0.08,
+    "delta_ndvi_threshold": -0.14
+  },
+  "train_metrics": {
+    "tp": 20,
+    "fp": 0,
+    "fn": 0,
+    "tn": 100,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0
+  },
+  "validation_metrics": {
+    "tp": 6,
+    "fp": 0,
+    "fn": 0,
+    "tn": 30,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0
+  },
+  "precision_requirement_met": true
+}

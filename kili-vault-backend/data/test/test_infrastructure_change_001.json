@@ -1,0 +1,39 @@
+{
+  "label": "INFRASTRUCTURE_CHANGE",
+  "spectral": {
+    "ndvi_before": 0.2022,
+    "ndvi_after": 0.0958,
+    "delta_ndvi": -0.1064,
+    "ndbi_before": -0.0028,
+    "ndbi_after": 0.2684,
+    "delta_ndbi": 0.2712,
+    "ndwi_before": -0.1631,
+    "ndwi_after": -0.1894
+  },
+  "spatial": {
+    "aspect_ratio": 7.07,
+    "area_m2": 1413.6,
+    "centroid": {
+      "lat": -1.30085,
+      "lon": 36.782737
+    }
+  },
+  "temporal_persistence": 0.943,
+  "bands_t1": {
+    "B2": 0.046,
+    "B3": 0.0397,
+    "B4": 0.0556,
+    "B8A": 0.0838,
+    "B11": 0.0833,
+    "B12": 0.0738
+  },
+  "bands_t2": {
+    "B2": 0.0337,
+    "B3": 0.0707,
+    "B4": 0.0869,
+    "B8A": 0.1053,
+    "B11": 0.1826,
+    "B12": 0.1572
+  },
+  "chip_id": "test_infrastructure_change_001"
+}

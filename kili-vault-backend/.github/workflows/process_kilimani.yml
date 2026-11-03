@@ -1,0 +1,88 @@
+name: Kili-Vault Sentinel-2 Scheduled Detection Pipeline
+
+on:
+  # Scheduled weekly execution (every Monday at 02:00 UTC)
+  schedule:
+    - cron: '0 2 * * 1'
+  # Allow manual trigger from GitHub Actions console
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Simulate run without modifying database'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  run-detection-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Run Algorithm Unit Tests
+        run: |
+          npm test
+          python3 -m unittest discover -s tests/python -p "test_*.py"
+
+      - name: Authenticate with Google Earth Engine
+        env:
+          GEE_SERVICE_ACCOUNT_KEY: ${{ secrets.GEE_SERVICE_ACCOUNT_KEY }}
+          GEE_PROJECT_ID: ${{ secrets.GEE_PROJECT_ID }}
+        run: |
+          if [ -n "$GEE_SERVICE_ACCOUNT_KEY" ]; then
+            echo "$GEE_SERVICE_ACCOUNT_KEY" > /tmp/gee_key.json
+            echo "GEE_SERVICE_ACCOUNT_KEY_PATH=/tmp/gee_key.json" >> $GITHUB_ENV
+          fi
+
+      - name: Execute Sentinel-2 Earth Engine Pipeline
+        env:
+          GEE_PROJECT_ID: ${{ secrets.GEE_PROJECT_ID }}
+          GEE_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}
+          AOI_GEOJSON_PATH: 'config/kilimani_ward.geojson'
+          S2_CLOUD_THRESHOLD: '20'
+          MIN_VALID_OBSERVATIONS: '3'
+          MIN_CANDIDATE_AREA_M2: '100'
+          MAX_CANDIDATE_AREA_M2: '50000'
+        run: |
+          mkdir -p output
+          python -m gee.main --output output/detections.geojson --summary output/processing_summary.json
+
+      - name: Ingest Validated Detections into PostGIS
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NODE_ENV: 'production'
+        run: |
+          node scripts/ingest_detections.js output/detections.geojson output/processing_summary.json
+
+      - name: Upload Pipeline Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kilimani-detections-${{ github.run_id }}
+          path: |
+            output/detections.geojson
+            output/processing_summary.json
+          retention-days: 90

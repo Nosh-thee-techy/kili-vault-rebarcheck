@@ -1,0 +1,39 @@
+{
+  "label": "SURFACE_CHANGE",
+  "spectral": {
+    "ndvi_before": 0.1973,
+    "ndvi_after": 0.2432,
+    "delta_ndvi": 0.0459,
+    "ndbi_before": 0.0314,
+    "ndbi_after": 0.0873,
+    "delta_ndbi": 0.0559,
+    "ndwi_before": -0.2898,
+    "ndwi_after": -0.2664
+  },
+  "spatial": {
+    "aspect_ratio": 1.7,
+    "area_m2": 376.3,
+    "centroid": {
+      "lat": -1.303986,
+      "lon": 36.776702
+    }
+  },
+  "temporal_persistence": 0.297,
+  "bands_t1": {
+    "B2": 0.0269,
+    "B3": 0.065,
+    "B4": 0.0756,
+    "B8A": 0.1128,
+    "B11": 0.1201,
+    "B12": 0.1007
+  },
+  "bands_t2": {
+    "B2": 0.056,
+    "B3": 0.0565,
+    "B4": 0.057,
+    "B8A": 0.0937,
+    "B11": 0.1116,
+    "B12": 0.0917
+  },
+  "chip_id": "train_surface_change_008"
+}

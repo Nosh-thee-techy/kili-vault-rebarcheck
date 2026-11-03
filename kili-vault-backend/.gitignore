@@ -1,0 +1,90 @@
+# Dependencies and build output
+node_modules/
+.venv/
+venv/
+env/
+build/
+dist/
+coverage/
+.turbo/
+.cache/
+.parcel-cache/
+
+# Python caches and tooling state
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.coverage
+htmlcov/
+
+# Local environment files and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+service-account*.json
+google-credentials*.json
+
+# Logs, local databases, and temporary files
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*.pid
+*.sqlite
+*.sqlite3
+*.db
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Generated pipeline outputs and local run reports
+output/
+!output/.gitkeep
+outputs/
+!outputs/.gitkeep
+
+# Large downloaded model weights and partial downloads
+*.pt
+*.pt.part
+*.pth
+*.safetensors
+models/prithvi/weights/*
+!models/prithvi/weights/.gitkeep
+models/checkpoints/*.pt
+models/checkpoints/*.pth
+models/checkpoints/*.safetensors
+
+# Local Earth Engine and geospatial downloads
+data/raw/*
+!data/raw/.gitkeep
+data/chips/*
+!data/chips/.gitkeep
+data/labels/*
+!data/labels/.gitkeep
+*.tif
+*.tiff
+*.jp2
+*.zip
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+*.code-workspace
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Generated JavaScript artifacts
+*.tsbuildinfo
+*.map

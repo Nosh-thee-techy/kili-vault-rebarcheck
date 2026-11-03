@@ -1,0 +1,39 @@
+{
+  "label": "INFRASTRUCTURE_CHANGE",
+  "spectral": {
+    "ndvi_before": 0.2187,
+    "ndvi_after": 0.1649,
+    "delta_ndvi": -0.0538,
+    "ndbi_before": 0.0444,
+    "ndbi_after": 0.1831,
+    "delta_ndbi": 0.1386,
+    "ndwi_before": -0.1237,
+    "ndwi_after": -0.2975
+  },
+  "spatial": {
+    "aspect_ratio": 7.27,
+    "area_m2": 3335.1,
+    "centroid": {
+      "lat": -1.300753,
+      "lon": 36.782021
+    }
+  },
+  "temporal_persistence": 0.8074,
+  "bands_t1": {
+    "B2": 0.0216,
+    "B3": 0.0388,
+    "B4": 0.0952,
+    "B8A": 0.1484,
+    "B11": 0.1622,
+    "B12": 0.115
+  },
+  "bands_t2": {
+    "B2": 0.042,
+    "B3": 0.0374,
+    "B4": 0.0643,
+    "B8A": 0.0896,
+    "B11": 0.1298,
+    "B12": 0.094
+  },
+  "chip_id": "train_infrastructure_change_004"
+}

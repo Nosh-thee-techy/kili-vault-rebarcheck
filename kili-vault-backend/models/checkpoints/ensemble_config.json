@@ -1,0 +1,17 @@
+{
+  "model": "Ensemble Change Classifier",
+  "weights": {
+    "baseline": 0.5,
+    "prithvi": 0.3,
+    "persistence": 0.2
+  },
+  "validation_metrics": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "tp": 6,
+    "fp": 0,
+    "fn": 0
+  },
+  "precision_requirement_met": true
+}

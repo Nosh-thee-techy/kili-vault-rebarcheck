@@ -1,0 +1,39 @@
+{
+  "label": "NO_CHANGE",
+  "spectral": {
+    "ndvi_before": 0.366,
+    "ndvi_after": 0.3372,
+    "delta_ndvi": -0.0287,
+    "ndbi_before": -0.147,
+    "ndbi_after": -0.1657,
+    "delta_ndbi": -0.0187,
+    "ndwi_before": -0.1811,
+    "ndwi_after": -0.2038
+  },
+  "spatial": {
+    "aspect_ratio": 1.18,
+    "area_m2": 792.8,
+    "centroid": {
+      "lat": -1.295198,
+      "lon": 36.786541
+    }
+  },
+  "temporal_persistence": 0.9581,
+  "bands_t1": {
+    "B2": 0.054,
+    "B3": 0.0703,
+    "B4": 0.0962,
+    "B8A": 0.2072,
+    "B11": 0.1541,
+    "B12": 0.1338
+  },
+  "bands_t2": {
+    "B2": 0.0285,
+    "B3": 0.0651,
+    "B4": 0.1169,
+    "B8A": 0.2358,
+    "B11": 0.1687,
+    "B12": 0.1388
+  },
+  "chip_id": "validation_no_change_004"
+}
