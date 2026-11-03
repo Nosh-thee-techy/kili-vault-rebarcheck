@@ -206,27 +206,27 @@ export function PlannerFeaturePanel({
                 </div>
               </>
             )}
-            {selection.context?.parcelAreaM2 != null && (
+            {context?.parcelAreaM2 != null && (
               <div>
                 <dt className="text-charcoal-muted">Parcel area</dt>
                 <dd className="font-semibold text-charcoal">
-                  {formatArea(selection.context.parcelAreaM2)}
+                  {formatArea(context.parcelAreaM2)}
                 </dd>
               </div>
             )}
-            {selection.context?.buildingCount != null && (
+            {context?.buildingCount != null && (
               <div>
                 <dt className="text-charcoal-muted">Mapped buildings</dt>
                 <dd className="font-semibold text-charcoal">
-                  {selection.context.buildingCount}
+                  {context.buildingCount}
                 </dd>
               </div>
             )}
-            {selection.context?.buildingFootprintM2 != null && (
+            {context?.buildingFootprintM2 != null && (
               <div>
                 <dt className="text-charcoal-muted">Building footprint</dt>
                 <dd className="font-semibold text-charcoal">
-                  {formatArea(selection.context.buildingFootprintM2)}
+                  {formatArea(context.buildingFootprintM2)}
                 </dd>
               </div>
             )}
