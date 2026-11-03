@@ -25,6 +25,7 @@ type CalciteElement = DetailedHTMLProps<
   message?: string;
   name?: string;
   open?: boolean;
+  rows?: number;
   placeholder?: string;
   scale?: string;
   selected?: boolean;
@@ -40,6 +41,8 @@ type CalciteElement = DetailedHTMLProps<
   headingLevel?: number;
   oncalciteInputInput?: (event: CustomEvent) => void;
   oncalciteSelectChange?: (event: CustomEvent) => void;
+  oncalciteCheckboxChange?: (event: CustomEvent) => void;
+  oncalciteTextAreaInput?: (event: CustomEvent) => void;
 };
 
 declare global {
@@ -63,6 +66,8 @@ declare global {
         "calcite-panel": CalciteElement;
         "calcite-select": CalciteElement;
         "calcite-shell-panel": CalciteElement;
+        "calcite-progress": CalciteElement;
+        "calcite-text-area": CalciteElement;
         "calcite-table": CalciteElement;
         "calcite-table-cell": CalciteElement;
         "calcite-table-header": CalciteElement;

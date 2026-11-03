@@ -213,59 +213,65 @@ export function PreDevMap({ lat, lon, onPinDrop, className }: PreDevMapProps) {
   }, [lat, lon]);
 
   const viewModeToggle = (
-    <div className="pointer-events-auto flex rounded-xl border border-sand bg-off-white/95 p-0.5 shadow-soft backdrop-blur-md">
-      <button
-        type="button"
+    <div className="pointer-events-auto flex items-center gap-1">
+      <calcite-button
+        appearance={mode3d ? "outline" : "solid"}
+        scale="s"
+        aria-pressed={!mode3d}
         onClick={() => setMode3d(false)}
-        className={cn(
-          'rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors',
-          !mode3d ? 'bg-charcoal text-off-white' : 'text-charcoal-muted hover:text-charcoal',
-        )}
       >
         2D
-      </button>
-      <button
-        type="button"
+      </calcite-button>
+      <calcite-button
+        appearance={mode3d ? "solid" : "outline"}
+        scale="s"
+        aria-pressed={mode3d}
         onClick={() => setMode3d(true)}
-        className={cn(
-          'rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors',
-          mode3d ? 'bg-charcoal text-off-white' : 'text-charcoal-muted hover:text-charcoal',
-        )}
       >
         3D
-      </button>
+      </calcite-button>
     </div>
   );
 
-  const layerPills = (
-    <div className="pointer-events-auto flex flex-wrap gap-2">
-      {SITE_INFRA_LAYER_IDS.map((id) => {
-        const config = MAP_LAYERS.find((layer) => layer.id === id);
-        if (!config) return null;
-        const on = layerVisibility[id];
-        return (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setLayerVisibility((prev) => ({ ...prev, [id]: !prev[id] }))}
-            className={cn(
-              'rounded-full border px-3 py-1 text-xs font-semibold transition-colors backdrop-blur-md',
-              on
-                ? 'border-clay/40 bg-clay/10 text-clay-dark'
-                : 'border-sand bg-off-white/90 text-charcoal-muted',
-            )}
-          >
-            {config.title}
-          </button>
-        );
-      })}
+  const layerControls = (
+    <div className="pointer-events-auto absolute right-3 top-14 z-20 w-60 max-w-[90%] border border-sand bg-[var(--calcite-color-background)] shadow-soft">
+      <calcite-block
+        heading="Map layers"
+        description="Toggle planning context on the map."
+        collapsible
+      >
+        <div className="grid gap-2 px-3 pb-3 pt-2">
+          {SITE_INFRA_LAYER_IDS.map((id) => {
+            const config = MAP_LAYERS.find((layer) => layer.id === id);
+            if (!config) return null;
+            return (
+              <calcite-label
+                key={id}
+                layout="inline"
+                className="min-w-0 text-xs text-charcoal"
+              >
+                <calcite-checkbox
+                  checked={layerVisibility[id]}
+                  oncalciteCheckboxChange={() =>
+                    setLayerVisibility((previous) => ({
+                      ...previous,
+                      [id]: !previous[id],
+                    }))
+                  }
+                />
+                <span>{config.title}</span>
+              </calcite-label>
+            );
+          })}
+        </div>
+      </calcite-block>
     </div>
   );
 
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-2xl border border-sand',
+        'relative min-w-0 overflow-hidden border border-sand bg-[var(--calcite-color-background)]',
         className ?? 'min-h-[280px]',
       )}
     >
@@ -276,57 +282,53 @@ export function PreDevMap({ lat, lon, onPinDrop, className }: PreDevMapProps) {
         </div>
       )}
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 bg-gradient-to-b from-off-white/90 via-off-white/50 to-transparent p-3">
+      <div className="pointer-events-none absolute inset-x-3 top-3 z-20">
         <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className="rounded-full border border-off-white/60 bg-off-white/90 px-3 py-1 text-xs font-semibold text-forest shadow-soft backdrop-blur-md">
+          <calcite-chip icon="map" scale="s" className="pointer-events-auto">
             {lat != null && lon != null
               ? 'Site selected — tap to move pin'
               : 'Tap map to set your plot location'}
-          </div>
+          </calcite-chip>
           {viewModeToggle}
         </div>
       </div>
 
-      <p className="pointer-events-none absolute left-3 top-14 z-10 rounded-lg bg-off-white/90 px-2.5 py-1 text-[10px] font-medium text-charcoal-muted backdrop-blur-sm">
+      <calcite-chip
+        scale="s"
+        className="pointer-events-none absolute left-3 top-14 z-10 max-w-[90%]"
+      >
         {mode3d
           ? '3D tilt · buildings, roads, sewers & power'
           : 'Top-down · dashed ring = 30 m road setback guide'}
-      </p>
+      </calcite-chip>
+
+      {layerControls}
 
       {lat != null && lon != null && (
-        <div className="pointer-events-none absolute bottom-3 right-3 z-10 max-w-[14rem] space-y-2">
-          <div className="rounded-xl border border-clay/30 bg-off-white/95 px-3 py-2 text-right shadow-soft backdrop-blur-md">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-clay-dark">
-              Selected site
-            </p>
-            <p className="font-mono text-xs font-semibold text-charcoal">
+        <div className="pointer-events-none absolute bottom-3 right-3 z-10 w-64 max-w-[90%]">
+          <calcite-notice open kind="info" scale="s">
+            <span slot="title">Selected site</span>
+            <p className="font-mono text-xs font-medium text-charcoal">
               {lat.toFixed(5)}, {lon.toFixed(5)}
             </p>
-          </div>
-          {proximity && (
-            <div className="rounded-xl border border-forest/20 bg-off-white/95 px-3 py-2 text-right shadow-soft backdrop-blur-md">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-forest">
-                Infrastructure
-              </p>
-              <p className="mt-1 text-xs font-medium text-charcoal">
-                {formatRoadProximity(proximity.roadDistanceM)}
-              </p>
-              <p className="mt-0.5 text-xs text-charcoal-muted">
-                {proximity.inSeweredArea ? 'Inside sewered area' : 'Outside sewered catchment'}
-              </p>
-              {proximity.nearPowerLine && (
-                <p className="mt-0.5 text-xs font-medium text-clay-dark">
-                  Near 11 kV line — wayleave check
+            {proximity && (
+              <div className="mt-1 text-xs text-charcoal-muted">
+                <p>{formatRoadProximity(proximity.roadDistanceM)}</p>
+                <p>
+                  {proximity.inSeweredArea
+                    ? 'Inside sewered area'
+                    : 'Outside sewered catchment'}
                 </p>
-              )}
-            </div>
-          )}
+                {proximity.nearPowerLine && (
+                  <p className="font-medium text-charcoal">
+                    Near 11 kV line — wayleave check
+                  </p>
+                )}
+              </div>
+            )}
+          </calcite-notice>
         </div>
       )}
-
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-off-white/95 via-off-white/70 to-transparent p-3">
-        {layerPills}
-      </div>
     </div>
   );
 }
